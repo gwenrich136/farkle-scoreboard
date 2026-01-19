@@ -1,4 +1,4 @@
-# **The "Retro Arduino" Game Console: Complete Wiring Guide**
+# **The "Retro Arduino" Farkle Scoreboard: Complete Wiring Guide**
 
 This guide covers the wiring for the **Arduino Uno R4 WiFi** to control the 15-digit display, 8x8 NeoPixel grid, LCD, Speaker, and input controls.
 
