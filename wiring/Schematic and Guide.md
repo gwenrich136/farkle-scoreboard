@@ -56,7 +56,7 @@ If you plan to run this on batteries, here is the math based on your usage (50% 
 | **AA Batteries (NiMH)** | **2500mAh (x4)** | **\~1 Hour** | **Okay.** 4x Rechargeable AAs give \~4.8V-5.2V. Voltage will sag quickly under 2A load. |
 | **9V Battery** | **500mAh** | **Instant Fail** | **Do Not Use.** Cannot supply 2A; voltage will drop to 0 immediately. |
 
-## **Wiring Diagram![design/wiring.png][image1]**
+## **Wiring Diagram![][design/wiring.png]**
 
 ### **Diagram Code**
 
