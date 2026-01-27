@@ -7,7 +7,10 @@
 class ControlPad {
 public:
   enum ButtonAction {
-    DOWN_50,
+    DOWN_50, // Either "down" or +50 poitnts
+    LEFT_100, // Either "left" or +100 poitnts
+    RIGHT_500, // Either "right" or +500 poitnts
+    UP_1000, // Either "up" or +1000 poitnts
     FARKLE,
     BANK,
     CLEAR,
