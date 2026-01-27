@@ -158,13 +158,13 @@ graph TD
 
 | Arduino Pin | Function | Game Logic Example |
 | :---- | :---- | :---- |
-| **D2** | Button 1 | Left |
-| **D3** | Button 2 | Right |
-| **D4** | Button 3 | Up |
-| **D5** | Button 4 | Down |
-| **D6** | Button 5 | Action A |
-| **D7** | Button 6 | Action B |
-| **D8** | Button 7 | Start/Pause |
+| **D2** | Button 1 | RIGHT_500 |
+| **D3** | Button 2 | UP_1000 |
+| **D4** | Button 3 | DOWN_50 |
+| **D5** | Button 4 | LEFT_100 |
+| **D6** | Button 5 | BANK |
+| **D7** | Button 6 | CLEAR |
+| **D8** | Button 7 | FARKLE |
 
 ### **5\. Audio**
 
