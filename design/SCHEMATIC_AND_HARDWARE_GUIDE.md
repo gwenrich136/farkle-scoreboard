@@ -88,7 +88,7 @@ graph TD
 
     subgraph Components  
     NEO\["8x8 NeoPixel Grid"\]  
-    MAX\["2x MAX7219 Drivers"\]  
+    MAX\["3x MAX7219 Drivers"\]  
     LCD\["I2C LCD Screen"\]  
     SPK\[Speaker \+ Slide Switch\]  
     BTNS\["7x Push Buttons"\]  
