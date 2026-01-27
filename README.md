@@ -4,7 +4,7 @@ This project is a fully-featured, physical scoreboard for the dice game Farkle, 
 
 ## A "Vibe Coding" Experiment
 
-I'm using this project as a way of experimenting with some vibe-coding techniques that I've been hearing about, to see what sticks. Rather than starting with low-level implementation, the focus was first on collaboratively designing the user experience, game flow, and overall "feel" of the product with an AI, then having the AI document all of our dicussions in compact, synsinct design documens in markdown. I did this for the initial design of the gameplay, but we'll also rely on creating a new design each time I add new feature to the project. The design documents in the `/design` directory are the output of this process.
+I'm using this project as a way of experimenting with some vibe-coding techniques that I've been hearing about, to see what sticks. Rather than starting with low-level implementation, the focus was first on collaboratively designing the user experience, game flow, and overall "feel" of the product with an AI, then having the AI document all of our dicussions in compact, synsinct design documens in markdown. I did this for the initial design of the hardware components, the overall user gameplay, and will continue to rely on creating a new design each time I add new feature to the project. The design documents in the `/design` directory are the output of this process.
 
 ---
 
