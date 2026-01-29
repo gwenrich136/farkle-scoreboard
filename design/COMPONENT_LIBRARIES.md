@@ -19,20 +19,7 @@ The `ControlPad` component is responsible for managing physical button inputs, t
 ### Key Logic & Behavior
 -   **Single Action per Press:** The `read()` method ensures that only one `ButtonAction` is registered per distinct button press, making it ideal for a state-based game loop.
 -   **Dynamic Mapping:** Buttons are mapped to actions at runtime, providing flexibility for different control layouts.
--   **`ButtonAction` Enum:**
-    ```cpp
-    enum ButtonAction {
-      DOWN_50,   // Either "down" or +50 points
-      LEFT_100,  // Either "left" or +100 points
-      RIGHT_500, // Either "right" or +500 points
-      UP_1000,   // Either "up" or +1000 points
-      FARKLE,
-      BANK,
-      CLEAR,
-      NONE
-    };
-    ```
-    The dual-purpose actions (`DOWN_50`, etc.) depend on the current game state for their interpretation.
+-   **`ButtonAction` Enum:** This enum, representing game-level actions, lives in its own dedicated header file: `src/farkle/include/ButtonActions.h`. This decouples the core game actions from the `ControlPad` hardware library. The `ControlPad`'s `read()` method should return values from this centrally-defined enum. The dual-purpose actions (`DOWN_50`, etc.) depend on the current game state for their interpretation.
 
 ---
 
