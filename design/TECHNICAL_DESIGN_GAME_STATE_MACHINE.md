@@ -123,19 +123,22 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 
 *   **`src/farkle/include/phases/BankingPhase.h`** & **`src/farkle/src/phases/BankingPhase.cpp`**
     *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
-    *   **Implementation Details:** The `update()` method will ignore input and run its animation. When the animation completes, it will perform all necessary end-of-turn logic in this order:
-        1.  Add `atRiskScore` to the current player's `score`.
-        2.  Reset `atRiskScore` to 0.
-        3.  **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= 5000`. If so, set `state.finalRoundTriggered = true;`.
-        4.  Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        5.  `return game.getPhase<WaitingPhase>();` to complete the transition.
+    *   **Implementation Details:** The `update()` method will handle both the animation and the subsequent wait for dismissal:
+        1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
+        2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
+        3.  **Finalize Turn:** Once a button is pressed:
+            a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= 5000`. If so, set `state.finalRoundTriggered = true;`.
+            b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
+            c. `return game.getPhase<WaitingPhase>();`.
 
 *   **`src/farkle/include/phases/FarklingPhase.h`** & **`src/farkle/src/phases/FarklingPhase.cpp`**
     *   **Why:** Implements the farkle animation and the end-of-turn logic.
-    *   **Implementation Details:** Similar to `BankingPhase`, when its animation completes, it will:
-        1.  Reset `atRiskScore` to 0.
-        2.  Call `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        3.  `return game.getPhase<WaitingPhase>();`.
+    *   **Implementation Details:** Similar to `BankingPhase`, the `update()` method will:
+        1.  **Animate Score Loss:** While `state.atRiskScore > 0`, run the time-based animation logic to incrementally drain `state.atRiskScore` to 0. Ignore input.
+        2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
+        3.  **Finalize Turn:** Upon button press:
+            a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
+            b. `return game.getPhase<WaitingPhase>();`.
 
 *   **`src/farkle/include/phases/PostGamePhase_V1.h`** & **`src/farkle/src/phases/PostGamePhase_V1.cpp`**
     *   **Why:** Implements the simplified "frozen" post-game phase for V1.

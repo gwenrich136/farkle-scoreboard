@@ -47,11 +47,15 @@ The game begins by guiding players through setup and configuration.
 -   **Banking Animation:**
     -   When a player presses `BANK`, their `atRisk` score slowly drains to zero while their banked score simultaneously increases by the same amount. Both the `ScoreDisplay` segments and the `LedProgressGrid` animate this proportional change, with the `atRisk` portion shrinking and the banked portion growing.
     -   Input is locked during this animation.
+    -   **Manual Advance:** Once the animation completes (at-risk score is 0), the game persists in its final state, showing the updated score. The game waits indefinitely until **any button** is pressed on the `ControlPad`.
+    -   **Transition:** Upon button press, the game advances to the next player's turn and returns to the `WaitingPhase`.
 -   **Standard Farkle Animation:**
     -   If a player farkles (but it's not their third consecutive farkle), their `atRisk` score slowly drains to zero.
     -   A witty quip related to farkling is displayed on the `TextDisplay`.
     -   The `FarkleWarningLights` update to reflect the new farkle count.
-    -   Input is locked during this animation, followed by a brief pause before the next player's turn begins.
+    -   Input is locked during this animation.
+    -   **Manual Advance:** Once the animation completes, the game remains in this state (displaying the quip and updated lights) and waits for **any button** press.
+    -   **Transition:** Upon button press, the game advances to the next player's turn and returns to the `WaitingPhase`.
 
 ### 2.3 Catastrophic Farkle (Third Consecutive Farkle)
 -   **Trigger:** When a player gets their third consecutive farkle in a turn.
