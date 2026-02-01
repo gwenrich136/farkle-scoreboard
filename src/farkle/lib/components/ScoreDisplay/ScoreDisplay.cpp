@@ -6,8 +6,11 @@
 #define TEN_THOUSAND 10000
 
 ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)
-  : _lc(dataPin, clkPin, csPin)
+  : _lc(dataPin, clkPin, csPin, NUM_DEVICES)
 {
+}
+
+void ScoreDisplay::begin() {
   // Set up the MAX7219 devices
   for (int i = 0; i < NUM_DEVICES; i++) {
     _lc.shutdown(i, false); // Wake up display

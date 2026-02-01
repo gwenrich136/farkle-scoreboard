@@ -1,4 +1,5 @@
 #include "ControlPad.h"
+#include "ButtonActions.h"
 
 ControlPad::ControlPad() {
   // Constructor is empty as per requirement
@@ -9,7 +10,7 @@ void ControlPad::addButton(int pin, ButtonAction buttonAction) {
   pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
 }
 
-ControlPad::ButtonAction ControlPad::read() {
+ButtonAction ControlPad::read() {
   int pressedCount = 0;
   ButtonAction pressedAction = ButtonAction::NONE;
 

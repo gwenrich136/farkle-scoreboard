@@ -49,7 +49,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 ### API Design
 
 #### Setup & State Management
--   **`LedProgressGrid(uint8_t pin, uint16_t num_pixels)`**: Constructor. Initializes the NeoPixel strip.
+-   **`LedProgressGrid(uint8_t pin)`**: Constructor. Initializes the NeoPixel strip for a hardcoded 8x8 grid (64 pixels).
 -   **`void reset()`**: Resets the component to its initial state, clearing all player configurations and turning off all LEDs, preparing for a new game.
 -   **`int addPlayer()`**: Dynamically adds a player to the grid configuration.
     -   Assigns a unique color (hue) to the new player. The first player gets a random hue, subsequent players get hues generated using the golden ratio for maximal distinction.
@@ -63,7 +63,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 
 -   **`void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore)`**: The primary method for rendering game scores during active gameplay. This should be called repeatedly in the main game loop.
     -   The `LedProgressGrid` internally calculates `maxScore` based on the highest score provided (lowest multiple of 2000 greater than the highest score, with a minimum of 10,000).
-    -   Displays `scores[playerIndex]` as solid progress bars for all players, using their assigned colors.
+    -   Displays `scores[playerIndex]` as solid progress bars for all players, using their assigned colors. The progress bar fills **uniformly across all assigned rows simultaneously**. For example, if a player is assigned 2 rows and has 50% of the max score, both rows should be 50% illuminated, rather than one row being full and the other empty.
     -   For the `currentPlayerIndex`:
         -   Their `scores[currentPlayerIndex]` (banked score) is shown as solid.
         -   Their `atRiskScore` is shown as a blinking extension to their progress bar, using half brightness and a 500ms on/off cycle.

@@ -7,6 +7,7 @@ class FarkleWarningLights
 {
   public:
     FarkleWarningLights(int yellowPin, int redPin);
+    void begin();
     void farkle_state(int state);
   private:
     int _yellowPin;

@@ -4,6 +4,9 @@ FarkleWarningLights::FarkleWarningLights(int yellowPin, int redPin)
 {
   _yellowPin = yellowPin;
   _redPin = redPin;
+}
+
+void FarkleWarningLights::begin() {
   pinMode(_yellowPin, OUTPUT);
   pinMode(_redPin, OUTPUT);
 }

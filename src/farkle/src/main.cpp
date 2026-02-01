@@ -1,18 +1,22 @@
 #include <Arduino.h>
+#include "Game.h"
 
-// put function declarations here:
-int myFunction(int, int);
+// Instantiate the global Game engine
+Game farkleGame;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+    // Basic Serial initialization for debugging
+    Serial.begin(9600);
+    delay(1000); // Give Serial monitor time to open
+    Serial.println("BOOT: Starting setup...");
+    
+    // Delegate all initialization to the Game engine
+    farkleGame.setup();
+    Serial.println("BOOT: Setup complete. Entering loop.");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+    // Run the main game state machine loop
+    // Serial.println("LOOP: Tick"); // Too verbose, commented out
+    farkleGame.loop();
 }
