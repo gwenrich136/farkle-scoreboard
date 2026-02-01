@@ -27,7 +27,8 @@ void LedProgressGrid::hello_world()
 void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
-  int remaininderBrightness = remainder * brightness;
+  // Apply a square curve (gamma ~2.0) to the remainder for smoother perceived brightness transitions
+  int remaininderBrightness = (int)(remainder * remainder * brightness);
   // rows snake, so we need to count backwards for odd rows
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
