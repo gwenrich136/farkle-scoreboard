@@ -17,22 +17,28 @@ void FarklingPhase::onEnter(GameState& state) {
 
 GamePhase* FarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
     // 1. Perform Animation
-    scoreMoveAccumulator += (FARKLE_DRAIN_SPEED * deltaTime);
-    int pointsToDrain = (int)scoreMoveAccumulator;
+    if (state.atRiskScore > 0) {
+        scoreMoveAccumulator += (FARKLE_DRAIN_SPEED * deltaTime);
+        int pointsToDrain = (int)scoreMoveAccumulator;
 
-    if (pointsToDrain > 0) {
-        if (pointsToDrain > state.atRiskScore) {
-            pointsToDrain = state.atRiskScore;
+        if (pointsToDrain > 0) {
+            if (pointsToDrain > state.atRiskScore) {
+                pointsToDrain = state.atRiskScore;
+            }
+            state.atRiskScore -= pointsToDrain;
+            scoreMoveAccumulator -= (float)pointsToDrain;
         }
-        state.atRiskScore -= pointsToDrain;
-        scoreMoveAccumulator -= (float)pointsToDrain;
     }
 
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0;
-        this->endTurn(state);
-        return game.getPhase<WaitingPhase>();
+
+        // Wait for user dismissal
+        if (action != ButtonAction::NONE) {
+            this->endTurn(state);
+            return game.getPhase<WaitingPhase>();
+        }
     }
 
     return this;
