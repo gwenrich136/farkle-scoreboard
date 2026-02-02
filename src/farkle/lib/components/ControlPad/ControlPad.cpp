@@ -1,23 +1,31 @@
 #include "ControlPad.h"
 #include "ButtonActions.h"
 
-ControlPad::ControlPad() {
-  // Constructor is empty as per requirement
+ControlPad::ControlPad() : _lastAction(ButtonAction::NONE) {
+  // Initialize all pins to NONE
+  for (int i = 0; i < MAX_PINS; i++) {
+    _buttonMap[i] = ButtonAction::NONE;
+  }
 }
 
 void ControlPad::addButton(int pin, ButtonAction buttonAction) {
-  _buttonMap[pin] = buttonAction;
-  pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
+  if (pin < MAX_PINS) {
+    _buttonMap[pin] = buttonAction;
+    pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
+  }
 }
 
 ButtonAction ControlPad::read() {
   int pressedCount = 0;
   ButtonAction pressedAction = ButtonAction::NONE;
 
-  for (auto const& [pin, action] : _buttonMap) {
-    if (digitalRead(pin) == LOW) { // Button is pressed (LOW due to INPUT_PULLUP)
-      pressedCount++;
-      pressedAction = action;
+  for (int i = 0; i < MAX_PINS; i++) {
+    // If a button action is assigned to this pin
+    if (_buttonMap[i] != ButtonAction::NONE) {
+      if (digitalRead(i) == LOW) { // Button is pressed (LOW due to INPUT_PULLUP)
+        pressedCount++;
+        pressedAction = _buttonMap[i];
+      }
     }
   }
 
