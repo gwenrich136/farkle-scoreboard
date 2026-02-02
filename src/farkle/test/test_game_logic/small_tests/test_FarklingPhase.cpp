@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "phases/FarklingPhase.h"
 #include "phases/WaitingPhase.h"
+#include "../test_utils.h"
 #include <unity.h>
 #include "Arduino.h"
 
@@ -12,10 +13,10 @@ void test_FarklingPhase_AnimationMath() {
     game.state.atRiskScore = 500;
     game.state.players[0].score = 1000;
     game.currentPhase = game.getPhase<FarklingPhase>();
+    game.currentPhase->onEnter(game.state);
 
     for (int i = 0; i < 101; i++) { // 101 * 10ms = 1010ms
-        advance_millis(10);
-        game.loop();
+        simulateNoAction(game);
     }
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
@@ -28,9 +29,9 @@ void test_FarklingPhase_ZeroFloorSafety() {
     game.setup();
     game.state.atRiskScore = 50;
     game.currentPhase = game.getPhase<FarklingPhase>();
+    game.currentPhase->onEnter(game.state);
 
-    advance_millis(1000); 
-    game.loop();
+    simulateNoAction(game, 1000);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 }
@@ -41,16 +42,11 @@ void test_FarklingPhase_InputSpamming() {
     game.setup();
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<FarklingPhase>();
+    game.currentPhase->onEnter(game.state);
 
-    game.controlPad.press(ButtonAction::BANK);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::CLEAR);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::UP_1000);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::CLEAR);
+    simulateButtonPress(game, ButtonAction::UP_1000);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 }
@@ -61,15 +57,13 @@ void test_FarklingPhase_ManualAdvance() {
     game.setup();
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<FarklingPhase>();
+    game.currentPhase->onEnter(game.state);
     game.state.currentPlayerIndex = 0;
 
-    advance_millis(10);
-    game.loop();
+    simulateNoAction(game);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 
-    game.controlPad.press(ButtonAction::BANK); // Any button
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::BANK);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 }
