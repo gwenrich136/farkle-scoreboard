@@ -6,7 +6,7 @@
 class WaitingPhase : public InGamePhase {
 public:
     virtual ~WaitingPhase() = default;
-    virtual void onEnter(GameState& state) override;
+    virtual void onEnter(Game& game, GameState& state) override;
     virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) override;
 };
 

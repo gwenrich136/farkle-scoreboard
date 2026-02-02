@@ -1,3 +1,4 @@
+
 #include "FarkleWarningLights.h"
 
 FarkleWarningLights::FarkleWarningLights(int yellowPin, int redPin)
@@ -22,4 +23,14 @@ void FarkleWarningLights::farkle_state(int state) {
   } else {
     digitalWrite(_redPin, HIGH);
   }
+}
+
+void FarkleWarningLights::alternate() {
+    unsigned long currentTime = millis();
+    if (currentTime - _lastToggleTime >= ALTERNATE_INTERVAL) {
+        _lastToggleTime = currentTime;
+        _yellowIsOn = !_yellowIsOn;
+        digitalWrite(_yellowPin, _yellowIsOn ? HIGH : LOW);
+        digitalWrite(_redPin, _yellowIsOn ? LOW : HIGH);
+    }
 }

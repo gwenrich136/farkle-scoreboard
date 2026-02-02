@@ -11,3 +11,7 @@ void FarkleWarningLights::begin() {
 void FarkleWarningLights::farkle_state(int state) {
     captured_state = state;
 }
+
+void FarkleWarningLights::alternate() {
+    // Empty mock implementation
+}

@@ -1,7 +1,7 @@
 #include "phases/WaitingPhase.h"
 #include "Game.h"
 
-void WaitingPhase::onEnter(GameState& state) {
+void WaitingPhase::onEnter(Game& game, GameState& state) {
     // No specific local state to reset for WaitingPhase
 }
 

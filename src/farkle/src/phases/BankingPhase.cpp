@@ -4,7 +4,7 @@
 // Constants for animation
 const float SCORE_ANIMATION_SPEED = 0.5f; // points per millisecond (approx 500 points/sec)
 
-void BankingPhase::onEnter(GameState& state) {
+void BankingPhase::onEnter(Game& game, GameState& state) {
     scoreMoveAccumulator = 0.0f;
 }
 
