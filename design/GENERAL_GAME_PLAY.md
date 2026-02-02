@@ -73,7 +73,7 @@ The game begins by guiding players through setup and configuration.
 ## 3. End-Game Experience
 
 ### 3.1 The "Last Round" Trigger
--   **Trigger Condition:** The first time any player's banked score exceeds 10,000 points.
+-   **Trigger Condition:** The first time any player's banked score exceeds **the Target Score**.
 -   **Visual & Audio Cue:**
     -   The `ScoreDisplay` segment showing the high score begins to blink continuously.
     -   A "bell sound" plays (future implementation) to signify the final round.
