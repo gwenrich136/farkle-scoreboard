@@ -3,6 +3,7 @@
 #include "test_FarklingPhase.h"
 #include "test_BankingPhase.h"
 #include "test_full_game.h"
+#include "test_turn_lifecycle.h"
 
 void setUp(void) {
     // set up tear down functions that are required by unity
@@ -17,6 +18,7 @@ void test_runner() {
     run_farkling_phase_tests();
     run_banking_phase_tests();
     run_full_game_tests();
+    run_turn_lifecycle_tests();
 }
 
 int main() {
