@@ -35,7 +35,11 @@ public:
         return nullptr;
     }
 
+#ifdef UNIT_TEST
+public:
+#else
 private:
+#endif
     struct PhasePool {
         WaitingPhase waiting;
         BankingPhase banking;
