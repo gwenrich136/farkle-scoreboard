@@ -68,26 +68,40 @@ void test_FullGame_TripleFarkle() {
 void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     Game game;
     game.setup();
-    game.state.players[0].score = 500; // Player has less than the 1000-point penalty
+
+    // --- Player 0 scores 500 points ---
+    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    while (game.state.atRiskScore > 0) {
+        simulateNoAction(game);
+    }
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
+    TEST_ASSERT_EQUAL_INT(500, game.state.players[0].score);
 
     // --- First Farkle ---
+    advance_to_player_zero(game);
     simulateButtonPress(game, ButtonAction::FARKLE);
-    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Second Farkle ---
-    game.state.currentPlayerIndex = 0;
+    advance_to_player_zero(game);
     simulateButtonPress(game, ButtonAction::FARKLE);
-    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Third Farkle - Trigger penalty ---
-    game.state.currentPlayerIndex = 0;
+    advance_to_player_zero(game);
     simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
     // --- Run the penalty animation ---
-    while (game.currentPhase == game.getPhase<PenaltyFarklingPhase>()) {
-        game.loop();
+    while (game.state.atRiskScore < 0) {
+        simulateNoAction(game);
     }
+    TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
+
+    // --- Dismiss the penalty phase ---
+    simulateButtonPress(game, ButtonAction::CLEAR);
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 
     // Score should be 0, not negative
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].score);
