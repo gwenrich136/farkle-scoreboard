@@ -13,8 +13,6 @@ class FarkleWarningLights
   private:
     int _yellowPin;
     int _redPin;
-    unsigned long _lastToggleTime = 0;
-    bool _yellowIsOn = false;
     const int ALTERNATE_INTERVAL = 250; // ms
 };
 

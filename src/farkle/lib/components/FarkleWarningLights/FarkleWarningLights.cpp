@@ -26,11 +26,11 @@ void FarkleWarningLights::farkle_state(int state) {
 }
 
 void FarkleWarningLights::alternate() {
-    unsigned long currentTime = millis();
-    if (currentTime - _lastToggleTime >= ALTERNATE_INTERVAL) {
-        _lastToggleTime = currentTime;
-        _yellowIsOn = !_yellowIsOn;
-        digitalWrite(_yellowPin, _yellowIsOn ? HIGH : LOW);
-        digitalWrite(_redPin, _yellowIsOn ? LOW : HIGH);
+    if (millis() % (ALTERNATE_INTERVAL * 2) < ALTERNATE_INTERVAL) {
+        digitalWrite(_yellowPin, HIGH);
+        digitalWrite(_redPin, LOW);
+    } else {
+        digitalWrite(_yellowPin, LOW);
+        digitalWrite(_redPin, HIGH);
     }
 }
