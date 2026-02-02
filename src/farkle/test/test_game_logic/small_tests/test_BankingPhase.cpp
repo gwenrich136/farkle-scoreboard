@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "phases/BankingPhase.h"
 #include "phases/WaitingPhase.h"
-#include "test_utils.h"
+#include "../test_utils.h"
 #include <unity.h>
 #include "Arduino.h"
 

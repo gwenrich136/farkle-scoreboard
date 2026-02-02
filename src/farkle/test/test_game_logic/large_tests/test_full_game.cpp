@@ -1,6 +1,7 @@
 #include "test_full_game.h"
 #include "Game.h"
 #include "phases/PostGamePhase_V1.h"
+#include "../test_utils.h"
 #include <unity.h>
 #include "Arduino.h"
 
@@ -11,23 +12,18 @@ void test_FullGame_StandardGame() {
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
-        game.controlPad.press(ButtonAction::UP_1000);
-        advance_millis(10);
-        game.loop();
-        game.controlPad.press(ButtonAction::RIGHT_500);
-        advance_millis(10);
-        game.loop();
-        game.controlPad.press(ButtonAction::BANK);
+        simulateButtonPress(game, ButtonAction::UP_1000);
+        simulateButtonPress(game, ButtonAction::RIGHT_500);
+        
+        // Start banking
+        simulateButtonPress(game, ButtonAction::BANK);
 
         while (game.state.atRiskScore > 0) {
-            advance_millis(10);
-            game.loop();
+            simulateNoAction(game);
         }
 
         // Press a button to advance the turn
-        game.controlPad.press(ButtonAction::BANK);
-        advance_millis(10);
-        game.loop();
+        simulateButtonPress(game, ButtonAction::BANK);
 
         turn++;
     }
@@ -43,29 +39,19 @@ void test_FullGame_TripleFarkle() {
     game.state.players[0].score = 2500; // Give player 1 some points
 
     // --- First Farkle ---
-    game.controlPad.press(ButtonAction::FARKLE);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_INT(1, game.state.players[0].farkle_count);
-    game.controlPad.press(ButtonAction::BANK); // Dismiss
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
 
     // --- Second Farkle ---
     game.state.currentPlayerIndex = 0; // Go back to Player 1
-    game.controlPad.press(ButtonAction::FARKLE);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_INT(2, game.state.players[0].farkle_count);
-    game.controlPad.press(ButtonAction::BANK); // Dismiss
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
 
     // --- Third Farkle - Trigger the penalty ---
     game.state.currentPlayerIndex = 0; // Go back to Player 1
-    game.controlPad.press(ButtonAction::FARKLE);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
     TEST_ASSERT_EQUAL_INT(-1000, game.state.atRiskScore); // atRiskScore is now -1000
     TEST_ASSERT_EQUAL_INT(2500, game.state.players[0].score); // Score is unchanged until animation
@@ -87,12 +73,8 @@ void run_full_game_tests() {
 // Helper function to advance turns until it is player 0's turn again.
 void advance_to_player_zero(Game& game) {
     while (game.state.currentPlayerIndex != 0) {
-        game.controlPad.press(ButtonAction::FARKLE); // A simple action to advance the turn
-        advance_millis(10);
-        game.loop();
-        game.controlPad.press(ButtonAction::BANK); // Dismiss the phase to complete the turn
-        advance_millis(10);
-        game.loop();
+        simulateButtonPress(game, ButtonAction::FARKLE); // A simple action to advance the turn
+        simulateButtonPress(game, ButtonAction::BANK); // Dismiss the phase to complete the turn
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
 }

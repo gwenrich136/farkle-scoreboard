@@ -3,7 +3,7 @@
 #include "phases/WaitingPhase.h"
 #include "phases/BankingPhase.h"
 #include "phases/FarklingPhase.h"
-#include "test_utils.h"
+#include "../test_utils.h"
 #include <unity.h>
 
 // Verifies that the atRiskScore correctly accumulates when score buttons are pressed.

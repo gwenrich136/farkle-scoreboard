@@ -1,10 +1,10 @@
 #include <unity.h>
-#include "test_WaitingPhase.h"
-#include "test_FarklingPhase.h"
-#include "test_PenaltyFarklingPhase.h"
-#include "test_BankingPhase.h"
-#include "test_full_game.h"
-#include "test_turn_lifecycle.h"
+#include "small_tests/test_WaitingPhase.h"
+#include "small_tests/test_FarklingPhase.h"
+#include "small_tests/test_PenaltyFarklingPhase.h"
+#include "small_tests/test_BankingPhase.h"
+#include "large_tests/test_full_game.h"
+#include "medium_tests/test_turn_lifecycle.h"
 
 void setUp(void) {
     // set up tear down functions that are required by unity
