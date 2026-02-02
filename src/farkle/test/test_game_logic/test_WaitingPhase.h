@@ -6,4 +6,6 @@ void test_WaitingPhase_ScoreCorrection();
 void test_WaitingPhase_TransitionToBanking();
 void test_WaitingPhase_TransitionToFarkling();
 
+void run_waiting_phase_tests();
+
 #endif // TEST_WAITING_PHASE_H

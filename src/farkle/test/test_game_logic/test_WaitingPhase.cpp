@@ -22,7 +22,6 @@ void test_WaitingPhase_ScoreAccumulation() {
     TEST_ASSERT_EQUAL_INT(1500, game.state.atRiskScore);
 }
 
-// Test function to verify score clearing in WaitingPhase
 void test_WaitingPhase_ScoreCorrection() {
     Game game;
     game.setup();
@@ -40,7 +39,6 @@ void test_WaitingPhase_ScoreCorrection() {
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 }
 
-// Test function to verify the transition from Waiting to Banking
 void test_WaitingPhase_TransitionToBanking() {
     Game game;
     game.setup(); // Initialize the game
@@ -60,7 +58,6 @@ void test_WaitingPhase_TransitionToBanking() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 }
 
-// Test function to verify the transition from Waiting to Farkling
 void test_WaitingPhase_TransitionToFarkling() {
     Game game;
     game.setup();
@@ -76,3 +73,9 @@ void test_WaitingPhase_TransitionToFarkling() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 }
 
+void run_waiting_phase_tests() {
+    RUN_TEST(test_WaitingPhase_ScoreAccumulation);
+    RUN_TEST(test_WaitingPhase_ScoreCorrection);
+    RUN_TEST(test_WaitingPhase_TransitionToBanking);
+    RUN_TEST(test_WaitingPhase_TransitionToFarkling);
+}

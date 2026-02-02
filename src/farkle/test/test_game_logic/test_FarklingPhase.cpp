@@ -6,3 +6,7 @@ void test_FarklingPhase_TripleFarklePenalty() {
     // TODO: Trigger transition to FarklingPhase
     // TODO: Assert player's score decreases by 1000
 }
+
+void run_farkling_phase_tests() {
+    RUN_TEST(test_FarklingPhase_TripleFarklePenalty);
+}

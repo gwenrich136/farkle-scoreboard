@@ -15,5 +15,6 @@ const int A2 = 2;
 // Mock Arduino functions
 unsigned long millis();
 void delay(unsigned long ms);
+void advance_millis(unsigned long ms);
 
 #endif // ARDUINO_H

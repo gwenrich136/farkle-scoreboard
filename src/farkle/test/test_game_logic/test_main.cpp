@@ -1,6 +1,8 @@
 #include <unity.h>
 #include "test_WaitingPhase.h"
 #include "test_FarklingPhase.h"
+#include "test_BankingPhase.h"
+#include "test_full_game.h"
 
 void setUp(void) {
     // set up tear down functions that are required by unity
@@ -11,11 +13,10 @@ void tearDown(void) {
 }
 
 void test_runner() {
-    RUN_TEST(test_WaitingPhase_ScoreAccumulation);
-    RUN_TEST(test_WaitingPhase_ScoreCorrection);
-    RUN_TEST(test_WaitingPhase_TransitionToBanking);
-    RUN_TEST(test_WaitingPhase_TransitionToFarkling);
-    RUN_TEST(test_FarklingPhase_TripleFarklePenalty);
+    run_waiting_phase_tests();
+    run_farkling_phase_tests();
+    run_banking_phase_tests();
+    run_full_game_tests();
 }
 
 int main() {
