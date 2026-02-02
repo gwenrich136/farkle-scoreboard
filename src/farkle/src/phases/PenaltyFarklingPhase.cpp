@@ -6,12 +6,7 @@ const float PENALTY_DRAIN_SPEED = 1.0f; // faster drain for farkles
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
-
-    // Apply the 1000-point penalty
-    state.players[state.currentPlayerIndex].score -= 1000;
-    if (state.players[state.currentPlayerIndex].score < 0) {
-        state.players[state.currentPlayerIndex].score = 0;
-    }
+    state.atRiskScore = -1000;
 
     // Reset the farkle count
     state.players[state.currentPlayerIndex].farkle_count = 0;
@@ -19,22 +14,32 @@ void PenaltyFarklingPhase::onEnter(GameState& state) {
 
 GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
     // 1. Perform Animation
-    if (state.atRiskScore > 0) {
+    if (state.atRiskScore < 0) {
         scoreMoveAccumulator += (PENALTY_DRAIN_SPEED * deltaTime);
-        int pointsToDrain = (int)scoreMoveAccumulator;
+        int pointsToAdd = (int)scoreMoveAccumulator;
 
-        if (pointsToDrain > 0) {
-            if (pointsToDrain > state.atRiskScore) {
-                pointsToDrain = state.atRiskScore;
+        if (pointsToAdd > 0) {
+            Player& currentPlayer = state.players[state.currentPlayerIndex];
+
+            // Ensure we don't add more than what's left in atRiskScore (a negative value)
+            if (pointsToAdd > -state.atRiskScore) {
+                pointsToAdd = -state.atRiskScore;
             }
-            state.atRiskScore -= pointsToDrain;
-            scoreMoveAccumulator -= (float)pointsToDrain;
+
+            // Ensure player score doesn't go below zero
+            if (pointsToAdd > currentPlayer.score) {
+                pointsToAdd = currentPlayer.score;
+            }
+
+            currentPlayer.score -= pointsToAdd;
+            state.atRiskScore += pointsToAdd;
+            scoreMoveAccumulator -= (float)pointsToAdd;
         }
     }
 
     // 2. Check for completion
-    if (state.atRiskScore <= 0) {
-        state.atRiskScore = 0;
+    if (state.atRiskScore >= 0) {
+        state.atRiskScore = 0; // Clean up any fractional remainder
 
         // Wait for user dismissal
         if (action != ButtonAction::NONE) {

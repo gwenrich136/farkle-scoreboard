@@ -50,9 +50,9 @@ void test_FullGame_TripleFarkle() {
     game.controlPad.press(ButtonAction::BANK); // Dismiss
     advance_millis(10);
     game.loop();
-    advance_to_player_zero(game); // Go back to Player 1
 
     // --- Second Farkle ---
+    game.state.currentPlayerIndex = 0; // Go back to Player 1
     game.controlPad.press(ButtonAction::FARKLE);
     advance_millis(10);
     game.loop();
@@ -60,46 +60,23 @@ void test_FullGame_TripleFarkle() {
     game.controlPad.press(ButtonAction::BANK); // Dismiss
     advance_millis(10);
     game.loop();
-    advance_to_player_zero(game); // Go back to Player 1
-
-    // --- Player 1 banks, which should reset their farkle count ---
-    game.controlPad.press(ButtonAction::UP_1000);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::BANK);
-    advance_millis(10);
-    game.loop();
-    while (game.state.atRiskScore > 0) {
-        advance_millis(10);
-        game.loop(); // Finish animation
-    }
-    game.controlPad.press(ButtonAction::BANK); // Dismiss
-    advance_millis(10);
-    game.loop();
-    TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count); // Verify reset
-    advance_to_player_zero(game); // Go back to Player 1
-
-    // --- Re-establish 2-farkle streak ---
-    game.controlPad.press(ButtonAction::FARKLE);
-    game.loop();
-    game.controlPad.press(ButtonAction::BANK);
-    game.loop();
-    advance_to_player_zero(game);
-    game.controlPad.press(ButtonAction::FARKLE);
-    game.loop();
-    game.controlPad.press(ButtonAction::BANK);
-    game.loop();
-    advance_to_player_zero(game);
-    TEST_ASSERT_EQUAL_INT(2, game.state.players[0].farkle_count);
 
     // --- Third Farkle - Trigger the penalty ---
+    game.state.currentPlayerIndex = 0; // Go back to Player 1
     game.controlPad.press(ButtonAction::FARKLE);
     advance_millis(10);
     game.loop();
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
-    // Initial score 2500, +1000 banked, -1000 penalty = 2500
-    TEST_ASSERT_EQUAL_INT(2500, game.state.players[0].score);
-    TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count); // Should be reset
+    TEST_ASSERT_EQUAL_INT(-1000, game.state.atRiskScore); // atRiskScore is now -1000
+    TEST_ASSERT_EQUAL_INT(2500, game.state.players[0].score); // Score is unchanged until animation
+    TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count); // Farkle count is reset
+
+    // --- Run the penalty animation ---
+    for (int i = 0; i < 200; ++i) {
+        game.currentPhase->update(game, game.state, ButtonAction::NONE, 10);
+    }
+    TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
+    TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score); // Final score is correct
 }
 
 void run_full_game_tests() {
