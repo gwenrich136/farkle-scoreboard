@@ -11,6 +11,7 @@
 #include "phases/BankingPhase.h"
 #include "phases/FarklingPhase.h"
 #include "phases/PostGamePhase_V1.h"
+#include "phases/PenaltyFarklePhase.h"
 
 // Hardware Component Includes
 #include "ControlPad.h"
@@ -32,6 +33,7 @@ public:
         if (std::is_same<T, BankingPhase>::value) return (T*)&phasePool.banking;
         if (std::is_same<T, FarklingPhase>::value) return (T*)&phasePool.farkling;
         if (std::is_same<T, PostGamePhase_V1>::value) return (T*)&phasePool.postGame;
+        if (std::is_same<T, PenaltyFarklePhase>::value) return (T*)&phasePool.penaltyFarkle;
         return nullptr;
     }
 
@@ -45,6 +47,7 @@ private:
         BankingPhase banking;
         FarklingPhase farkling;
         PostGamePhase_V1 postGame;
+        PenaltyFarklePhase penaltyFarkle;
     };
 
     PhasePool phasePool;

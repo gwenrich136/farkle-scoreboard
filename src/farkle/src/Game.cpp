@@ -56,7 +56,7 @@ void Game::setup() {
 
     // 3. Set Initial State
     currentPhase = &phasePool.waiting;
-    currentPhase->onEnter(*this, state);
+    currentPhase->onEnter(state);
     
     lastUpdateTime = millis();
 }
@@ -79,7 +79,7 @@ void Game::loop() {
     // 5. Handle Transitions
     if (nextPhase != currentPhase) {
         currentPhase = nextPhase;
-        currentPhase->onEnter(*this, state);
+        currentPhase->onEnter(state);
     }
 
     // 6. Display Current State

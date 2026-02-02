@@ -1,7 +1,7 @@
 #include "phases/PostGamePhase_V1.h"
 #include <vector>
 
-void PostGamePhase_V1::onEnter(Game& game, GameState& state) {
+void PostGamePhase_V1::onEnter(GameState& state) {
     // No specific local state
 }
 
