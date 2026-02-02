@@ -23,7 +23,7 @@ void test_FullGame_StandardGame() {
         }
 
         // Press a button to advance the turn
-        simulateButtonPress(game, ButtonAction::BANK);
+        simulateButtonPress(game, ButtonAction::CLEAR);
 
         turn++;
     }
@@ -41,13 +41,13 @@ void test_FullGame_TripleFarkle() {
     // --- First Farkle ---
     simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_INT(1, game.state.players[0].farkle_count);
-    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Second Farkle ---
     game.state.currentPlayerIndex = 0; // Go back to Player 1
     simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_INT(2, game.state.players[0].farkle_count);
-    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Third Farkle - Trigger the penalty ---
     game.state.currentPlayerIndex = 0; // Go back to Player 1
@@ -74,7 +74,7 @@ void run_full_game_tests() {
 void advance_to_player_zero(Game& game) {
     while (game.state.currentPlayerIndex != 0) {
         simulateButtonPress(game, ButtonAction::FARKLE); // A simple action to advance the turn
-        simulateButtonPress(game, ButtonAction::BANK); // Dismiss the phase to complete the turn
+        simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss the phase to complete the turn
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
 }
