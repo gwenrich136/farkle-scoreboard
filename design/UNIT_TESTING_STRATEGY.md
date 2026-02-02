@@ -58,23 +58,89 @@ test/
 │   └── test_scoring.cpp
 ```
 
-## 4. Test Scenarios
+## 4. Test Pyramid Strategy
 
-We will focus our testing efforts on the **Game Logic** and **State Machine**, as these are the most complex and critical parts of the application.
+We will structure our tests into three tiers based on scope and complexity. This ensures we cover individual logic, state handoffs, and full game flows.
 
-### 4.1 State Transitions (`test_transitions.cpp`)
-*   **Waiting -> Banking:** Simulate pressing `BANK`. Verify `Game::currentPhase` changes to `BankingPhase`.
-*   **Waiting -> Farkling:** Simulate pressing `FARKLE`. Verify `Game::currentPhase` changes to `FarklingPhase`.
-*   **Banking -> Waiting:** Simulate calling `update()` repeatedly until animation finishes + button press. Verify return to `WaitingPhase` and `currentPlayerIndex` increment.
+### 4.1 SMALL Tests (Unit Tests)
+**Focus:** Isolation. Verification of individual `GamePhase` classes.
+**Location:** `test/test_small/`
 
-### 4.2 Scoring Logic (`test_scoring.cpp`)
-*   **Input Accumulation:** Simulate `UP` (+1000), `RIGHT` (+500). Verify `state.atRiskScore` is 1500.
-*   **Correction:** Simulate `CLEAR`. Verify `state.atRiskScore` returns to 0.
-*   **Banking Math:** Verify that after `BankingPhase`, `state.players[0].score` increases exactly by the amount `state.atRiskScore` decreased.
+*   **`test_WaitingPhase.cpp`**
+    *   **Scoring Math:** 
+        *   Simulate `UP_1000`. Assert `atRiskScore == 1000`.
+        *   Simulate `RIGHT_500`. Assert `atRiskScore == 1500`.
+    *   **Correction:** 
+        *   Set `atRiskScore = 500`. Simulate `CLEAR`. Assert `atRiskScore == 0`.
+    *   **Transitions:**
+        *   Simulate `BANK`. Assert `update()` returns `BankingPhase*`.
+        *   Simulate `FARKLE`. Assert `update()` returns `FarklingPhase*`.
 
-### 4.3 Win Conditions (`test_win_condition.cpp`)
-*   **Trigger Final Round:** Set Player 1's score to 4950. Bank 100 points. Verify `state.finalRoundTriggered` becomes `true`.
-*   **End Game:** Set `finalRoundTriggered = true`. Advance through all players. Verify transition to `PostGamePhase`.
+*   **`test_BankingPhase.cpp`**
+    *   **Animation Math:** 
+        *   Set `atRisk = 500`, `banked = 0`.
+        *   Call `update(dt=100)`. Assert `atRisk < 500` and `banked > 0` and `atRisk + banked == 500`.
+    *   **Zero-Floor Safety:**
+        *   Set `atRisk = 50`. Call `update(dt=huge_value)`. 
+        *   Assert `atRisk == 0` (not negative) and `banked` increased by exactly 50.
+    *   **Input Spamming:** 
+        *   While `atRisk > 0`, simulate `BANK`, `CLEAR`, `UP`. 
+        *   Assert phase does *not* transition and score logic is unaffected.
+    *   **Manual Advance:** 
+        *   Set `atRisk = 0`. Call `update()`. Assert returns `this` (no transition).
+        *   Simulate `BANK`. Assert returns `WaitingPhase*`.
+
+*   **`test_FarklingPhase.cpp`**
+    *   **Standard Farkle:** 
+        *   Set `atRisk = 500`. Call `update()` until done.
+        *   Assert `atRisk == 0` and `banked` is unchanged.
+        *   Assert `state.players[state.currentPlayerIndex].farkle_count` increased by 1.
+    *   **Zero-Floor Safety:**
+        *   Set `atRisk = 50`. Call `update(dt=huge_value)`.
+        *   Assert `atRisk == 0` (not negative).
+    *   **Triple Farkle (Penalty):** 
+        *   Set `state.players[0].farkle_count = 2`.
+        *   Trigger transition.
+        *   Assert `state.players[0].score` decreases by 1000 (or `atRisk` logic handles it).
+    *   **Exit Transition:** Verify button press triggers transition to `WaitingPhase`.
+
+### 4.2 MEDIUM Tests (Integration Tests)
+**Focus:** Handoffs. Verification of state persistence across phase transitions.
+**Location:** `test/test_medium/`
+
+*   **`test_turn_lifecycle.cpp`**
+    *   **Scenario: Standard Turn**
+        1.  Start as P1. Score 500. Trigger `BankingPhase`.
+        2.  Run loop until animation completes.
+        3.  Trigger manual dismiss.
+        4.  **Assert:** `state.currentPlayerIndex == 1` (P2). P1 score is 500. `atRiskScore == 0`.
+    *   **Scenario: The Triple Farkle**
+        1.  Set P1 `farkle_count = 2`, `score = 2000`.
+        2.  Trigger `FarklingPhase`. Run animation & dismiss.
+        3.  **Assert:** P1 score is 1000 (-1000 penalty). `currentPlayerIndex == 1`.
+    *   **Scenario: Round Robin**
+        1.  Complete turns for P1, P2, P3.
+        2.  Complete turn for P4.
+        3.  **Assert:** `currentPlayerIndex == 0` (Back to P1).
+
+### 4.3 LARGE Tests (System / End-to-End Tests)
+**Focus:** The Macro Game Loop. Win conditions and game completion.
+**Location:** `test/test_large/`
+
+*   **`test_full_game.cpp`**
+    *   **Scenario: The Standard Game**
+        1.  P1 scores `>= state.targetScore`. 
+        2.  **Assert:** `finalRoundTriggered == true`.
+        3.  Play turns for P2, P3, P4.
+        4.  Attempt to play next turn.
+        5.  **Assert:** Current phase is `PostGamePhase`.
+    *   **Scenario: The Overtake**
+        1.  P1 scores `state.targetScore`. `finalRoundTriggered = true`.
+        2.  P2 scores `state.targetScore + 1000`.
+        3.  **Assert:** `finalRoundTriggered` remains `true`.
+        4.  Play P3, P4.
+        5.  **Assert:** Game ends (does not extend for P2).
+
 
 ## 5. Implementation Steps
 
