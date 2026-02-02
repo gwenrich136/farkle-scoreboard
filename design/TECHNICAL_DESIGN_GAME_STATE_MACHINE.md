@@ -117,7 +117,7 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 *   **`src/farkle/include/phases/WaitingPhase.h`** & **`src/farkle/src/phases/WaitingPhase.cpp`**
     *   **Why:** Implements the main interactive phase and serves as the entry point for a player's turn.
     *   **Implementation Details:** The `update()` method will contain all logic for this phase:
-        *   **Check for Game End:** The first action will be to check `if (state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore)`. If true, it will immediately `return game.getPhase<PostGamePhase_V1>();`.
+        *   **Check for Game End:** At the start of the `update` method, it will check if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it will immediately `return game.getPhase<PostGamePhase_V1>();`.
         *   **Handle Input:** A `switch(action)` block will handle `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
         *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, `return game.getPhase<FarklingPhase>();`.
 

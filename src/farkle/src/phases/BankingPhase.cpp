@@ -40,11 +40,6 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
                 state.finalRoundTriggered = true;
             }
 
-            // Check for Game Over
-            if (state.finalRoundTriggered && state.currentPlayerIndex == 0) {
-                return game.getPhase<PostGamePhase_V1>();
-            }
-
             // Advance turn and transition
             this->endTurn(state);
             return game.getPhase<WaitingPhase>();

@@ -5,6 +5,7 @@
 #include "phases/FarklingPhase.h"
 #include <unity.h>
 
+// Verifies that the atRiskScore correctly accumulates when score buttons are pressed.
 void test_WaitingPhase_ScoreAccumulation() {
     Game game;
     game.setup();
@@ -22,6 +23,7 @@ void test_WaitingPhase_ScoreAccumulation() {
     TEST_ASSERT_EQUAL_INT(1500, game.state.atRiskScore);
 }
 
+// Verifies that the atRiskScore is cleared when the CLEAR button is pressed.
 void test_WaitingPhase_ScoreCorrection() {
     Game game;
     game.setup();
@@ -39,6 +41,7 @@ void test_WaitingPhase_ScoreCorrection() {
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 }
 
+// Verifies that the game transitions to the BankingPhase when the BANK button is pressed.
 void test_WaitingPhase_TransitionToBanking() {
     Game game;
     game.setup(); // Initialize the game
@@ -58,6 +61,7 @@ void test_WaitingPhase_TransitionToBanking() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 }
 
+// Verifies that the game transitions to the FarklingPhase when the FARKLE button is pressed.
 void test_WaitingPhase_TransitionToFarkling() {
     Game game;
     game.setup();

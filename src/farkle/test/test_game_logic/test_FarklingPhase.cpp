@@ -1,6 +1,7 @@
 #include "test_FarklingPhase.h"
 #include <unity.h>
 
+// Verifies that a player's score is penalized by 1000 points after three consecutive farkles.
 void test_FarklingPhase_TripleFarklePenalty() {
     // TODO: Set player's farkle_count to 2
     // TODO: Trigger transition to FarklingPhase
