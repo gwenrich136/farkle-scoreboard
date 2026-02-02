@@ -1,3 +1,4 @@
+#include <cmath>
 #include "LedProgressGrid.h"
 
 #define GRID_LENGTH 8
@@ -27,8 +28,11 @@ void LedProgressGrid::hello_world()
 void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
-  // Apply a square curve (gamma ~2.0) to the remainder for smoother perceived brightness transitions
-  int remaininderBrightness = (int)(remainder * remainder * brightness);
+  // Apply a cubic polynomial for a more perceptually linear brightness curve.
+  // This curve satisfies y(0)=0, y(1)=1, y'(0)=1/4, and y'(1)=4.
+  float x = remainder;
+  float y = (9.0/4.0) * x*x*x - (3.0/2.0) * x*x + (1.0/4.0) * x;
+  int remainderBrightness = (int)(y * brightness);
   // rows snake, so we need to count backwards for odd rows
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
@@ -39,7 +43,7 @@ void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t
     if (num_pixels < GRID_LENGTH) {
       _pixels.setPixelColor(
         get_pixel_index(row, num_pixels),
-        _pixels.ColorHSV(hue, 255, remaininderBrightness)
+        _pixels.ColorHSV(hue, 255, remainderBrightness)
       );
     }
 }
