@@ -18,10 +18,11 @@ void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
   // rows snake, so we need to count backwards for odd rows
+    uint32_t color = _pixels.ColorHSV(hue, 255, brightness);
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
         get_pixel_index(row, col),
-        _pixels.ColorHSV(hue, 255, brightness));
+        color);
     }
     // Only draw partial pixel if we haven't filled the row
     if (num_pixels < GRID_LENGTH) {
