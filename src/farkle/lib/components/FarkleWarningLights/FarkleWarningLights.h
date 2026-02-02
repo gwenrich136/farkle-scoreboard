@@ -3,6 +3,8 @@
 
 #include "Arduino.h"
 
+#define ALTERNATE_INTERVAL 250 // ms
+
 class FarkleWarningLights
 {
   public:
@@ -13,7 +15,6 @@ class FarkleWarningLights
   private:
     int _yellowPin;
     int _redPin;
-    const int ALTERNATE_INTERVAL = 250; // ms
 };
 
 #endif
