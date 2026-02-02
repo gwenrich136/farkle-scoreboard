@@ -7,6 +7,12 @@ void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_
     game.loop();
 }
 
+void waitForScoreAnimation(Game& game) {
+    while (game.state.atRiskScore != 0) {
+        simulateNoAction(game);
+    }
+}
+
 void simulateNoAction(Game& game, unsigned long advance_time_millis) {
     advance_millis(advance_time_millis);
     game.loop();

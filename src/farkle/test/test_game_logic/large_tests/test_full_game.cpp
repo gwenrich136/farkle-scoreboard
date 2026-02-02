@@ -72,9 +72,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     // --- Player 0 scores 500 points ---
     simulateButtonPress(game, ButtonAction::RIGHT_500);
     simulateButtonPress(game, ButtonAction::BANK);
-    while (game.state.atRiskScore > 0) {
-        simulateNoAction(game);
-    }
+    waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
     TEST_ASSERT_EQUAL_INT(500, game.state.players[0].score);
 
@@ -94,9 +92,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
     // --- Run the penalty animation ---
-    while (game.state.atRiskScore < 0) {
-        simulateNoAction(game);
-    }
+    waitForScoreAnimation(game);
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
     // --- Dismiss the penalty phase ---
