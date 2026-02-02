@@ -60,9 +60,10 @@ The game begins by guiding players through setup and configuration.
 
 ### 2.3 Catastrophic Farkle (Third Consecutive Farkle)
 -   **Trigger:** When a player gets their third consecutive farkle in a turn.
+-   **Penalty:** A player who gets a third consecutive farkle loses 1,000 points, or their entire score if it's less than 1,000. A player's score cannot go below zero.
 -   **Dramatic Animation:**
     -   The `TextDisplay` displays a penalty quip.
-    -   The `atRisk` score display immediately begins flashing the actual penalty amount (e.g., "-850" if the banked score is 850 and the penalty would be 1000). This flashing is synchronized with the `FarkleWarningLights` alternating between yellow and red. This state lasts for 3-5 flashes.
+    -   The `atRisk` score display immediately begins flashing the actual penalty amount (e.g., "-850" if the banked score is 850). This flashing is synchronized with the `FarkleWarningLights` alternating between yellow and red. This state lasts for 3-5 flashes.
     -   After the flashing stops, two animations occur *simultaneously*:
         1.  The `atRisk` display slowly climbs from the negative penalty amount back up to 0.
         2.  The player's banked score (on both `ScoreDisplay` and `LedProgressGrid`) slowly drains by the penalty amount.
