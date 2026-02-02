@@ -2,8 +2,13 @@
 #define ControlPad_h
 
 #include <Arduino.h>
-#include <map> // Required for std::map
 #include "ButtonActions.h"
+
+// Struct to hold a pin-action pair
+struct ButtonMapping {
+  int pin;
+  ButtonAction action;
+};
 
 class ControlPad {
 public:
@@ -12,7 +17,8 @@ public:
   ButtonAction read();
 
 private:
-  std::map<int, ButtonAction> _buttonMap;
+  ButtonMapping _buttonMap[16];
+  int _buttonCount;
   ButtonAction _lastAction;
 };
 
