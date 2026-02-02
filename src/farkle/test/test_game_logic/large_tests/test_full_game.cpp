@@ -65,9 +65,39 @@ void test_FullGame_TripleFarkle() {
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score); // Final score is correct
 }
 
+void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
+    Game game;
+    game.setup();
+    game.state.players[0].score = 500; // Player has less than the 1000-point penalty
+
+    // --- First Farkle ---
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+
+    // --- Second Farkle ---
+    game.state.currentPlayerIndex = 0;
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::BANK); // Dismiss
+
+    // --- Third Farkle - Trigger penalty ---
+    game.state.currentPlayerIndex = 0;
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
+
+    // --- Run the penalty animation ---
+    while (game.currentPhase == game.getPhase<PenaltyFarklingPhase>()) {
+        game.loop();
+    }
+
+    // Score should be 0, not negative
+    TEST_ASSERT_EQUAL_INT(0, game.state.players[0].score);
+}
+
+
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
+    RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
 }
 
 // Helper function to advance turns until it is player 0's turn again.
