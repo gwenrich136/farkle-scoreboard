@@ -1,20 +1,28 @@
 #include <unity.h>
-
-// Forward declarations for test suites
-void run_transition_tests();
-void run_scoring_tests();
+#include "test_WaitingPhase.h"
+#include "test_FarklingPhase.h"
+#include "test_BankingPhase.h"
+#include "test_full_game.h"
+#include "test_turn_lifecycle.h"
 
 void setUp(void) {
-    // Set up things before each test
+    // set up tear down functions that are required by unity
 }
 
 void tearDown(void) {
-    // Clean up things after each test
+    // set up tear down functions that are required by unity
 }
 
-int main(int argc, char **argv) {
+void test_runner() {
+    run_waiting_phase_tests();
+    run_farkling_phase_tests();
+    run_banking_phase_tests();
+    run_full_game_tests();
+    run_turn_lifecycle_tests();
+}
+
+int main() {
     UNITY_BEGIN();
-    run_transition_tests();
-    run_scoring_tests();
+    test_runner();
     return UNITY_END();
 }

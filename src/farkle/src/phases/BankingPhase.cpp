@@ -36,7 +36,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
             state.players[state.currentPlayerIndex].farkle_count = 0;
 
             // Check for Final Round Trigger
-            if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= 5000) {
+            if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
                 state.finalRoundTriggered = true;
             }
 
