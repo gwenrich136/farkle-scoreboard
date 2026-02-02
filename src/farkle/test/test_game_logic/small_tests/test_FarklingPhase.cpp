@@ -63,7 +63,7 @@ void test_FarklingPhase_ManualAdvance() {
     simulateNoAction(game);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::CLEAR);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 }
