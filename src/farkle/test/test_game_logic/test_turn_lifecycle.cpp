@@ -1,5 +1,6 @@
 #include "test_turn_lifecycle.h"
 #include "Game.h"
+#include "test_utils.h"
 #include <unity.h>
 #include "Arduino.h"
 
@@ -7,22 +8,17 @@
 void test_TurnLifecycle_StandardTurn() {
     Game game;
     game.setup();
-    game.controlPad.press(ButtonAction::UP_1000);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::RIGHT_500);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    
+    // Start banking
+    simulateButtonPress(game, ButtonAction::BANK);
 
     while(game.state.atRiskScore > 0) {
-        advance_millis(10);
-        game.loop();
+        simulateNoAction(game);
     }
 
-    game.controlPad.press(ButtonAction::BANK);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::BANK);
 
     TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score);
@@ -35,19 +31,16 @@ void test_TurnLifecycle_RoundRobin() {
     game.setup();
 
     for (int i = 0; i < 4; i++) {
-        game.controlPad.press(ButtonAction::UP_1000);
-        advance_millis(10);
-        game.loop();
-        game.controlPad.press(ButtonAction::BANK);
+        simulateButtonPress(game, ButtonAction::UP_1000);
+        
+        // Start banking
+        simulateButtonPress(game, ButtonAction::BANK);
 
         while(game.state.atRiskScore > 0) {
-            advance_millis(10);
-            game.loop();
+            simulateNoAction(game);
         }
 
-        game.controlPad.press(ButtonAction::BANK);
-        advance_millis(10);
-        game.loop();
+        simulateButtonPress(game, ButtonAction::BANK);
     }
 
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
@@ -57,15 +50,9 @@ void test_TurnLifecycle_RoundRobin() {
 void test_TurnLifecycle_ClearButton() {
     Game game;
     game.setup();
-    game.controlPad.press(ButtonAction::UP_1000);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::RIGHT_500);
-    advance_millis(10);
-    game.loop();
-    game.controlPad.press(ButtonAction::CLEAR);
-    advance_millis(10);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    simulateButtonPress(game, ButtonAction::CLEAR);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 }

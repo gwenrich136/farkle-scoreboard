@@ -3,6 +3,7 @@
 #include "phases/WaitingPhase.h"
 #include "phases/BankingPhase.h"
 #include "phases/FarklingPhase.h"
+#include "test_utils.h"
 #include <unity.h>
 
 // Verifies that the atRiskScore correctly accumulates when score buttons are pressed.
@@ -14,10 +15,8 @@ void test_WaitingPhase_ScoreAccumulation() {
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
     // Simulate pressing UP_1000 and RIGHT_500
-    game.controlPad.press(ButtonAction::UP_1000);
-    game.loop();
-    game.controlPad.press(ButtonAction::RIGHT_500);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::RIGHT_500);
 
     // Verify atRiskScore is 1500
     TEST_ASSERT_EQUAL_INT(1500, game.state.atRiskScore);
@@ -29,13 +28,11 @@ void test_WaitingPhase_ScoreCorrection() {
     game.setup();
 
     // Add some score
-    game.controlPad.press(ButtonAction::UP_1000);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::UP_1000);
     TEST_ASSERT_EQUAL_INT(1000, game.state.atRiskScore);
 
     // Simulate pressing CLEAR
-    game.controlPad.press(ButtonAction::CLEAR);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::CLEAR);
 
     // Verify atRiskScore is 0
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
@@ -50,12 +47,10 @@ void test_WaitingPhase_TransitionToBanking() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 
     // Add some score to enable the BANK transition
-    game.controlPad.press(ButtonAction::UP_1000);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::UP_1000);
 
     // Simulate pressing the BANK button
-    game.controlPad.press(ButtonAction::BANK);
-    game.loop(); // Run one loop to process the input
+    simulateButtonPress(game, ButtonAction::BANK);
 
     // Verify the state has transitioned to BankingPhase
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
@@ -70,8 +65,7 @@ void test_WaitingPhase_TransitionToFarkling() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 
     // Simulate pressing the FARKLE button
-    game.controlPad.press(ButtonAction::FARKLE);
-    game.loop();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Verify the state has transitioned to FarklingPhase
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);

@@ -104,6 +104,20 @@ We will structure our tests into three tiers based on scope and complexity. This
         *   Assert `state.players[0].score` decreases by 1000 (or `atRisk` logic handles it).
     *   **Exit Transition:** Verify button press triggers transition to `WaitingPhase`.
 
+*   **`test_PenaltyFarklingPhase.cpp`**
+    *   **Animation Math:**
+        *   Set `atRisk = -1000`.
+        *   Call `update()` until done.
+        *   Assert `atRisk == 0` and `players[0].score` decreased by 1000.
+    *   **Zero-Ceiling Safety:**
+        *   Set `atRisk = -50`. Call `update(dt=huge_value)`.
+        *   Assert `atRisk == 0` (not positive).
+    *   **Input Spamming:**
+        *   While `atRisk < 0`, simulate inputs. Assert no state change.
+    *   **Manual Advance:**
+        *   Set `atRisk = 0`. Call `update()`. Assert returns `this`.
+        *   Simulate `BANK`. Assert returns `WaitingPhase*`.
+
 ### 4.2 MEDIUM Tests (Integration Tests)
 **Focus:** Handoffs. Verification of state persistence across phase transitions.
 **Location:** `test/test_medium/`
