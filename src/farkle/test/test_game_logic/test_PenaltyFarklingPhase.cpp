@@ -1,4 +1,4 @@
-#include "test_PenaltyFarklingPhase.h"
+#include "small_tests/test_PenaltyFarklingPhase.h"
 #include "Game.h"
 #include "phases/PenaltyFarklingPhase.h"
 #include "phases/WaitingPhase.h"
@@ -74,7 +74,7 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
     simulateNoAction(game);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::CLEAR);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 }
