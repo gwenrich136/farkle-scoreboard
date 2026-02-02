@@ -4,11 +4,7 @@
 #include <Arduino.h>
 #include "ButtonActions.h"
 
-// Struct to hold a pin-action pair
-struct ButtonMapping {
-  int pin;
-  ButtonAction action;
-};
+#define MAX_PINS 17 // Max pin number + 1 to support up to pin 16
 
 class ControlPad {
 public:
@@ -17,8 +13,7 @@ public:
   ButtonAction read();
 
 private:
-  ButtonMapping _buttonMap[16];
-  int _buttonCount;
+  ButtonAction _buttonMap[MAX_PINS];
   ButtonAction _lastAction;
 };
 
