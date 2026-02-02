@@ -34,10 +34,12 @@ The `FarkleWarningLights` component provides a simple visual indication of a pla
     -   `state = 0`: Both LEDs are off.
     -   `state = 1`: The yellow LED is on, red is off.
     -   `state = 2` (or greater): Both the yellow and red LEDs are on.
+-   **`void alternate()`**: Manages an alternating flashing state for the yellow and red LEDs. This method is non-blocking and must be called repeatedly in a loop (e.g., `update()`) to function correctly. When called, it checks if it's time to toggle the lights based on an internal timer.
 
 ### Key Logic & Behavior
 -   **Direct State Mapping:** The integer input directly maps to the visual output, simplifying usage in the main game logic.
 -   **Max Farkle Count:** The game logic will ensure the `state` passed to `farkle_state()` will never exceed 2, as a third farkle resets the counter to zero.
+-   **Alternating State for Catastrophic Farkle:** The `alternate()` method provides the specific visual effect required for the "catastrophic farkle" event. It uses `millis()` for non-blocking timing, allowing the rest of the game loop to run without interruption while the lights flash.
 
 ---
 
