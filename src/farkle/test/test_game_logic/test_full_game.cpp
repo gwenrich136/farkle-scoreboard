@@ -1,6 +1,6 @@
 #include "test_full_game.h"
 #include "Game.h"
-#include "phases/WaitingPhase.h"
+#include "phases/PostGamePhase_V1.h"
 #include <unity.h>
 #include "Arduino.h"
 
@@ -10,19 +10,30 @@ void test_FullGame_StandardGame() {
     game.setup();
 
     int turn = 0;
-    while(game.currentPhase == game.getPhase<WaitingPhase>() && turn < 100) {
-        game.state.atRiskScore = 1500;
+    while(game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
+        game.controlPad.press(ButtonAction::UP_1000);
+        advance_millis(10);
+        game.loop();
+        game.controlPad.press(ButtonAction::RIGHT_500);
+        advance_millis(10);
+        game.loop();
         game.controlPad.press(ButtonAction::BANK);
 
-        // Loop until the banking animation is complete and the turn has advanced
-        for(int i = 0; i < 400; i++) {
+        while(game.state.atRiskScore > 0) {
             advance_millis(10);
             game.loop();
         }
+
+        // Press a button to advance the turn
+        game.controlPad.press(ButtonAction::BANK);
+        advance_millis(10);
+        game.loop();
+
         turn++;
     }
 
     TEST_ASSERT_LESS_THAN(100, turn); // Game should end in a reasonable number of turns
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 }
 
 void run_full_game_tests() {
