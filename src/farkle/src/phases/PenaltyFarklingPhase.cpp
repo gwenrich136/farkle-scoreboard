@@ -16,24 +16,24 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
     // 1. Perform Animation
     if (state.atRiskScore < 0) {
         scoreMoveAccumulator += (PENALTY_DRAIN_SPEED * deltaTime);
-        int pointsToAdd = (int)scoreMoveAccumulator;
+        int pointsToSubtract = (int)scoreMoveAccumulator;
 
-        if (pointsToAdd > 0) {
+        if (pointsToSubtract > 0) {
             Player& currentPlayer = state.players[state.currentPlayerIndex];
 
-            // Ensure we don't add more than what's left in atRiskScore (a negative value)
-            if (pointsToAdd > -state.atRiskScore) {
-                pointsToAdd = -state.atRiskScore;
+            // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
+            if (pointsToSubtract > -state.atRiskScore) {
+                pointsToSubtract = -state.atRiskScore;
             }
 
             // Ensure player score doesn't go below zero
-            if (pointsToAdd > currentPlayer.score) {
-                pointsToAdd = currentPlayer.score;
+            if (pointsToSubtract > currentPlayer.score) {
+                pointsToSubtract = currentPlayer.score;
             }
 
-            currentPlayer.score -= pointsToAdd;
-            state.atRiskScore += pointsToAdd;
-            scoreMoveAccumulator -= (float)pointsToAdd;
+            currentPlayer.score -= pointsToSubtract;
+            state.atRiskScore += pointsToSubtract;
+            scoreMoveAccumulator -= (float)pointsToSubtract;
         }
     }
 
