@@ -27,7 +27,15 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction actio
             break;
             
         case FARKLE:
-            return game.getPhase<FarklingPhase>();
+            {
+                Player& currentPlayer = state.players[state.currentPlayerIndex];
+                currentPlayer.farkle_count++;
+                if (currentPlayer.farkle_count >= 3) {
+                    return game.getPhase<PenaltyFarklingPhase>();
+                } else {
+                    return game.getPhase<FarklingPhase>();
+                }
+            }
             break;
 
         default:

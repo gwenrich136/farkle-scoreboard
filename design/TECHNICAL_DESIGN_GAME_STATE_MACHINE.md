@@ -119,7 +119,7 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
     *   **Implementation Details:** The `update()` method will contain all logic for this phase:
         *   **Check for Game End:** At the start of the `update` method, it will check if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it will immediately `return game.getPhase<PostGamePhase_V1>();`.
         *   **Handle Input:** A `switch(action)` block will handle `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
-        *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, `return game.getPhase<FarklingPhase>();`.
+        *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, the logic will first increment the player's `farkle_count`. If the count reaches 3, it will `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it will `return game.getPhase<FarklingPhase>();`.
 
 *   **`src/farkle/include/phases/BankingPhase.h`** & **`src/farkle/src/phases/BankingPhase.cpp`**
     *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
@@ -139,6 +139,14 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
         3.  **Finalize Turn:** Upon button press:
             a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
             b. `return game.getPhase<WaitingPhase>();`.
+
+*   **`src/farkle/include/phases/PenaltyFarklingPhase.h`** & **`src/farkle/src/phases/PenaltyFarklingPhase.cpp`**
+    *   **Why:** Implements the catastrophic farkle penalty for a player's third consecutive farkle.
+    *   **Implementation Details:**
+        1.  **Apply Penalty:** The `onEnter()` method will immediately deduct 1000 points from the current player's banked score and reset their `farkle_count` to 0.
+        2.  **Animate Score Loss:** The `update()` method will be identical to `FarklingPhase`, draining the `atRiskScore` to 0.
+        3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
+        4.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
 
 *   **`src/farkle/include/phases/PostGamePhase_V1.h`** & **`src/farkle/src/phases/PostGamePhase_V1.cpp`**
     *   **Why:** Implements the simplified "frozen" post-game phase for V1.

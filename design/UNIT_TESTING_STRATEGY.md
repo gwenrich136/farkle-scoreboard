@@ -114,6 +114,11 @@ We will structure our tests into three tiers based on scope and complexity. This
         2.  Run loop until animation completes.
         3.  Trigger manual dismiss.
         4.  **Assert:** `state.currentPlayerIndex == 1` (P2). P1 score is 500. `atRiskScore == 0`.
+    *   **Scenario: Farkle Streak Reset**
+        1.  Set P1 `farkle_count = 2`.
+        2.  Start P1's turn. Score 500. Trigger `BankingPhase`.
+        3.  Run loop until animation and dismissal are complete.
+        4.  **Assert:** P1 `farkle_count == 0`.
     *   **Scenario: The Triple Farkle**
         1.  Set P1 `farkle_count = 2`, `score = 2000`.
         2.  Trigger `FarklingPhase`. Run animation & dismiss.
