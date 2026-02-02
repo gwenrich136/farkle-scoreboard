@@ -13,7 +13,6 @@ public:
   void reset();
   void clear();
   void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
-  void hello_world();
 
 private:
   Adafruit_NeoPixel _pixels;
@@ -26,6 +25,7 @@ private:
 
   void illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness = 255);
   int get_pixel_index(int row, int col);
+  int getRemainderBrightness(float remainder, int fullBrightness);
 };
 
 #endif
