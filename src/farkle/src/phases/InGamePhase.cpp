@@ -19,11 +19,11 @@ void InGamePhase::display(const GameState& state, const Displays& displays) {
     displays.scoreDisplay.print_number(leadingScore, 2);
 
     // 2. Update the LED Progress Grid
-    std::vector<int> scores;
+    m_scores.clear();
     for (const auto& player : state.players) {
-        scores.push_back(player.score);
+        m_scores.push_back(player.score);
     }
-    displays.grid.update(scores, state.currentPlayerIndex, state.atRiskScore);
+    displays.grid.update(m_scores, state.currentPlayerIndex, state.atRiskScore);
 
     // 3. Update the Farkle Warning Lights
     displays.farkleLights.farkle_state(state.players[state.currentPlayerIndex].farkle_count);
