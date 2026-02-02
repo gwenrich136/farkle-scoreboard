@@ -119,7 +119,7 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
     *   **Implementation Details:** The `update()` method will contain all logic for this phase:
         *   **Check for Game End:** At the start of the `update` method, it will check if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it will immediately `return game.getPhase<PostGamePhase_V1>();`.
         *   **Handle Input:** A `switch(action)` block will handle `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
-        *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, `return game.getPhase<FarklingPhase>();`.
+        *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it will `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it will `return game.getPhase<FarklingPhase>();`.
 
 *   **`src/farkle/include/phases/BankingPhase.h`** & **`src/farkle/src/phases/BankingPhase.cpp`**
     *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
@@ -133,12 +133,21 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 
 *   **`src/farkle/include/phases/FarklingPhase.h`** & **`src/farkle/src/phases/FarklingPhase.cpp`**
     *   **Why:** Implements the farkle animation and the end-of-turn logic.
-    *   **Implementation Details:** Similar to `BankingPhase`, the `update()` method will:
-        1.  **Animate Score Loss:** While `state.atRiskScore > 0`, run the time-based animation logic to incrementally drain `state.atRiskScore` to 0. Ignore input.
-        2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
+    *   **Implementation Details:**
+        1.  **Increment Count:** The `onEnter()` method will increment the current player's `farkle_count`.
+        2.  **Animate Score Loss:** The `update()` method will be similar to `BankingPhase`, running a time-based animation to drain `state.atRiskScore` to 0. It will ignore input during the animation.
+        3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
         3.  **Finalize Turn:** Upon button press:
             a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
             b. `return game.getPhase<WaitingPhase>();`.
+
+*   **`src/farkle/include/phases/PenaltyFarklingPhase.h`** & **`src/farkle/src/phases/PenaltyFarklingPhase.cpp`**
+    *   **Why:** Implements the catastrophic farkle penalty for a player's third consecutive farkle.
+    *   **Implementation Details:**
+        1.  **Initialize Penalty:** The `onEnter()` method will set the `atRiskScore` to -1000 and reset the player's `farkle_count` to 0.
+        2.  **Inverse Bank Animation:** The `update()` method will implement an animation that is the inverse of the `BankingPhase`. It will slowly drain 1000 points from the player's banked score and simultaneously animate the `atRiskScore` from -1000 up to 0.
+        3.  **Wait for Dismissal:** Once `atRiskScore` reaches 0, the animation is complete. The game will then wait for any button press to proceed.
+        4.  **Finalize Turn:** Upon button press, it will call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
 
 *   **`src/farkle/include/phases/PostGamePhase_V1.h`** & **`src/farkle/src/phases/PostGamePhase_V1.cpp`**
     *   **Why:** Implements the simplified "frozen" post-game phase for V1.
