@@ -153,5 +153,5 @@ pio test -e component_tests
 ```
 
 ### 6.4 Directory Structure
-*   `test/test_component_tests/`: Contains the test suites for components (e.g., `test_score_display.cpp`).
-*   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `FastLED.h`) used by components.
+*   `test/test_component_*/`: Contains the test suites for components (e.g., `test_component_score_display/`, `test_component_led_progress_grid/`).
+*   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `Adafruit_NeoPixel.h`) used by components.

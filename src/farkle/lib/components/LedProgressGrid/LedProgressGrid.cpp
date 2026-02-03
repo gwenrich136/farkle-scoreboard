@@ -5,7 +5,9 @@
 
 // Constructor: initializes the NeoPixel object
 LedProgressGrid::LedProgressGrid(uint8_t pin)
-  : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800)
+  : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800),
+    _hasProspectiveFirstHue(false),
+    _isDirty(true)
 {
 }
 
@@ -58,7 +60,11 @@ int LedProgressGrid::addPlayer() {
     uint16_t newHue;
     if (_playerHues.empty()) {
         // First player gets a random hue
-        newHue = random(0, 65536);
+        if (_hasProspectiveFirstHue) {
+            newHue = _prospectiveFirstHue;
+        } else {
+            newHue = random(0, 65536);
+        }
     } else {
         // Subsequent players get hues based on the golden ratio for good distribution
         uint16_t lastHue = _playerHues.back();
@@ -68,6 +74,8 @@ int LedProgressGrid::addPlayer() {
     
     int playerIndex = _playerCount;
     _playerCount++;
+    _isDirty = true;
+    _hasProspectiveFirstHue = false; // Reset for next potential pregame call
     
     return playerIndex;
 }
@@ -75,16 +83,21 @@ int LedProgressGrid::addPlayer() {
 void LedProgressGrid::clear() {
   _pixels.clear();
   _pixels.show();
+  _isDirty = true;
+  _lastState = State(); // Reset memory
 }
 
 void LedProgressGrid::reset() {
   // Reset player configurations
   _playerCount = 0;
   _playerHues.clear();
+  _hasProspectiveFirstHue = false;
 
   // Reset score scaling
   _maxScore = 10000;
   _isBlinkOn = false;
+  _isDirty = true;
+  _lastState = State(); // Reset memory
 
   // Turn off all LEDs
   clear();
@@ -92,7 +105,22 @@ void LedProgressGrid::reset() {
 
 void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore) {
   // 1. Update blink state
-  _isBlinkOn = millis() % 800 > 400;
+  _isBlinkOn = millis() % 1000 > 500;
+
+  // 1.5. Check Memory
+  State currentState;
+  currentState.mode = DisplayMode::IN_GAME;
+  currentState.scores = scores;
+  currentState.currentPlayerIndex = currentPlayerIndex;
+  currentState.atRiskScore = atRiskScore;
+  currentState.isBlinkOn = _isBlinkOn;
+  currentState.playerCount = _playerCount;
+
+  if (!_isDirty && currentState == _lastState) {
+    return;
+  }
+  _isDirty = false;
+  _lastState = currentState;
 
   // 2. Update max score
   int highestScore = 0;
@@ -151,7 +179,6 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
       // Pass 1: Draw At-Risk (Dim Extension) - only for current player if blinking
       if (showingRisk) {
          // Draw the full bar (banked + risk) at half brightness (128).
-         // Do NOT clear excess, because global clear handled it, and we are about to draw banked over it anyway.
          illuminate_row(physicalRow, _playerHues[playerIdx], totalRatio, 128);
       } else {
         illuminate_row(physicalRow, _playerHues[playerIdx], bankedRatio, 128);
@@ -160,5 +187,76 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   }
 
   // 5. Show the updated pixels
+  _pixels.show();
+}
+
+void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+  // 1. Update blink state
+  _isBlinkOn = millis() % 1000 > 500;
+
+  // 2. Check Memory
+  State currentState;
+  currentState.mode = DisplayMode::PRE_GAME;
+  currentState.isPlayerPending = isPlayerPending;
+  currentState.isBlinkOn = _isBlinkOn;
+  currentState.playerCount = _playerCount;
+
+  if (!_isDirty && currentState == _lastState) {
+    return;
+  }
+  _isDirty = false;
+  _lastState = currentState;
+
+  // 3. Clear the buffer before drawing
+  _pixels.clear();
+
+  // 4. Draw existing players
+  for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
+      int startRow = 0;
+      int numRows = 0;
+      switch (_playerCount + (isPlayerPending ? 1 : 0)) {
+          case 1: startRow = 2; numRows = 4; break;
+          case 2: startRow = (playerIdx == 0) ? 0 : 5; numRows = 3; break;
+          case 3: startRow = (playerIdx == 0) ? 0 : (playerIdx == 1 ? 3 : 6); numRows = 2; break;
+          case 4: startRow = playerIdx * 2; numRows = 2; break;
+          default: startRow = playerIdx; numRows = 1; break;
+      }
+      for (int r = 0; r < numRows; ++r) {
+          illuminate_row(startRow + r, _playerHues[playerIdx], 1.0f, 128);
+      }
+  }
+
+  // 5. Draw pending player if applicable
+  if (isPlayerPending) {
+      int pendingPlayerIdx = _playerCount;
+      int startRow = 0;
+      int numRows = 0;
+      int totalPlayersIfAdded = _playerCount + 1;
+      switch (totalPlayersIfAdded) {
+          case 1: startRow = 2; numRows = 4; break;
+          case 2: startRow = (pendingPlayerIdx == 0) ? 0 : 5; numRows = 3; break;
+          case 3: startRow = (pendingPlayerIdx == 0) ? 0 : (pendingPlayerIdx == 1 ? 3 : 6); numRows = 2; break;
+          case 4: startRow = pendingPlayerIdx * 2; numRows = 2; break;
+          default: startRow = pendingPlayerIdx; numRows = 1; break;
+      }
+
+      if (_isBlinkOn) {
+          uint16_t prospectiveHue;
+          if (_playerHues.empty()) {
+              if (!_hasProspectiveFirstHue) {
+                  _prospectiveFirstHue = random(0, 65536);
+                  _hasProspectiveFirstHue = true;
+              }
+              prospectiveHue = _prospectiveFirstHue;
+          } else {
+              prospectiveHue = (uint16_t)(_playerHues.back() + (GOLDEN_RATIO_CONJUGATE * 65536)) % 65536;
+          }
+          for (int r = 0; r < numRows; ++r) {
+              illuminate_row(startRow + r, prospectiveHue, 1.0f, 128);
+          }
+      }
+  }
+
+  // 6. Show the updated pixels
   _pixels.show();
 }

@@ -4,8 +4,7 @@
 #include <chrono>
 #include "ScoreDisplay.h"
 
-// Define the global mock state
-std::map<int, std::map<int, char>> mockLedState;
+extern std::map<int, std::map<int, char>> mockLedState;
 
 ScoreDisplay* display;
 
