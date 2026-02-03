@@ -55,6 +55,7 @@ private:
   int _playerCount;
   std::vector<uint16_t> _playerHues;
   int _maxScore;
+  int _targetScore;
   bool _isBlinkOn;
 
   State _lastState;

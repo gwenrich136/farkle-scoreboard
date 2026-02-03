@@ -7,6 +7,7 @@
 // Constructor: initializes the NeoPixel object
 LedProgressGrid::LedProgressGrid(uint8_t pin)
   : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800),
+    _targetScore(10000),
     _hasProspectiveFirstHue(false)
 {
     _lastState.isDirty = true;
@@ -81,7 +82,7 @@ void LedProgressGrid::reset() {
   _playerHues.clear();
   _hasProspectiveFirstHue = false;
 
-  _maxScore = 10000;
+  _maxScore = _targetScore;
   _isBlinkOn = false;
 
   clear();
@@ -161,9 +162,9 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   }
   
   if (highestScore > _maxScore) {
-    // As per design: "lowest multiple of 2000 greater than the highest score, with a minimum of 10,000"
+    // As per design: "lowest multiple of 2000 greater than the highest score, with a minimum of _targetScore"
     int newMax = ( (highestScore / 2000) + 1) * 2000;
-    _maxScore = max(10000, newMax);
+    _maxScore = max(_targetScore, newMax);
   }
 
   _pixels.clear();
