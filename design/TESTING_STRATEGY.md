@@ -87,6 +87,8 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_BankingPhase_ZeroFloorSafety`:** Verifies that `atRiskScore` does not go negative when the points to be moved in one loop are greater than the remaining `atRiskScore`.
     *   **`test_BankingPhase_InputSpamming`:** Verifies that button presses are ignored while the banking animation is in progress.
     *   **`test_BankingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the banking animation is complete.
+    *   **`test_BankingPhase_FarkleResetOnEnter`:** Verifies that the player's consecutive farkle count is reset to 0 immediately upon entering the `BankingPhase`.
+    *   **`test_BankingPhase_LightsOffDuringAnimation`:** Verifies that the `FarkleWarningLights` are off during the banking animation as a result of the farkle count reset.
 
 *   **`test_FarklingPhase.cpp`**
     *   **`test_FarklingPhase_AnimationMath`:** Verifies that the `atRiskScore` drains to 0 but does NOT add to player score.

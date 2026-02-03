@@ -123,7 +123,8 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 
 *   **`src/farkle/include/phases/BankingPhase.h`** & **`src/farkle/src/phases/BankingPhase.cpp`**
     *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
-    *   **Implementation Details:** The `update()` method will handle both the animation and the subsequent wait for dismissal:
+    *   **Implementation Details:**
+        0.  **Reset Farkle Count:** The `onEnter()` method will reset the current player's `farkle_count` to 0.
         1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
         2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
         3.  **Finalize Turn:** Once a button is pressed:
