@@ -8,6 +8,7 @@ public:
     FarkleWarningLights(int yellowPin, int redPin);
     void begin();
     void farkle_state(int state);
+    void alternate();
 };
 
 #endif // MOCK_FARKLE_WARNING_LIGHTS_H

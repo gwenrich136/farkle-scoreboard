@@ -1,12 +1,13 @@
 #include "phases/PenaltyFarklingPhase.h"
 #include "Game.h"
+#include <algorithm>
 
 // Constants for animation
 const float PENALTY_DRAIN_SPEED = 1.0f; // faster drain for farkles
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
-    state.atRiskScore = -1000;
+    state.atRiskScore = -1 * std::min(1000, state.players[state.currentPlayerIndex].score);
 
     // Reset the farkle count
     state.players[state.currentPlayerIndex].farkle_count = 0;
@@ -24,11 +25,6 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
             // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
             if (pointsToSubtract > -state.atRiskScore) {
                 pointsToSubtract = -state.atRiskScore;
-            }
-
-            // Ensure player score doesn't go below zero
-            if (pointsToSubtract > currentPlayer.score) {
-                pointsToSubtract = currentPlayer.score;
             }
 
             currentPlayer.score -= pointsToSubtract;
