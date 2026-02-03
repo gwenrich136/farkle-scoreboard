@@ -10,7 +10,7 @@ struct Player {
     int farkle_count;
     std::vector<int> score_history;
 
-    Player(std::string n) : name(n), score(0), farkle_count(0) {}
+    Player(const std::string& n) : name(n), score(0), farkle_count(0) {}
 };
 
 struct GameState {
