@@ -1,3 +1,6 @@
+> **Scope:** Details the C++ architecture of the state machine, including the "Object Pool" pattern, class hierarchies, and specific implementation plans for each game phase.
+> **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
+
 # Technical Design: Game State Machine
 
 ## 1. Problem Statement
@@ -135,7 +138,7 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 *   **`src/farkle/include/phases/FarklingPhase.h`** & **`src/farkle/src/phases/FarklingPhase.cpp`**
     *   **Why:** Implements the farkle animation and the end-of-turn logic.
     *   **Implementation Details:**
-        1.  **Increment Count:** The `onEnter()` method will increment the current player's `farkle_count`.
+        1.  **Increment Count:** The `onEnter()` method will check if `player.score > 0`. If true, it increments the `farkle_count`. If false (score is 0), the count is **not** incremented ("No Harm, No Foul").
         2.  **Animate Score Loss:** The `update()` method will be similar to `BankingPhase`, running a time-based animation to drain `state.atRiskScore` to 0. It will ignore input during the animation.
         3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
         3.  **Finalize Turn:** Upon button press:
@@ -145,10 +148,17 @@ A new directory `src/farkle/src/phases/` will be created to house these files.
 *   **`src/farkle/include/phases/PenaltyFarklingPhase.h`** & **`src/farkle/src/phases/PenaltyFarklingPhase.cpp`**
     *   **Why:** Implements the catastrophic farkle penalty for a player's third consecutive farkle.
     *   **Implementation Details:**
-        1.  **Initialize Penalty:** The `onEnter()` method will set the `atRiskScore` to -1000 and reset the player's `farkle_count` to 0.
-        2.  **Inverse Bank Animation:** The `update()` method will implement an animation that is the inverse of the `BankingPhase`. It will slowly drain 1000 points from the player's banked score and simultaneously animate the `atRiskScore` from -1000 up to 0.
-        3.  **Wait for Dismissal:** Once `atRiskScore` reaches 0, the animation is complete. The game will then wait for any button press to proceed.
-        4.  **Finalize Turn:** Upon button press, it will call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
+        1.  **Initialize & Reset:** The `onEnter()` method will:
+            *   Calculate penalty: `min(1000, player.score)`.
+            *   Set `atRiskScore` to negative penalty (e.g., -1000).
+            *   Reset the player's `farkle_count` to 0 immediately (consistent with other phases).
+            *   Initialize a phase-local timer/state for the animation sequence.
+        2.  **3-Stage Animation (`update()`):**
+            *   **Stage 1: The Pain (0s - 3s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
+            *   **Stage 2: The Drain:** `atRisk` display stops blinking. Values animate: `atRisk` goes up to 0, Banked score goes down. Warning lights continue alternating.
+            *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
+        3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
+    *   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights), `InGamePhase::display()` should be refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplay()`) that this phase can override.
 
 *   **`src/farkle/include/phases/PostGamePhase_V1.h`** & **`src/farkle/src/phases/PostGamePhase_V1.cpp`**
     *   **Why:** Implements the simplified "frozen" post-game phase for V1.

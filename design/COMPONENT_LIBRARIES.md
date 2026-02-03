@@ -1,3 +1,6 @@
+> **Scope:** Defines the API and behavior of all custom hardware component libraries, such as `ControlPad`, `ScoreDisplay`, and `LedProgressGrid`.
+> **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
+
 # Component Library Designs for Farkle Scoreboard
 
 This document outlines the design and intended functionality of the custom component libraries developed for the Farkle Scoreboard project. Each section details the purpose, API, and key behaviors of a specific component, reflecting the discussions and decisions made during the design phase.
