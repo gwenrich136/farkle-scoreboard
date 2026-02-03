@@ -47,9 +47,21 @@ When writing code:
 
 ## 4. Testing Strategy (The Pyramid)
 See `design/TESTING_STRATEGY.md` for details.
-*   **Small (Logic):** Individual Phase math/transitions.
-*   **Medium (Lifecycle):** Turn handoffs, "Triple Farkle" logic.
-*   **Large (Full Game):** Win conditions, full loops.
+
+### Tier 1: Game Logic (The Brain)
+*   **Command:** `pio test -e native`
+*   **Scope:** Verifies the State Machine, Transitions, and Game Rules.
+*   **Mocking:** We mock the **Components** (e.g., `ScoreDisplay` is a fake class).
+*   **Categories:**
+    *   *Small:* Logic & Math.
+    *   *Medium:* Turn Lifecycle.
+    *   *Large:* Full Game.
+
+### Tier 2: Component Logic (The Body)
+*   **Command:** `pio test -e component_tests`
+*   **Scope:** Verifies the internal logic of hardware drivers (e.g., `ScoreDisplay.cpp`).
+*   **Mocking:** We compile the **REAL** component code but mock the **External Libraries** (e.g., `LedControl`, `FastLED`).
+*   **Goal:** Ensure low-level formatting (like splitting numbers into digits) and performance are correct without needing physical hardware.
 
 ## 5. Git & Commit Etiquette
 *   **Atomic Commits:** Use semantic messages (`feat:`, `fix:`, `refactor:`, `docs:`).

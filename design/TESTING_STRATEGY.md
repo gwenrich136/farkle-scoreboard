@@ -1,6 +1,8 @@
+> **Scope:** Defines the complete strategy for testing game logic, component logic, and performance using a "double mocking" approach in a native environment.
+> **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
+
 # Testing Strategy
 
-> **Note:** This document is a living document. If you add a new test, please update this document to reflect the changes.
 
 ## 1. Overview
 Testing embedded software is challenging because the code usually depends on hardware libraries (like `Arduino.h`, `FastLED`, or `Wire.h`) that do not exist on a standard computer. This often leads developers to rely on manual "upload and verify" loops, which are slow and brittle.
@@ -95,11 +97,14 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FarklingPhase_ZeroFloorSafety`:** Verifies that `atRiskScore` does not go negative.
     *   **`test_FarklingPhase_InputSpamming`:** Verifies that button presses are ignored while the farkling animation is in progress.
     *   **`test_FarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
+    *   **`test_FarklingPhase_NoHarmNoFoul`:** Verifies that if a player has 0 banked points, their `farkle_count` does **not** increment upon farkling.
 
 *   **`test_PenaltyFarklingPhase.cpp`**
-    *   **`test_PenaltyFarklingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from `atRiskScore` (negative) to 0 and subtracts from the player's score.
+    *   **`test_PenaltyFarklingPhase_Stage1_ThePain`:** Verifies that for the first 3 seconds, the `atRiskScore` flashes/blinks, the `FarkleWarningLights` alternate, and **no points are moved**.
+    *   **`test_PenaltyFarklingPhase_Stage2_TheDrain`:** Verifies that after the initial delay, points begin to move (inverse banking) while lights continue to alternate.
+    *   **`test_PenaltyFarklingPhase_Stage3_TheWait`:** Verifies that once the score is 0, the animation stops, lights turn OFF, and the game waits for a manual advance button.
     *   **`test_PenaltyFarklingPhase_ZeroCeilingSafety`:** Verifies that `atRiskScore` does not go above 0.
-    *   **`test_PenaltyFarklingPhase_InputSpamming`:** Verifies that button presses are ignored while the animation is in progress.
+    *   **`test_PenaltyFarklingPhase_InputSpamming`:** Verifies that button presses are ignored during both the "Pain" and "Drain" stages.
     *   **`test_PenaltyFarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
 
 ### 4.2 MEDIUM Tests (Integration Tests)
@@ -132,17 +137,21 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 To verify the performance and correctness of individual hardware components (like `ScoreDisplay`) without flashing hardware, we use a specialized test environment `env:component_tests`.
 
-### 6.1 Strategy
-*   **Real Component Code:** compiled directly from `lib/components`.
-*   **Mocked Dependencies:** External hardware libraries (like `LedControl`) are mocked in `test/mocks/libs`.
-*   **Performance Benchmarking:** Tests include timing measurements to detect regressions or verify optimizations.
+### 6.1 Strategy: "Double Mocking"
+We employ a two-layer mocking strategy to isolate different parts of the system:
+1.  **Game Logic Tests (`env:native`):** We mock the *Component* (e.g., `FakeScoreDisplay`). This assumes the component works and tests the game rules.
+2.  **Component Tests (`env:component_tests`):** We use the **REAL** component code (`ScoreDisplay.cpp`) but mock the **External Hardware Library** (e.g., `LedControl`).
 
-### 6.2 Running Component Tests
+### 6.2 Why this is needed
+*   **Hardware-Independent Correctness:** Verifies logic like "splitting a 5-digit number into characters" or "padding with spaces" works correctly before it touches a real chip.
+*   **Performance Benchmarking:** Tests can use `std::chrono` to measure execution time (e.g., "10,000 writes in 500us"), helping us catch regressions in critical loops.
+
+### 6.3 Running Component Tests
 To run these tests, use the PlatformIO CLI:
 ```bash
 pio test -e component_tests
 ```
 
-### 6.3 Directory Structure
-*   `test/test_component_tests/`: Contains the test suites for components.
-*   `test/mocks/libs/`: Contains mocks for external libraries used by components.
+### 6.4 Directory Structure
+*   `test/test_component_tests/`: Contains the test suites for components (e.g., `test_score_display.cpp`).
+*   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `FastLED.h`) used by components.
