@@ -10,6 +10,7 @@ public:
   ScoreDisplay(int dataPin, int clkPin, int csPin);
   void begin();
   void print_number(int number, int device_index);
+  void clear(int device_index);
 
 private:
   LedControl _lc;

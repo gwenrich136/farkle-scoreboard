@@ -100,6 +100,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
 -   **`void print_number(int number, int deviceIndex)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
     -   The number will be right-aligned on the 5-digit display.
+-   **`void clear(int deviceIndex)`**: Clears all digits on the specified `deviceIndex`.
 
 ### Key Logic & Behavior
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, intended for:

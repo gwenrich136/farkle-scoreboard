@@ -11,3 +11,7 @@ void ScoreDisplay::begin() {
 void ScoreDisplay::print_number(int number, int device_index) {
     captured_numbers[device_index] = number;
 }
+
+void ScoreDisplay::clear(int device_index) {
+    captured_numbers[device_index] = -99999; // Represent cleared as a special value in mock
+}

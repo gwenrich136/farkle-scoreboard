@@ -48,3 +48,7 @@ void ScoreDisplay::print_number(int number, int deviceIndex)
     _lc.setChar(deviceIndex, i + emptySlots, digits[len - 1 - i], false);
   }
 }
+
+void ScoreDisplay::clear(int deviceIndex) {
+  _lc.clearDisplay(deviceIndex);
+}

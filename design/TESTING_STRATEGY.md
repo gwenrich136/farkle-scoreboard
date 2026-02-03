@@ -83,6 +83,8 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_WaitingPhase_ScoreCorrection`:** Verifies that the `atRiskScore` is cleared when the `CLEAR` button is pressed.
     *   **`test_WaitingPhase_TransitionToBanking`:** Verifies that the game transitions to the `BankingPhase` when the `BANK` button is pressed.
     *   **`test_WaitingPhase_TransitionToFarkling`:** Verifies that the game transitions to the `FarklingPhase` when the `FARKLE` button is pressed.
+    *   **`test_WaitingPhase_NoHarmNoFoul_NoPenalty`:** Verifies that `PenaltyFarklingPhase` is not triggered if the player has 0 points.
+    *   **`test_WaitingPhase_PenaltyTriggeredWithPoints`:** Verifies that `PenaltyFarklingPhase` is triggered if the player has points to lose.
 
 *   **`test_BankingPhase.cpp`**
     *   **`test_BankingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from `atRiskScore` to the player's score.
@@ -97,13 +99,12 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FarklingPhase_ZeroFloorSafety`:** Verifies that `atRiskScore` does not go negative.
     *   **`test_FarklingPhase_InputSpamming`:** Verifies that button presses are ignored while the farkling animation is in progress.
     *   **`test_FarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
-    *   **`test_FarklingPhase_NoHarmNoFoul`:** Verifies that if a player has 0 banked points, their `farkle_count` does **not** increment upon farkling.
+    *   **`test_FarklingPhase_NoHarmNoFoul_NoIncrement`:** Verifies that if a player has 0 banked points, their `farkle_count` does **not** increment upon farkling.
+    *   **`test_FarklingPhase_IncrementWithPoints`:** Verifies that `farkle_count` increments if the player has points to lose.
 
 *   **`test_PenaltyFarklingPhase.cpp`**
-    *   **`test_PenaltyFarklingPhase_Stage1_ThePain`:** Verifies that for the first 3 seconds, the `atRiskScore` flashes/blinks, the `FarkleWarningLights` alternate, and **no points are moved**.
-    *   **`test_PenaltyFarklingPhase_Stage2_TheDrain`:** Verifies that after the initial delay, points begin to move (inverse banking) while lights continue to alternate.
-    *   **`test_PenaltyFarklingPhase_Stage3_TheWait`:** Verifies that once the score is 0, the animation stops, lights turn OFF, and the game waits for a manual advance button.
-    *   **`test_PenaltyFarklingPhase_ZeroCeilingSafety`:** Verifies that `atRiskScore` does not go above 0.
+    *   **`test_PenaltyFarklingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from atRiskScore to 0 after the "PAIN" delay.
+    *   **`test_PenaltyFarklingPhase_BlinkingEffect`:** Verifies that the atRiskScore display flashes during the THE_PAIN stage.
     *   **`test_PenaltyFarklingPhase_InputSpamming`:** Verifies that button presses are ignored during both the "Pain" and "Drain" stages.
     *   **`test_PenaltyFarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
 

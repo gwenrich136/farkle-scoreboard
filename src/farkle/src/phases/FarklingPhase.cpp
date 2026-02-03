@@ -6,7 +6,10 @@ const float FARKLE_DRAIN_SPEED = 1.0f; // faster drain for farkles
 
 void FarklingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
-    state.players[state.currentPlayerIndex].farkle_count++;
+    // No Harm, No Foul: only increment farkle_count if the player has points to lose.
+    if (state.players[state.currentPlayerIndex].score > 0) {
+        state.players[state.currentPlayerIndex].farkle_count++;
+    }
 }
 
 GamePhase* FarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
