@@ -9,8 +9,7 @@ public:
   // dataPin, clkPin, csPin
   ScoreDisplay(int dataPin, int clkPin, int csPin);
   void begin();
-  void print_number(int number, int device_index);
-  void clear(int device_index);
+  void print_number(int number, int device_index, bool blink = false);
 
 private:
   LedControl _lc;
