@@ -125,3 +125,22 @@ We will structure our tests into three tiers based on scope and complexity. This
 3.  **Implement Fake Logic:** Update `FakeScoreDisplay.cpp` to store values in public variables for inspection.
 4.  **Write Tests:** Create `test/test_game_logic/test_transitions.cpp` using the Unity `TEST_ASSERT` macros.
 5.  **Run:** Execute `pio test -e native`.
+
+## 6. Component Performance Testing
+
+To verify the performance and correctness of individual hardware components (like `ScoreDisplay`) without flashing hardware, we use a specialized test environment `env:component_tests`.
+
+### 6.1 Strategy
+*   **Real Component Code:** compiled directly from `lib/components`.
+*   **Mocked Dependencies:** External hardware libraries (like `LedControl`) are mocked in `test/mocks/libs`.
+*   **Performance Benchmarking:** Tests include timing measurements to detect regressions or verify optimizations.
+
+### 6.2 Running Component Tests
+To run these tests, use the PlatformIO CLI:
+```bash
+pio test -e component_tests
+```
+
+### 6.3 Directory Structure
+*   `test/test_component_tests/`: Contains the test suites for components.
+*   `test/mocks/libs/`: Contains mocks for external libraries used by components.
