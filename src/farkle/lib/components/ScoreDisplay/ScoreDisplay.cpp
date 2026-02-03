@@ -22,13 +22,29 @@ void ScoreDisplay::begin() {
 
 void ScoreDisplay::print_number(int number, int deviceIndex)
 {
-  const int numberToDisplay = number % 100000;
-  std::string numberStr = std::to_string(numberToDisplay);
-  const int emptySlots = NUM_DIGITS_PER_DISPLAY - numberStr.length();
+  int numberToDisplay = number % 100000;
+
+  char digits[12];
+  int len = 0;
+
+  if (numberToDisplay == 0) {
+    digits[len++] = '0';
+  } else {
+    bool negative = numberToDisplay < 0;
+    if (negative) numberToDisplay = -numberToDisplay;
+
+    while (numberToDisplay > 0) {
+      digits[len++] = (numberToDisplay % 10) + '0';
+      numberToDisplay /= 10;
+    }
+    if (negative) digits[len++] = '-';
+  }
+
+  const int emptySlots = NUM_DIGITS_PER_DISPLAY - len;
   for (int i = 0; i < emptySlots; ++i) {
     _lc.setChar(deviceIndex, i, ' ', false);
   }
-  for (int i = 0; i < numberStr.length(); ++i){
-    _lc.setChar(deviceIndex, i + emptySlots, numberStr.at(i), false);
+  for (int i = 0; i < len; ++i){
+    _lc.setChar(deviceIndex, i + emptySlots, digits[len - 1 - i], false);
   }
 }
