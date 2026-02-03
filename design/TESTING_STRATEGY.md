@@ -155,3 +155,7 @@ pio test -e component_tests
 ### 6.4 Directory Structure
 *   `test/test_component_tests/`: Contains the test suites for components (e.g., `test_score_display.cpp`).
 *   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `FastLED.h`) used by components.
+
+### 6.5 Example Test Cases: `ScoreDisplay`
+*   **`test_ScoreDisplay_Correctness_Overflow`**: Verifies that numbers greater than 99,999 are capped and displayed as "99999".
+*   **`test_ScoreDisplay_Blinking_Intensity`**: Verifies that when `blink` is enabled, calling `print_number` (which should be called every frame) results in the intensity toggling between `SCORE_BLINK_LOW` (4) and `SCORE_BLINK_HIGH` (10) as time advances.
