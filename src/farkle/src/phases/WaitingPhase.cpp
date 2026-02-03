@@ -29,8 +29,7 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction actio
         case FARKLE:
             {
                 Player& currentPlayer = state.players[state.currentPlayerIndex];
-                // Penalty only triggers if the player has three consecutive farkles AND points to lose.
-                if (currentPlayer.farkle_count >= 2 && currentPlayer.score > 0) {
+                if (currentPlayer.farkle_count >= 2) {
                     return game.getPhase<PenaltyFarklingPhase>();
                 } else {
                     return game.getPhase<FarklingPhase>();

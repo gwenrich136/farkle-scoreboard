@@ -71,36 +71,9 @@ void test_WaitingPhase_TransitionToFarkling() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 }
 
-// Verifies that PenaltyFarklingPhase is NOT triggered if the player has no points.
-void test_WaitingPhase_NoHarmNoFoul_NoPenalty() {
-    Game game;
-    game.setup();
-    game.state.players[0].farkle_count = 2;
-    game.state.players[0].score = 0;
-
-    simulateButtonPress(game, ButtonAction::FARKLE);
-
-    // Should go to FarklingPhase, not PenaltyFarklingPhase
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
-}
-
-// Verifies that PenaltyFarklingPhase IS triggered if the player has points.
-void test_WaitingPhase_PenaltyTriggeredWithPoints() {
-    Game game;
-    game.setup();
-    game.state.players[0].farkle_count = 2;
-    game.state.players[0].score = 1000;
-
-    simulateButtonPress(game, ButtonAction::FARKLE);
-
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
-}
-
 void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_ScoreAccumulation);
     RUN_TEST(test_WaitingPhase_ScoreCorrection);
     RUN_TEST(test_WaitingPhase_TransitionToBanking);
     RUN_TEST(test_WaitingPhase_TransitionToFarkling);
-    RUN_TEST(test_WaitingPhase_NoHarmNoFoul_NoPenalty);
-    RUN_TEST(test_WaitingPhase_PenaltyTriggeredWithPoints);
 }

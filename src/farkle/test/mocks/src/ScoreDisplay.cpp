@@ -8,11 +8,6 @@ void ScoreDisplay::begin() {
     // Begin can be empty for the mock
 }
 
-void ScoreDisplay::print_number(int number, int device_index, bool blink) {
+void ScoreDisplay::print_number(int number, int device_index) {
     captured_numbers[device_index] = number;
-    captured_blinks[device_index] = blink;
-}
-
-void ScoreDisplay::clear(int device_index) {
-    captured_numbers[device_index] = -99999; // Represent cleared as a special value in mock
 }

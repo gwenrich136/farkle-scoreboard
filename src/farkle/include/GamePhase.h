@@ -30,15 +30,6 @@ public:
     virtual void display(const GameState& state, const Displays& displays) override;
 
 protected:
-    // Virtual hooks to allow overriding specific parts of the display
-    virtual void updateScoreDisplays(const GameState& state, const Displays& displays);
-    virtual void updateProgressGrid(const GameState& state, const Displays& displays);
-    virtual void updateWarningLights(const GameState& state, const Displays& displays);
-    virtual void updateTextDisplay(const GameState& state, const Displays& displays);
-
-    // Helper to calculate the highest score among all players
-    int calculateLeadingScore(const GameState& state);
-
     // Helper to advance to the next player
     void endTurn(GameState& state);
 

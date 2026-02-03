@@ -5,10 +5,6 @@
 #define NUM_DIGITS_PER_DISPLAY 5
 #define TEN_THOUSAND 10000
 
-#define SCORE_BLINK_LOW 4
-#define SCORE_BLINK_HIGH 10
-#define SCORE_DEFAULT_INTENSITY 8
-
 ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)
   : _lc(dataPin, clkPin, csPin, NUM_DEVICES)
 {
@@ -18,25 +14,15 @@ void ScoreDisplay::begin() {
   // Set up the MAX7219 devices
   for (int i = 0; i < NUM_DEVICES; i++) {
     _lc.shutdown(i, false); // Wake up display
-    _lc.setIntensity(i, SCORE_DEFAULT_INTENSITY); // Set brightness (0-15)
+    _lc.setIntensity(i, 8); // Set brightness (0-15)
     _lc.clearDisplay(i);    // Clear display
   }
 }
 
 
-void ScoreDisplay::print_number(int number, int deviceIndex, bool blink)
+void ScoreDisplay::print_number(int number, int deviceIndex)
 {
-  int numberToDisplay = number;
-  if (numberToDisplay > 99999) {
-    numberToDisplay = 99999;
-  }
-
-  if (blink) {
-    int intensity = (millis() / 500) % 2 == 0 ? SCORE_BLINK_LOW : SCORE_BLINK_HIGH;
-    _lc.setIntensity(deviceIndex, intensity);
-  } else {
-    _lc.setIntensity(deviceIndex, SCORE_DEFAULT_INTENSITY);
-  }
+  int numberToDisplay = number % 100000;
 
   char digits[12];
   int len = 0;
@@ -61,8 +47,4 @@ void ScoreDisplay::print_number(int number, int deviceIndex, bool blink)
   for (int i = 0; i < len; ++i){
     _lc.setChar(deviceIndex, i + emptySlots, digits[len - 1 - i], false);
   }
-}
-
-void ScoreDisplay::clear(int deviceIndex) {
-  _lc.clearDisplay(deviceIndex);
 }

@@ -6,13 +6,11 @@
 
 // Define the global mock state
 std::map<int, std::map<int, char>> mockLedState;
-std::map<int, int> mockLedIntensity;
 
 ScoreDisplay* display;
 
 void setUp(void) {
     mockLedState.clear();
-    mockLedIntensity.clear();
     // Pins don't matter for mock
     display = new ScoreDisplay(10, 11, 12);
     display->begin();
@@ -57,36 +55,14 @@ void test_ScoreDisplay_Correctness_Full(void) {
 }
 
 void test_ScoreDisplay_Correctness_Overflow(void) {
-    // Should cap at 99999
+    // Current implementation: number % 100000
+    // 100001 -> 1
     display->print_number(100001, 0);
-    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][0]);
-    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][1]);
-    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][2]);
-    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][3]);
-    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][4]);
-}
-
-void test_ScoreDisplay_Blinking_Intensity(void) {
-    // Assuming millis starts at 0
-    // 0 ms -> (0 / 500) % 2 == 0 -> SCORE_BLINK_LOW (4)
-    display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(4, mockLedIntensity[0]);
-
-    // Advance to 500ms
-    // 500 ms -> (500 / 500) % 2 == 1 -> SCORE_BLINK_HIGH (10)
-    advance_millis(500);
-    display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(10, mockLedIntensity[0]);
-
-    // Advance to 1000ms
-    // 1000 ms -> (1000 / 500) % 2 == 0 -> SCORE_BLINK_LOW (4)
-    advance_millis(500);
-    display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(4, mockLedIntensity[0]);
-
-    // Turn off blinking
-    display->print_number(123, 0, false);
-    TEST_ASSERT_EQUAL_INT(8, mockLedIntensity[0]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][0]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][1]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][2]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][3]);
+    TEST_ASSERT_EQUAL_CHAR('1', mockLedState[0][4]);
 }
 
 void test_ScoreDisplay_Performance(void) {
@@ -113,7 +89,6 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_Correctness_Number);
     RUN_TEST(test_ScoreDisplay_Correctness_Full);
     RUN_TEST(test_ScoreDisplay_Correctness_Overflow);
-    RUN_TEST(test_ScoreDisplay_Blinking_Intensity);
     RUN_TEST(test_ScoreDisplay_Performance);
     return UNITY_END();
 }

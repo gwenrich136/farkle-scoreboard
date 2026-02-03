@@ -8,8 +8,6 @@
 // Global state for verification
 // Map<DeviceIndex, Map<DigitIndex, Character>>
 extern std::map<int, std::map<int, char>> mockLedState;
-// Map<DeviceIndex, Intensity>
-extern std::map<int, int> mockLedIntensity;
 
 class LedControl {
 public:
@@ -18,9 +16,7 @@ public:
 
     void shutdown(int addr, bool b) {}
 
-    void setIntensity(int addr, int intensity) {
-        mockLedIntensity[addr] = intensity;
-    }
+    void setIntensity(int addr, int intensity) {}
 
     void clearDisplay(int addr) {
         mockLedState[addr].clear();
