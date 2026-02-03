@@ -68,7 +68,7 @@ private:
   PlayerRows getRowMapping(int totalPlayers, int playerIdx);
   bool shouldRefresh(const State& newState);
   void renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness);
-  uint16_t getPlayerHue(int playerIdx, int totalPlayers);
+  uint16_t getPlayerHue(int playerIdx);
 };
 
 #endif

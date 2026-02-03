@@ -41,13 +41,24 @@ int LedProgressGrid::get_pixel_index(int row, int col) {
 }
 
 int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness) {
+  // The following is a cubic expression in terms of it's derrivate at
+  // x=0 and x=1, denoted by y'(0) and y'(1), with the following constraints
+  //   - y(0) = 0
+  //   - y(1) = 1
+  //
+  // y(x) = (y'(1) - y'(0) - 2) * x^3
+  //        + (3 - y'(1) - 2 * y'(0)) * x^2
+  //        + y'(0) * x
+  //
+  // With a desired y'(0) of 1/3 and y'(1) of 3, we get:
+  //   - y(x) = (4/3) x^3 - (2/3) x^2 + (1/3) x
   float x = remainder;
   float y = (4*x*x - 2*x + 1) * x / 3.0;
   return (int) fullBrightness * y;
 }
 
 int LedProgressGrid::addPlayer() {
-    uint16_t newHue = getPlayerHue(_playerCount, _playerCount + 1);
+    uint16_t newHue = getPlayerHue(_playerCount);
     _playerHues.push_back(newHue);
     
     int playerIndex = _playerCount;
@@ -98,7 +109,7 @@ bool LedProgressGrid::shouldRefresh(const State& newState) {
     return false;
 }
 
-uint16_t LedProgressGrid::getPlayerHue(int playerIdx, int totalPlayers) {
+uint16_t LedProgressGrid::getPlayerHue(int playerIdx) {
     if (playerIdx < (int)_playerHues.size()) {
         return _playerHues[playerIdx];
     }
@@ -150,6 +161,7 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   }
   
   if (highestScore > _maxScore) {
+    // As per design: "lowest multiple of 2000 greater than the highest score, with a minimum of 10,000"
     int newMax = ( (highestScore / 2000) + 1) * 2000;
     _maxScore = max(10000, newMax);
   }
@@ -159,18 +171,14 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
     PlayerRows rows = getRowMapping(_playerCount, playerIdx);
     
-    int totalScore = scores[playerIdx];
-    if (playerIdx == currentPlayerIndex) {
-      totalScore += atRiskScore;
-    }
-    float totalRatio = (float)totalScore / _maxScore;
-    if (totalRatio > 1.0f) totalRatio = 1.0f;
-
-    float bankedRatio = (float)scores[playerIdx] / _maxScore;
-    if (bankedRatio > 1.0f) bankedRatio = 1.0f;
-
+    int scoreToDraw = scores[playerIdx];
     bool showingRisk = (playerIdx == currentPlayerIndex && atRiskScore > 0 && _isBlinkOn);
-    float ratioToDraw = showingRisk ? totalRatio : bankedRatio;
+    if (showingRisk) {
+      scoreToDraw += atRiskScore;
+    }
+
+    float ratioToDraw = (float)scoreToDraw / _maxScore;
+    if (ratioToDraw > 1.0f) ratioToDraw = 1.0f;
 
     renderPlayerRows(rows, _playerHues[playerIdx], ratioToDraw, 128);
   }
@@ -206,7 +214,7 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
   if (isPlayerPending && _isBlinkOn) {
       int pendingIdx = _playerCount;
       PlayerRows rows = getRowMapping(effectivePlayerCount, pendingIdx);
-      uint16_t hue = getPlayerHue(pendingIdx, effectivePlayerCount);
+      uint16_t hue = getPlayerHue(pendingIdx);
       renderPlayerRows(rows, hue, 1.0f, 128);
   }
 
