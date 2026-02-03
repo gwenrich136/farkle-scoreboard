@@ -1,3 +1,6 @@
+> **Scope:** Defines the API and behavior of all custom hardware component libraries, such as `ControlPad`, `ScoreDisplay`, and `LedProgressGrid`.
+> **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
+
 # Component Library Designs for Farkle Scoreboard
 
 This document outlines the design and intended functionality of the custom component libraries developed for the Farkle Scoreboard project. Each section details the purpose, API, and key behaviors of a specific component, reflecting the discussions and decisions made during the design phase.
@@ -34,10 +37,12 @@ The `FarkleWarningLights` component provides a simple visual indication of a pla
     -   `state = 0`: Both LEDs are off.
     -   `state = 1`: The yellow LED is on, red is off.
     -   `state = 2` (or greater): Both the yellow and red LEDs are on.
+-   **`void alternate()`**: Manages an alternating flashing state for the yellow and red LEDs. This method is non-blocking and must be called repeatedly in a loop (e.g., `update()`) to function correctly. When called, it checks if it's time to toggle the lights based on an internal timer.
 
 ### Key Logic & Behavior
 -   **Direct State Mapping:** The integer input directly maps to the visual output, simplifying usage in the main game logic.
 -   **Max Farkle Count:** The game logic will ensure the `state` passed to `farkle_state()` will never exceed 2, as a third farkle resets the counter to zero.
+-   **Alternating State for Catastrophic Farkle:** The `alternate()` method provides the specific visual effect required for the "catastrophic farkle" event. It uses `millis()` for non-blocking timing, allowing the rest of the game loop to run without interruption while the lights flash.
 
 ---
 
@@ -93,16 +98,18 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 
 ### API Design
 -   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
--   **`void print_number(int number, int deviceIndex)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
+-   **`void print_number(int number, int deviceIndex, bool blink = false)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
     -   The number will be right-aligned on the 5-digit display.
+    -   If `blink` is `true`, the display's intensity will alternate between LOW (4) and HIGH (10) periodically.
 
 ### Key Logic & Behavior
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, intended for:
     1.  `current_at_risk_score`
     2.  `current_player_banked_score`
     3.  `leading_score`
--   **Score Overflow Handling (Desired):** If the input `number` exceeds 99,999, the display should show `99999`. (The current implementation will be updated to reflect this desired behavior.)
--   **Readability-Focused Implementation:** The digit extraction and formatting are implemented using `std::string` for readability, with negligible performance impact on the target hardware.
+-   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
+-   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
+-   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
 
 ---
 

@@ -1,6 +1,7 @@
 #include "LedProgressGrid.h"
 
 #define GRID_LENGTH 8
+#define GOLDEN_RATIO_CONJUGATE 0.61803398875f
 
 // Constructor: initializes the NeoPixel object
 LedProgressGrid::LedProgressGrid(uint8_t pin)
@@ -13,33 +14,21 @@ void LedProgressGrid::begin() {
   reset(); // Call reset to initialize all state and clear display
 }
 
-// hello_world method: cycles through pixels with random HSV colors
-void LedProgressGrid::hello_world()
-{
-  int random_offset = random(0,65536);
-  for (int i = 0; i < 8; ++i) {
-    int hue = (int) (65536 * i * 1.618 + random_offset) % 65536;
-    illuminate_row(i, hue, random(0,100)/100.0);
-  }
-  _pixels.show();
-}
-
 void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
-  // Apply a square curve (gamma ~2.0) to the remainder for smoother perceived brightness transitions
-  int remaininderBrightness = (int)(remainder * remainder * brightness);
   // rows snake, so we need to count backwards for odd rows
+    uint32_t color = _pixels.ColorHSV(hue, 255, brightness);
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
         get_pixel_index(row, col),
-        _pixels.ColorHSV(hue, 255, brightness));
+        color);
     }
     // Only draw partial pixel if we haven't filled the row
     if (num_pixels < GRID_LENGTH) {
       _pixels.setPixelColor(
         get_pixel_index(row, num_pixels),
-        _pixels.ColorHSV(hue, 255, remaininderBrightness)
+        _pixels.ColorHSV(hue, 255, getRemainderBrightness(remainder, brightness))
       );
     }
 }
@@ -48,7 +37,22 @@ int LedProgressGrid::get_pixel_index(int row, int col) {
   return (row * GRID_LENGTH) + (row % 2 != 0 ? col : (GRID_LENGTH - 1) - col);
 }
 
-const float GOLDEN_RATIO_CONJUGATE = 0.61803398875;
+int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness) {
+  // The following is a cubic expression in terms of it's derrivate at 
+  // x=0 and x=1, denoted by y'(0) and y'(1), with the following constraints
+  //   - y(0) = 0
+  //   - y(1) = 1
+  // 
+  // y(x) = (y'(1) - y'(0) - 2) * x^3 
+  //        + (3 - y'(1) - 2 * y'(0)) * x^2 
+  //        + y'(0) * x
+  //
+  // With a desired y'(0) of 1/3 and y'(1) of 3, we get:
+  //   - y(x) = (4/3) x^3 - (2/3) x^2 + (1/3) x
+  float x = remainder;
+  float y = (4*x*x - 2*x + 1) * x / 3.0;
+  return (int) fullBrightness * y;
+}
 
 int LedProgressGrid::addPlayer() {
     uint16_t newHue;

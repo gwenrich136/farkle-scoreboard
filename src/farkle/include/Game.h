@@ -10,6 +10,7 @@
 #include "phases/WaitingPhase.h"
 #include "phases/BankingPhase.h"
 #include "phases/FarklingPhase.h"
+#include "phases/PenaltyFarklingPhase.h"
 #include "phases/PostGamePhase_V1.h"
 
 // Hardware Component Includes
@@ -31,15 +32,21 @@ public:
         if (std::is_same<T, WaitingPhase>::value) return (T*)&phasePool.waiting;
         if (std::is_same<T, BankingPhase>::value) return (T*)&phasePool.banking;
         if (std::is_same<T, FarklingPhase>::value) return (T*)&phasePool.farkling;
+        if (std::is_same<T, PenaltyFarklingPhase>::value) return (T*)&phasePool.penaltyFarkling;
         if (std::is_same<T, PostGamePhase_V1>::value) return (T*)&phasePool.postGame;
         return nullptr;
     }
 
+#ifdef UNIT_TEST
+public:
+#else
 private:
+#endif
     struct PhasePool {
         WaitingPhase waiting;
         BankingPhase banking;
         FarklingPhase farkling;
+        PenaltyFarklingPhase penaltyFarkling;
         PostGamePhase_V1 postGame;
     };
 

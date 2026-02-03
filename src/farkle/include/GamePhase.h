@@ -4,6 +4,7 @@
 #include "GameState.h"
 #include "ButtonActions.h"
 #include "Displays.h"
+#include <vector>
 
 // Forward declaration of the Game context class
 class Game;
@@ -31,6 +32,9 @@ public:
 protected:
     // Helper to advance to the next player
     void endTurn(GameState& state);
+
+    // Reusable vector for scores to avoid repeated allocations
+    std::vector<int> m_scores;
 };
 
 #endif

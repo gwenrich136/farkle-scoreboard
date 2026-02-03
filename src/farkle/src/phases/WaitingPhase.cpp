@@ -8,7 +8,7 @@ void WaitingPhase::onEnter(GameState& state) {
 GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
     // 1. Check for Game End
     // If the final round was triggered and it's now back to a player who has 5000+, the game ends.
-    if (state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= 5000) {
+    if (state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
         return game.getPhase<PostGamePhase_V1>();
     }
 
@@ -27,7 +27,14 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction actio
             break;
             
         case FARKLE:
-            return game.getPhase<FarklingPhase>();
+            {
+                Player& currentPlayer = state.players[state.currentPlayerIndex];
+                if (currentPlayer.farkle_count >= 2) {
+                    return game.getPhase<PenaltyFarklingPhase>();
+                } else {
+                    return game.getPhase<FarklingPhase>();
+                }
+            }
             break;
 
         default:

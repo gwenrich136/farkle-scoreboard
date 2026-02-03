@@ -2,8 +2,9 @@
 #define ControlPad_h
 
 #include <Arduino.h>
-#include <map> // Required for std::map
 #include "ButtonActions.h"
+
+#define MAX_PINS 17 // Max pin number + 1 to support up to pin 16
 
 class ControlPad {
 public:
@@ -12,7 +13,7 @@ public:
   ButtonAction read();
 
 private:
-  std::map<int, ButtonAction> _buttonMap;
+  ButtonAction _buttonMap[MAX_PINS];
   ButtonAction _lastAction;
 };
 

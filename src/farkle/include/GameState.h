@@ -18,8 +18,9 @@ struct GameState {
     int atRiskScore;
     int currentPlayerIndex;
     bool finalRoundTriggered;
+    int targetScore;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false) {}
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000) {}
 };
 
 #endif
