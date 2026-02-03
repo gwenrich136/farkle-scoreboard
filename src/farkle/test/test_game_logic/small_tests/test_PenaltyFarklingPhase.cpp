@@ -7,7 +7,7 @@
 #include "Arduino.h"
 
 // Verifies that the score animation correctly moves points from atRiskScore (negative) to 0
-// and subtracts from the player's score.
+// and subtracts from the player's score, after the 3-second pause.
 void test_PenaltyFarklingPhase_AnimationMath() {
     Game game;
     game.setup();
@@ -16,14 +16,39 @@ void test_PenaltyFarklingPhase_AnimationMath() {
     game.state.atRiskScore = -1000;
     game.state.players[0].score = 2000;
 
-    // Needs enough time for flashing (if any) and animation.
-    // Based on full_game test, 2000ms seems sufficient for 1000 points.
-    for (int i = 0; i < 300; i++) { // 300 * 10ms = 3000ms
+    // 1. Stage: THE_PAIN (3000ms)
+    // No points should move during this time.
+    for (int i = 0; i < 290; i++) { // 2900ms
+        simulateNoAction(game);
+    }
+    TEST_ASSERT_EQUAL_INT(-1000, game.state.atRiskScore);
+    TEST_ASSERT_EQUAL_INT(2000, game.state.players[0].score);
+
+    // 2. Stage: THE_DRAIN
+    // Advance past 3000ms
+    simulateNoAction(game, 200); // Now at 3100ms
+
+    // Draining 1000 points at 1pt/ms takes another 1000ms.
+    for (int i = 0; i < 150; i++) { // 1500ms more
         simulateNoAction(game);
     }
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_INT(1000, game.state.players[0].score);
+}
+
+// Verifies that the blink parameter is correctly passed to the ScoreDisplay during THE_PAIN.
+void test_PenaltyFarklingPhase_BlinkParameter() {
+    Game game;
+    game.setup();
+    game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
+    game.currentPhase->onEnter(game.state);
+
+    simulateNoAction(game, 100); // Still in THE_PAIN
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[0]);
+
+    simulateNoAction(game, 3000); // Now in THE_DRAIN or AFTERMATH
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[0]);
 }
 
 // Verifies that atRiskScore does not go above 0 (Zero Ceiling).
@@ -66,12 +91,12 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
     game.setup();
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
-    game.state.atRiskScore = 0; // Animation done
+    game.state.atRiskScore = -100;
     
-    // Ensure we are past any internal timers if necessary.
-    // If atRiskScore is manually set to 0, logic should consider it done.
+    // Advance past THE_PAIN (3000ms) and THE_DRAIN (100ms)
+    simulateNoAction(game, 4000);
 
-    simulateNoAction(game);
+    TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
     simulateButtonPress(game, ButtonAction::CLEAR);
@@ -81,6 +106,7 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
 
 void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_AnimationMath);
+    RUN_TEST(test_PenaltyFarklingPhase_BlinkParameter);
     RUN_TEST(test_PenaltyFarklingPhase_ZeroCeilingSafety);
     RUN_TEST(test_PenaltyFarklingPhase_InputSpamming);
     RUN_TEST(test_PenaltyFarklingPhase_ManualAdvance);
