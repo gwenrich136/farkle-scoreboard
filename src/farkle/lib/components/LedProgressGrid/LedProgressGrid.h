@@ -13,6 +13,11 @@ public:
     PRE_GAME
   };
 
+  struct PlayerRows {
+    int startRow;
+    int numRows;
+  };
+
   struct State {
     DisplayMode mode = DisplayMode::NONE;
     std::vector<int> scores;
@@ -21,9 +26,11 @@ public:
     bool isBlinkOn = false;
     bool isPlayerPending = false;
     int playerCount = 0;
+    bool isDirty = true;
 
     bool operator==(const State& other) const {
-      return mode == other.mode &&
+      return !isDirty && !other.isDirty &&
+             mode == other.mode &&
              scores == other.scores &&
              currentPlayerIndex == other.currentPlayerIndex &&
              atRiskScore == other.atRiskScore &&
@@ -51,13 +58,17 @@ private:
   bool _isBlinkOn;
 
   State _lastState;
-  bool _isDirty;
   uint16_t _prospectiveFirstHue;
   bool _hasProspectiveFirstHue;
 
   void illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness = 255);
   int get_pixel_index(int row, int col);
   int getRemainderBrightness(float remainder, int fullBrightness);
+
+  PlayerRows getRowMapping(int totalPlayers, int playerIdx);
+  bool shouldRefresh(const State& newState);
+  void renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness);
+  uint16_t getPlayerHue(int playerIdx, int totalPlayers);
 };
 
 #endif
