@@ -65,9 +65,40 @@ void test_BankingPhase_ManualAdvance() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 }
 
+// Verifies that the farkle count is reset immediately upon entering the BankingPhase.
+void test_BankingPhase_FarkleResetOnEnter() {
+    Game game;
+    game.setup();
+    game.state.players[0].farkle_count = 2;
+
+    // Explicitly enter the phase
+    game.getPhase<BankingPhase>()->onEnter(game.state);
+
+    TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count);
+}
+
+// Verifies that the farkle warning lights are off during the banking animation.
+void test_BankingPhase_LightsOffDuringAnimation() {
+    Game game;
+    game.setup();
+    game.state.players[0].farkle_count = 2;
+    game.currentPhase = game.getPhase<BankingPhase>();
+
+    // Enter the phase and update display
+    game.currentPhase->onEnter(game.state);
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    // Captured state 0 means all lights are off
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_state);
+}
+
 void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_AnimationMath);
     RUN_TEST(test_BankingPhase_ZeroFloorSafety);
     RUN_TEST(test_BankingPhase_InputSpamming);
     RUN_TEST(test_BankingPhase_ManualAdvance);
+    RUN_TEST(test_BankingPhase_FarkleResetOnEnter);
+    RUN_TEST(test_BankingPhase_LightsOffDuringAnimation);
 }

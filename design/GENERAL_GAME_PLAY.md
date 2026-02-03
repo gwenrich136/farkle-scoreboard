@@ -46,6 +46,7 @@ The game begins by guiding players through setup and configuration.
 ### 2.2 Score Animations
 -   **Banking Animation:**
     -   When a player presses `BANK`, their `atRisk` score slowly drains to zero while their banked score simultaneously increases by the same amount. Both the `ScoreDisplay` segments and the `LedProgressGrid` animate this proportional change, with the `atRisk` portion shrinking and the banked portion growing.
+    - The player's consecutive farkle count is also reset to zero at the beginning of this phase, causing the `FarkleWarningLights` to turn off immediately.
     -   **Note on Visuals:** The `LedProgressGrid` uses a logarithmic/exponential brightness curve for the "remainder" pixel. This ensures that the visual progression appears smooth and linear to the human eye, avoiding sudden jumps in brightness during these animations.
     -   Input is locked during this animation.
     -   **Manual Advance:** Once the animation completes (at-risk score is 0), the game persists in its final state, showing the updated score. The game waits indefinitely until **any button** is pressed on the `ControlPad`.

@@ -6,6 +6,7 @@ const float SCORE_ANIMATION_SPEED = 0.5f; // points per millisecond (approx 500 
 
 void BankingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
+    state.players[state.currentPlayerIndex].farkle_count = 0;
 }
 
 GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
@@ -32,9 +33,6 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
 
         // Wait for user dismissal (any button press)
         if (action != ButtonAction::NONE) {
-            // Reset farkle count on a successful bank
-            state.players[state.currentPlayerIndex].farkle_count = 0;
-
             // Check for Final Round Trigger
             if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
                 state.finalRoundTriggered = true;
