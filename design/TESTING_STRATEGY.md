@@ -156,3 +156,7 @@ pio test -e component_tests
 *   `test/test_component_*/`: Contains the test suites for components (e.g., `test_component_score_display/`, `test_component_led_progress_grid/`).
     *   **Note on Subdirectories**: Individual components have their own test subdirectories to avoid linker conflicts. The Unity framework's `setUp`, `tearDown`, and `main` functions would otherwise cause multiple-definition errors when compiling all component tests into a single test runner.
 *   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `Adafruit_NeoPixel.h`) used by components.
+
+### 6.5 Example Test Cases: `ScoreDisplay`
+*   **`test_ScoreDisplay_Correctness_Overflow`**: Verifies that numbers greater than 99,999 are capped and displayed as "99999".
+*   **`test_ScoreDisplay_Blinking_Intensity`**: Verifies that when `blink` is enabled, calling `print_number` (which should be called every frame) results in the intensity toggling between `SCORE_BLINK_LOW` (4) and `SCORE_BLINK_HIGH` (10) as time advances.

@@ -99,16 +99,18 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 
 ### API Design
 -   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
--   **`void print_number(int number, int deviceIndex)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
+-   **`void print_number(int number, int deviceIndex, bool blink = false)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
     -   The number will be right-aligned on the 5-digit display.
+    -   If `blink` is `true`, the display's intensity will alternate between LOW (4) and HIGH (10) periodically.
 
 ### Key Logic & Behavior
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, intended for:
     1.  `current_at_risk_score`
     2.  `current_player_banked_score`
     3.  `leading_score`
--   **Score Overflow Handling (Desired):** If the input `number` exceeds 99,999, the display should show `99999`. (The current implementation will be updated to reflect this desired behavior.)
--   **Readability-Focused Implementation:** The digit extraction and formatting are implemented using `std::string` for readability, with negligible performance impact on the target hardware.
+-   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
+-   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
+-   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
 
 ---
 
