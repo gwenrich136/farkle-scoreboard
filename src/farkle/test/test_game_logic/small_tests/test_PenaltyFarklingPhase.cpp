@@ -60,11 +60,10 @@ void test_PenaltyFarklingPhase_ZeroCeilingSafety() {
     game.state.atRiskScore = -50;
     game.state.players[0].score = 2000;
 
+    // Advance past THE_PAIN (3000ms)
+    simulateNoAction(game, 3010);
     // Advance enough time to drain -50.
-    // Be generous to cover potential flashing delays.
-    for (int i = 0; i < 300; i++) {
-        simulateNoAction(game);
-    }
+    simulateNoAction(game, 500);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_INT(1950, game.state.players[0].score);
@@ -93,8 +92,10 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
     game.currentPhase->onEnter(game.state);
     game.state.atRiskScore = -100;
     
-    // Advance past THE_PAIN (3000ms) and THE_DRAIN (100ms)
-    simulateNoAction(game, 4000);
+    // Advance past THE_PAIN (3000ms)
+    simulateNoAction(game, 3010);
+    // Advance past THE_DRAIN (100ms)
+    simulateNoAction(game, 500);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);

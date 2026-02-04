@@ -2,8 +2,9 @@
 #include "Game.h"
 #include <algorithm>
 
-// Constants for animation
-const float PENALTY_DRAIN_SPEED = 1.0f; // faster drain for farkles
+// Constants for animation sequence
+const unsigned long PAIN_DURATION = 3000;
+const float PENALTY_DRAIN_SPEED = 1.0f;
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
     currentStage = PenaltyStage::THE_PAIN;
@@ -23,7 +24,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
     switch (currentStage) {
         case PenaltyStage::THE_PAIN:
             // Dramatic pause for 3 seconds with blinking score
-            if (stageTimer >= 3000) {
+            if (stageTimer >= PAIN_DURATION) {
                 currentStage = PenaltyStage::THE_DRAIN;
             }
             break;
@@ -82,8 +83,8 @@ void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Dis
     if (currentStage == PenaltyStage::THE_PAIN || currentStage == PenaltyStage::THE_DRAIN) {
         displays.farkleLights.alternate();
     } else {
-        // Lights OFF during THE_AFTERMATH
-        displays.farkleLights.farkle_state(0);
+        // Inherit behavior for THE_AFTERMATH (turns them off as count is 0)
+        InGamePhase::updateWarningLights(state, displays);
     }
 }
 

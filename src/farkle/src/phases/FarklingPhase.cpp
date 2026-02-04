@@ -2,7 +2,7 @@
 #include "Game.h"
 
 // Constants for animation
-const float FARKLE_DRAIN_SPEED = 1.0f; // faster drain for farkles
+const float FARKLE_DRAIN_SPEED = 1.0f;
 
 void FarklingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
