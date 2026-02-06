@@ -1,4 +1,4 @@
-#include "test_display_logic.h"
+#include "test_conditional_at_risk_display.h"
 #include "Game.h"
 #include "../test_utils.h"
 #include <unity.h>
@@ -45,8 +45,12 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsZero() {
     // Enter PenaltyFarklingPhase
     simulateButtonPress(game, ButtonAction::FARKLE);
 
-    // Advance past THE_PAIN (3 seconds)
-    simulateNoAction(game, 3001);
+    // Stage 1: THE_PAIN (0-3s). Verify display is cleared during "the pain"
+    simulateNoAction(game, 1500);
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+
+    // Advance past THE_PAIN (3 seconds total)
+    simulateNoAction(game, 1501);
 
     // Wait for THE_DRAIN animation to finish
     while(game.state.atRiskScore < 0) {

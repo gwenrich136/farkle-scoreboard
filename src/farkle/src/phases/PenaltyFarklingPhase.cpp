@@ -71,9 +71,10 @@ void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, cons
     // Use the blink parameter provided by the updated ScoreDisplay library
     bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
 
-    if (state.atRiskScore == 0) {
+    if (state.atRiskScore <= 0) {
         displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
     } else {
+        // This case is unlikely in PenaltyFarklingPhase but kept for consistency
         displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
     }
 }
