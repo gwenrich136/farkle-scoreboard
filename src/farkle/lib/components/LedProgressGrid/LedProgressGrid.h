@@ -22,7 +22,7 @@ public:
 
   struct State {
     DisplayMode mode = DisplayMode::NONE;
-    std::vector<int> scores;
+    int scores[MAX_PLAYERS] = {0};
     int currentPlayerIndex = -1;
     int atRiskScore = -1;
     bool isBlinkOn = false;
@@ -31,14 +31,21 @@ public:
     bool isDirty = true;
 
     bool operator==(const State& other) const {
-      return !isDirty && !other.isDirty &&
-             mode == other.mode &&
-             scores == other.scores &&
-             currentPlayerIndex == other.currentPlayerIndex &&
-             atRiskScore == other.atRiskScore &&
-             isBlinkOn == other.isBlinkOn &&
-             isPlayerPending == other.isPlayerPending &&
-             playerCount == other.playerCount;
+      if (isDirty || other.isDirty ||
+          mode != other.mode ||
+          currentPlayerIndex != other.currentPlayerIndex ||
+          atRiskScore != other.atRiskScore ||
+          isBlinkOn != other.isBlinkOn ||
+          isPlayerPending != other.isPlayerPending ||
+          playerCount != other.playerCount) {
+        return false;
+      }
+      for (int i = 0; i < playerCount; ++i) {
+        if (scores[i] != other.scores[i]) {
+          return false;
+        }
+      }
+      return true;
     }
     bool operator!=(const State& other) const { return !(*this == other); }
   };

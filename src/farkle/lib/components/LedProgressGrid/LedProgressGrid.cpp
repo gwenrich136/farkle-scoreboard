@@ -151,15 +151,24 @@ void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float rati
 }
 
 void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore) {
+  if (scores.size() < (size_t)_playerCount) {
+    return;
+  }
+
   _isBlinkOn = millis() % (2 * BLINK_HALF_PERIOD) > BLINK_HALF_PERIOD;
 
   State currentState;
   currentState.mode = DisplayMode::IN_GAME;
-  currentState.scores = scores;
+
+  int safePlayerCount = (_playerCount > MAX_PLAYERS) ? MAX_PLAYERS : _playerCount;
+  for (int i = 0; i < safePlayerCount; ++i) {
+    currentState.scores[i] = scores[i];
+  }
+
   currentState.currentPlayerIndex = currentPlayerIndex;
   currentState.atRiskScore = atRiskScore;
   currentState.isBlinkOn = _isBlinkOn;
-  currentState.playerCount = _playerCount;
+  currentState.playerCount = safePlayerCount;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {

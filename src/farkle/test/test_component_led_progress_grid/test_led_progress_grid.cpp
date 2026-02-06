@@ -111,6 +111,18 @@ void test_LedProgressGrid_Update_Basic(void) {
     TEST_ASSERT_NOT_EQUAL(0, mockNeoPixelState.size());
 }
 
+void test_LedProgressGrid_InsufficientScores(void) {
+    // If we have more players than scores provided, update should return early (safety check)
+    grid->addPlayer(); // 1 player
+    std::vector<int> emptyScores; // 0 scores
+
+    mockNeoPixelShowCount = 0;
+    grid->update(emptyScores, 0, 0);
+
+    // Should verify that show() was NOT called because update() returned early
+    TEST_ASSERT_EQUAL(0, mockNeoPixelShowCount);
+}
+
 void test_LedProgressGrid_MaxPlayers(void) {
     // Add 8 players (MAX_PLAYERS)
     for (int i = 0; i < 8; ++i) {
@@ -142,5 +154,6 @@ int main(void) {
     RUN_TEST(test_LedProgressGrid_Optimization);
     RUN_TEST(test_LedProgressGrid_Pregame_Blink_Optimization);
     RUN_TEST(test_LedProgressGrid_Update_Basic);
+    RUN_TEST(test_LedProgressGrid_InsufficientScores);
     return UNITY_END();
 }
