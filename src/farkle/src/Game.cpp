@@ -21,6 +21,9 @@ void Game::setup() {
     
     Serial.println("GAME: Init ScoreDisplay...");
     scoreDisplay.begin();
+    scoreDisplay.addDisplay(ScoreDisplay::DisplayType::AT_RISK_SCORE, 0);
+    scoreDisplay.addDisplay(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE, 1);
+    scoreDisplay.addDisplay(ScoreDisplay::DisplayType::COMPETITION_SCORE, 2);
     
     Serial.println("GAME: Init Grid...");
     grid.begin();

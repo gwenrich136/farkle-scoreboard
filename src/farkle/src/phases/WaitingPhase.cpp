@@ -39,3 +39,7 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction actio
 
     return this;
 }
+
+void WaitingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
+    displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+}

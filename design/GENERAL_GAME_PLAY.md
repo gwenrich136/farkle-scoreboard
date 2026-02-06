@@ -45,6 +45,7 @@ The game begins by guiding players through setup and configuration.
         -   `RIGHT`: +500 points
         -   `UP`: +1000 points
     -   The `atRisk` score is displayed on a `ScoreDisplay` segment and as a blinking section on the `LedProgressGrid`.
+    -   **Visual Feedback Rule:** If the `atRiskScore` is 0, it is only displayed as "0" on the `ScoreDisplay` during the `WaitingPhase`. In all other phases (such as during animations in the `BankingPhase` or `FarklingPhase`), an `atRiskScore` of 0 is treated as an empty display. This helps visually distinguish between an active turn and the transition between turns.
     -   **Correction:** Pressing `CLEAR` resets the `atRisk` score to 0 for the current roll, allowing the player to re-enter their score.
 
 ### 2.2 Score Animations

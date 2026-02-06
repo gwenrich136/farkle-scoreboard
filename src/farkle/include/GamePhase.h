@@ -32,6 +32,10 @@ public:
 protected:
     // Virtual hooks to allow overriding specific parts of the display
     virtual void updateScoreDisplays(const GameState& state, const Displays& displays);
+    virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays);
+    virtual void updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays);
+    virtual void updateCompetitionScoreDisplay(const GameState& state, const Displays& displays);
+
     virtual void updateProgressGrid(const GameState& state, const Displays& displays);
     virtual void updateWarningLights(const GameState& state, const Displays& displays);
     virtual void updateTextDisplay(const GameState& state, const Displays& displays);
