@@ -21,6 +21,7 @@ public:
     void reset();
     void clear();
     void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
+    void displayPlayersPregame(bool isPlayerPending);
 };
 
 #endif // MOCK_LED_PROGRESS_GRID_H

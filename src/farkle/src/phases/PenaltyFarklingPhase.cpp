@@ -2,47 +2,93 @@
 #include "Game.h"
 #include <algorithm>
 
-// Constants for animation
-const float PENALTY_DRAIN_SPEED = 1.0f; // faster drain for farkles
+// Constants for animation sequence
+const unsigned long PAIN_DURATION = 3000;
+const float PENALTY_DRAIN_SPEED = 1.0f;
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
+    currentStage = PenaltyStage::THE_PAIN;
+    stageTimer = 0;
     scoreMoveAccumulator = 0.0f;
+
+    // Calculate penalty: min(1000, player.score)
     state.atRiskScore = -1 * std::min(1000, state.players[state.currentPlayerIndex].score);
 
-    // Reset the farkle count
+    // Reset the farkle count immediately
     state.players[state.currentPlayerIndex].farkle_count = 0;
 }
 
 GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
-    // 1. Perform Animation
-    if (state.atRiskScore < 0) {
-        scoreMoveAccumulator += (PENALTY_DRAIN_SPEED * deltaTime);
-        int pointsToSubtract = (int)scoreMoveAccumulator;
+    stageTimer += deltaTime;
 
-        if (pointsToSubtract > 0) {
-            Player& currentPlayer = state.players[state.currentPlayerIndex];
+    switch (currentStage) {
+        case PenaltyStage::THE_PAIN:
+            // Dramatic pause for 3 seconds with blinking score
+            if (stageTimer >= PAIN_DURATION) {
+                currentStage = PenaltyStage::THE_DRAIN;
+            }
+            break;
 
-            // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
-            if (pointsToSubtract > -state.atRiskScore) {
-                pointsToSubtract = -state.atRiskScore;
+        case PenaltyStage::THE_DRAIN:
+            // Perform Animation (Inverse banking)
+            if (state.atRiskScore < 0) {
+                scoreMoveAccumulator += (PENALTY_DRAIN_SPEED * deltaTime);
+                int pointsToSubtract = (int)scoreMoveAccumulator;
+
+                if (pointsToSubtract > 0) {
+                    Player& currentPlayer = state.players[state.currentPlayerIndex];
+
+                    // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
+                    if (pointsToSubtract > -state.atRiskScore) {
+                        pointsToSubtract = -state.atRiskScore;
+                    }
+
+                    currentPlayer.score -= pointsToSubtract;
+                    state.atRiskScore += pointsToSubtract;
+                    scoreMoveAccumulator -= (float)pointsToSubtract;
+                }
             }
 
-            currentPlayer.score -= pointsToSubtract;
-            state.atRiskScore += pointsToSubtract;
-            scoreMoveAccumulator -= (float)pointsToSubtract;
-        }
-    }
+            if (state.atRiskScore >= 0) {
+                state.atRiskScore = 0; // Clean up any fractional remainder
+                currentStage = PenaltyStage::THE_AFTERMATH;
+            }
+            break;
 
-    // 2. Check for completion
-    if (state.atRiskScore >= 0) {
-        state.atRiskScore = 0; // Clean up any fractional remainder
-
-        // Wait for user dismissal
-        if (action != ButtonAction::NONE) {
-            this->endTurn(state);
-            return game.getPhase<WaitingPhase>();
-        }
+        case PenaltyStage::THE_AFTERMATH:
+            // Wait for user dismissal
+            if (action != ButtonAction::NONE) {
+                this->endTurn(state);
+                return game.getPhase<WaitingPhase>();
+            }
+            break;
     }
 
     return this;
+}
+
+void PenaltyFarklingPhase::updateScoreDisplays(const GameState& state, const Displays& displays) {
+    int leadingScore = calculateLeadingScore(state);
+
+    // Use the blink parameter provided by the updated ScoreDisplay library
+    bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
+
+    displays.scoreDisplay.print_number(state.atRiskScore, 0, shouldBlink);
+    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, 1);
+    displays.scoreDisplay.print_number(leadingScore, 2);
+}
+
+void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {
+    // Lights alternate during THE_PAIN and THE_DRAIN stages
+    if (currentStage == PenaltyStage::THE_PAIN || currentStage == PenaltyStage::THE_DRAIN) {
+        displays.farkleLights.alternate();
+    } else {
+        // Inherit behavior for THE_AFTERMATH (turns them off as count is 0)
+        InGamePhase::updateWarningLights(state, displays);
+    }
+}
+
+void PenaltyFarklingPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
+    // Show penalty quip throughout the sequence
+    displays.oled.print("CATASTROPHIC FARKLE!");
 }
