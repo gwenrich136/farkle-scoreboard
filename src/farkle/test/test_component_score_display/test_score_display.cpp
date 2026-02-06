@@ -7,12 +7,19 @@
 
 extern std::map<int, std::map<int, char>> mockLedState;
 extern std::map<int, int> mockLedIntensity;
+extern int mockSetIntensityCount;
+extern int mockClearDisplayCount;
+extern int mockSetCharCount;
 
 ScoreDisplay* display;
 
 void setUp(void) {
     mockLedState.clear();
     mockLedIntensity.clear();
+    mockSetIntensityCount = 0;
+    mockClearDisplayCount = 0;
+    mockSetCharCount = 0;
+
     // Pins don't matter for mock
     display = new ScoreDisplay(10, 11, 12);
     display->begin();
@@ -106,6 +113,48 @@ void test_ScoreDisplay_Clear(void) {
     TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][4]);
 }
 
+void test_ScoreDisplay_Optimization(void) {
+    // Reset counters after begin()
+    mockSetIntensityCount = 0;
+    mockClearDisplayCount = 0;
+    mockSetCharCount = 0;
+
+    // First call should trigger hardware updates
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_TRUE(mockSetCharCount > 0);
+    int initialSetCharCount = mockSetCharCount;
+    int initialSetIntensityCount = mockSetIntensityCount;
+
+    // Second call with same parameters should NOT trigger hardware updates
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_EQUAL_INT(initialSetCharCount, mockSetCharCount);
+    TEST_ASSERT_EQUAL_INT(initialSetIntensityCount, mockSetIntensityCount);
+
+    // Call with different number should trigger updates
+    display->print_number(456, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_TRUE(mockSetCharCount > initialSetCharCount);
+    initialSetCharCount = mockSetCharCount;
+
+    // Call with same number but DIFFERENT blink mode should trigger intensity update
+    // Note: at 0ms, blink=true intensity (2) is different from default (8)
+    display->print_number(456, ScoreDisplay::DisplayType::AT_RISK_SCORE, true);
+    TEST_ASSERT_TRUE(mockSetIntensityCount > initialSetIntensityCount);
+    initialSetIntensityCount = mockSetIntensityCount;
+
+    // Subsequent call with same number and same blink mode (and same millis window)
+    // should NOT trigger updates
+    display->print_number(456, ScoreDisplay::DisplayType::AT_RISK_SCORE, true);
+    TEST_ASSERT_EQUAL_INT(initialSetCharCount, mockSetCharCount);
+    TEST_ASSERT_EQUAL_INT(initialSetIntensityCount, mockSetIntensityCount);
+
+    // Test clear optimization
+    mockClearDisplayCount = 0;
+    display->clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_EQUAL_INT(1, mockClearDisplayCount);
+    display->clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_EQUAL_INT(1, mockClearDisplayCount); // Should still be 1
+}
+
 void test_ScoreDisplay_Performance(void) {
     const int iterations = 10000;
     auto start = std::chrono::high_resolution_clock::now();
@@ -132,6 +181,7 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_Correctness_Overflow);
     RUN_TEST(test_ScoreDisplay_Blinking_Intensity);
     RUN_TEST(test_ScoreDisplay_Clear);
+    RUN_TEST(test_ScoreDisplay_Optimization);
     RUN_TEST(test_ScoreDisplay_Performance);
     return UNITY_END();
 }
