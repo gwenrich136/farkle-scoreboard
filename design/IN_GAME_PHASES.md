@@ -65,4 +65,9 @@ This category handles user input for scoring, provides feedback through animatio
         *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
     3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
 
-*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights), `InGamePhase::display()` should be refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplay()`) that this phase can override.
+*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplays()`). The `updateScoreDisplays()` hook is further broken down into `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+
+### Score Display Behavior
+- **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.
+- **WaitingPhase:** Overrides `updateAtRiskScoreDisplay` to show 0 even when `atRiskScore` is 0.
+- **Rationale:** This provides clear visual feedback of when a turn has truly ended and the next turn is ready to begin.

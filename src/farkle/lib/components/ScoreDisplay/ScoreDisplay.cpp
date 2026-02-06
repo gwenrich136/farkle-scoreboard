@@ -12,6 +12,9 @@
 ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)
   : _lc(dataPin, clkPin, csPin, NUM_DEVICES)
 {
+  for (int i = 0; i < 3; i++) {
+    _deviceMap[i] = -1;
+  }
 }
 
 void ScoreDisplay::begin() {
@@ -23,9 +26,21 @@ void ScoreDisplay::begin() {
   }
 }
 
+void ScoreDisplay::addDisplay(DisplayType type, int deviceIndex) {
+  _deviceMap[static_cast<int>(type)] = deviceIndex;
+}
 
-void ScoreDisplay::print_number(int number, int deviceIndex, bool blink)
+void ScoreDisplay::clear(DisplayType type) {
+  int deviceIndex = _deviceMap[static_cast<int>(type)];
+  if (deviceIndex == -1) return;
+  _lc.clearDisplay(deviceIndex);
+}
+
+void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
 {
+  int deviceIndex = _deviceMap[static_cast<int>(type)];
+  if (deviceIndex == -1) return;
+
   int numberToDisplay = number;
   if (numberToDisplay > 99999) {
     numberToDisplay = 99999;

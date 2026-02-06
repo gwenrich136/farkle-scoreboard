@@ -15,7 +15,7 @@ public:
     virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) override;
 
 protected:
-    virtual void updateScoreDisplays(const GameState& state, const Displays& displays) override;
+    virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) override;
     virtual void updateWarningLights(const GameState& state, const Displays& displays) override;
     virtual void updateTextDisplay(const GameState& state, const Displays& displays) override;
 

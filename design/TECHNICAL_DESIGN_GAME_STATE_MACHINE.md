@@ -101,7 +101,8 @@ The following files will be created or modified to implement the Game State Mach
             *   `virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) = 0;`
             *   `virtual void display(const GameState& state, const Displays& displays) = 0;`
         *   `class InGamePhase : public GamePhase` will be an intermediate class.
-            *   It will provide a concrete, shared implementation of the `display()` method.
+            *   It will provide a concrete, shared implementation of the `display()` method, which calls multiple virtual hooks (`updateScoreDisplays()`, `updateProgressGrid()`, etc.).
+            *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
             *   It will provide a protected helper method `void endTurn(GameState& state);` which will increment the `currentPlayerIndex`.
 
 #### New Files - Game Engine

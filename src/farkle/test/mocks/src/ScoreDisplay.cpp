@@ -1,14 +1,20 @@
 #include "ScoreDisplay.h"
 
-ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin) {
-    // Constructor can be empty for the mock
+ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin) {}
+
+void ScoreDisplay::begin() {}
+
+void ScoreDisplay::addDisplay(DisplayType type, int deviceIndex) {
+    device_map[type] = deviceIndex;
 }
 
-void ScoreDisplay::begin() {
-    // Begin can be empty for the mock
+void ScoreDisplay::print_number(int number, DisplayType type, bool blink) {
+    captured_numbers[type] = number;
+    captured_blinks[type] = blink;
+    cleared_displays[type] = false;
 }
 
-void ScoreDisplay::print_number(int number, int device_index, bool blink) {
-    captured_numbers[device_index] = number;
-    captured_blinks[device_index] = blink;
+void ScoreDisplay::clear(DisplayType type) {
+    cleared_displays[type] = true;
+    captured_numbers[type] = 0; // Or some indicator
 }

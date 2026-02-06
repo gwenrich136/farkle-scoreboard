@@ -16,6 +16,9 @@ void setUp(void) {
     // Pins don't matter for mock
     display = new ScoreDisplay(10, 11, 12);
     display->begin();
+    display->addDisplay(ScoreDisplay::DisplayType::AT_RISK_SCORE, 0);
+    display->addDisplay(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE, 1);
+    display->addDisplay(ScoreDisplay::DisplayType::COMPETITION_SCORE, 2);
 }
 
 void tearDown(void) {
@@ -23,7 +26,7 @@ void tearDown(void) {
 }
 
 void test_ScoreDisplay_Correctness_Zero(void) {
-    display->print_number(0, 0);
+    display->print_number(0, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "    0" (4 spaces, 1 zero)
     // Note: implementation depends on how many digits are flushed.
     // print_number fills 'emptySlots' with ' ', then the number.
@@ -37,7 +40,7 @@ void test_ScoreDisplay_Correctness_Zero(void) {
 }
 
 void test_ScoreDisplay_Correctness_Number(void) {
-    display->print_number(123, 0);
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "  123"
     TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][0]);
     TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][1]);
@@ -47,7 +50,7 @@ void test_ScoreDisplay_Correctness_Number(void) {
 }
 
 void test_ScoreDisplay_Correctness_Full(void) {
-    display->print_number(54321, 0);
+    display->print_number(54321, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "54321"
     TEST_ASSERT_EQUAL_CHAR('5', mockLedState[0][0]);
     TEST_ASSERT_EQUAL_CHAR('4', mockLedState[0][1]);
@@ -58,7 +61,7 @@ void test_ScoreDisplay_Correctness_Full(void) {
 
 void test_ScoreDisplay_Correctness_Overflow(void) {
     // Should cap at 99999
-    display->print_number(100001, 0);
+    display->print_number(100001, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][0]);
     TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][1]);
     TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][2]);
@@ -69,24 +72,38 @@ void test_ScoreDisplay_Correctness_Overflow(void) {
 void test_ScoreDisplay_Blinking_Intensity(void) {
     // Assuming millis starts at 0
     // 0 ms -> (0 / 500) % 2 == 0 -> SCORE_BLINK_LOW (2)
-    display->print_number(123, 0, true);
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE, true);
     TEST_ASSERT_EQUAL_INT(2, mockLedIntensity[0]);
 
     // Advance to 500ms
     // 500 ms -> (500 / 500) % 2 == 1 -> SCORE_BLINK_HIGH (12)
     advance_millis(500);
-    display->print_number(123, 0, true);
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE, true);
     TEST_ASSERT_EQUAL_INT(12, mockLedIntensity[0]);
 
     // Advance to 1000ms
     // 1000 ms -> (1000 / 500) % 2 == 0 -> SCORE_BLINK_LOW (2)
     advance_millis(500);
-    display->print_number(123, 0, true);
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE, true);
     TEST_ASSERT_EQUAL_INT(2, mockLedIntensity[0]);
 
     // Turn off blinking
-    display->print_number(123, 0, false);
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE, false);
     TEST_ASSERT_EQUAL_INT(8, mockLedIntensity[0]);
+}
+
+void test_ScoreDisplay_Clear(void) {
+    display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    TEST_ASSERT_EQUAL_CHAR('3', mockLedState[0][4]);
+
+    display->clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    // clearDisplay should result in all spaces or similar in the mock
+    // In our mock LedControl, clearDisplay sets all digits to ' '
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][0]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][1]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][2]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][3]);
+    TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][4]);
 }
 
 void test_ScoreDisplay_Performance(void) {
@@ -96,9 +113,9 @@ void test_ScoreDisplay_Performance(void) {
     // We mix some calls to prevent compiler from optimizing too much if it could,
     // though for side-effects it shouldn't.
     for (int i = 0; i < iterations; i++) {
-        display->print_number(12345, 0);
-        display->print_number(123, 0);
-        display->print_number(0, 0);
+        display->print_number(12345, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+        display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+        display->print_number(0, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -114,6 +131,7 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_Correctness_Full);
     RUN_TEST(test_ScoreDisplay_Correctness_Overflow);
     RUN_TEST(test_ScoreDisplay_Blinking_Intensity);
+    RUN_TEST(test_ScoreDisplay_Clear);
     RUN_TEST(test_ScoreDisplay_Performance);
     return UNITY_END();
 }
