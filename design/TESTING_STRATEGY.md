@@ -120,7 +120,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_DisplayLogic_WaitingPhase_ShowsZero`:** Verifies that in `WaitingPhase`, an `atRiskScore` of 0 is displayed as "0" on the `ScoreDisplay`.
     *   **`test_DisplayLogic_BankingPhase_ClearsZero`:** Verifies that in `BankingPhase`, an `atRiskScore` of 0 results in the display being cleared.
     *   **`test_DisplayLogic_FarklingPhase_ClearsZero`:** Verifies that in `FarklingPhase`, an `atRiskScore` of 0 results in the display being cleared.
-    *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains cleared throughout the animation (from -1000 up to 0) including "the pain" stage.
+    *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.

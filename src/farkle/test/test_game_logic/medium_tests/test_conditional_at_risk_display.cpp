@@ -36,7 +36,7 @@ void test_DisplayLogic_BankingPhase_ClearsZero() {
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
-void test_DisplayLogic_PenaltyFarklingPhase_ClearsZero() {
+void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     Game game;
     game.setup();
     game.state.players[0].farkle_count = 2;
@@ -45,21 +45,31 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsZero() {
     // Enter PenaltyFarklingPhase
     simulateButtonPress(game, ButtonAction::FARKLE);
 
-    // Stage 1: THE_PAIN (0-3s). Verify display is cleared during "the pain"
+    // Stage 1: THE_PAIN (0-3s). Verify display is NOT cleared while score is -1000
     simulateNoAction(game, 1500);
-    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    TEST_ASSERT_EQUAL_INT(-1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    TEST_ASSERT_FALSE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 
     // Advance past THE_PAIN (3 seconds total)
     simulateNoAction(game, 1501);
+
+    // Stage 2: THE_DRAIN. Verify display is NOT cleared while score is still negative
+    // We can just step once and check
+    simulateNoAction(game, 100);
+    if (game.state.atRiskScore < 0) {
+        TEST_ASSERT_FALSE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    }
 
     // Wait for THE_DRAIN animation to finish
     while(game.state.atRiskScore < 0) {
         simulateNoAction(game);
     }
 
-    // Now atRiskScore is 0, still in PenaltyFarklingPhase
+    // Now atRiskScore is 0, still in PenaltyFarklingPhase (THE_AFTERMATH)
     game.loop();
 
+    // Should be cleared now that it is 0
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
@@ -86,5 +96,5 @@ void run_display_logic_tests() {
     RUN_TEST(test_DisplayLogic_WaitingPhase_ShowsZero);
     RUN_TEST(test_DisplayLogic_BankingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_FarklingPhase_ClearsZero);
-    RUN_TEST(test_DisplayLogic_PenaltyFarklingPhase_ClearsZero);
+    RUN_TEST(test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero);
 }

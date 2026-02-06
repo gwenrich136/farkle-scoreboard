@@ -4,7 +4,7 @@
 void test_DisplayLogic_WaitingPhase_ShowsZero();
 void test_DisplayLogic_BankingPhase_ClearsZero();
 void test_DisplayLogic_FarklingPhase_ClearsZero();
-void test_DisplayLogic_PenaltyFarklingPhase_ClearsZero();
+void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero();
 
 void run_display_logic_tests();
 
