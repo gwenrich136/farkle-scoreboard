@@ -34,10 +34,12 @@ When writing code:
 
 ### Workflow
 1.  **Read Design:** Understand *exactly* what you are building.
-2.  **Test First (Native):** Write a test in `src/farkle/test/` that fails.
-3.  **Implement:** Write the minimal code to pass the test.
-4.  **Refactor & Verify:** Ensure style matches existing code.
-5.  **Update Design:** If you changed an interface, update the `.md` file immediately.
+2.  **No Magic Numbers:** Avoid hardcoded values. Define constants or macros with descriptive names (e.g., `BLINK_HALF_PERIOD`).
+3.  **Small Methods & De-duplication:** Prefer small, single-responsibility methods. Actively refactor detected code duplication into helper methods.
+4.  **Test First (Native):** Write a test in `src/farkle/test/` that fails.
+5.  **Implement:** Write the minimal code to pass the test.
+6.  **Refactor & Verify:** Ensure style matches existing code.
+7.  **Update Design:** If you changed an interface, update the `.md` file immediately.
 
 ### Tooling & Environment
 *   **Root:** Project root is `./`. Source root is `src/farkle/`.
