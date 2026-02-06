@@ -86,7 +86,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
     -   **5-8 Players:** Each player gets one row, starting with Player 1 at row 0.
 -   **Snaking Pixel Layout:** The underlying NeoPixel hardware is assumed to be wired in a snaking pattern, which is handled by the `get_pixel_index` helper.
 -   **Internal `maxScore` Calculation:** The `update` method calculates the effective `maxScore` for display scaling based on game rules (multiples of 2000, min 10000).
--   **Non-Linear Brightness (Gamma Correction):** To align with human visual perception, the "remainder" pixel (the partially lit LED at the end of a bar) uses a squared brightness curve ($brightness = remainder^2 \times max\_brightness$). This ensures that small increases at the low end of the scale (0-10%) result in smaller visual changes than linear increases, preventing the "jumpy" look of linear PWM.
+-   **Non-Linear Brightness (Gamma Correction):** To align with human visual perception, the "remainder" pixel (the partially lit LED at the end of a bar) uses a 4th-degree polynomial brightness curve ($brightness = (2.7x^4 - 3.15x^3 + 1.2x^2 + 0.25x) \times max\_brightness$). This curve ($y'(0)=0.25$, $y'(1)=4$) ensures a slow increase at the low end to allow distinguishing small values, while ramping up significantly at the high end to account for the fact that a noticeable difference requires a larger absolute change when brightness is already high.
 -   **Blinking:** Blinking effects for at-risk scores and pending players are handled internally, using `millis()` for timing.
 
 ---

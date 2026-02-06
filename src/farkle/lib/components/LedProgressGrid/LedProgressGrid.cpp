@@ -38,20 +38,29 @@ int LedProgressGrid::get_pixel_index(int row, int col) {
 }
 
 int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness) {
-  // The following is a cubic expression in terms of it's derrivate at 
-  // x=0 and x=1, denoted by y'(0) and y'(1), with the following constraints
+  // We use a 4th degree polynomial to map the linear remainder (0..1) to a
+  // brightness scale (0..1) that is more perceptually distinct.
+  //
+  // The polynomial was chosen with the following properties:
   //   - y(0) = 0
   //   - y(1) = 1
-  // 
-  // y(x) = (y'(1) - y'(0) - 2) * x^3 
-  //        + (3 - y'(1) - 2 * y'(0)) * x^2 
-  //        + y'(0) * x
+  //   - y'(0) = 0.25 (Slope at start)
+  //   - y'(1) = 4.0  (Slope at end)
   //
-  // With a desired y'(0) of 1/3 and y'(1) of 3, we get:
-  //   - y(x) = (4/3) x^3 - (2/3) x^2 + (1/3) x
+  // This gives us a curve that increases slowly at first (allowing distinguishing
+  // low values) and ramps up significantly at the end.
+  //
+  // The polynomial is:
+  // y(x) = 2.7x^4 - 3.15x^3 + 1.2x^2 + 0.25x
+
   float x = remainder;
-  float y = (4*x*x - 2*x + 1) * x / 3.0;
-  return (int) fullBrightness * y;
+  float x2 = x * x;
+  float x3 = x2 * x;
+  float x4 = x3 * x;
+
+  float y = (2.7f * x4) - (3.15f * x3) + (1.2f * x2) + (0.25f * x);
+
+  return (int) (fullBrightness * y);
 }
 
 int LedProgressGrid::addPlayer() {
