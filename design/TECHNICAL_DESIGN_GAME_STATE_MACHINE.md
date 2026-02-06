@@ -1,4 +1,4 @@
-> **Scope:** Details the C++ architecture of the state machine, including the "Object Pool" pattern, class hierarchies, and specific implementation plans for each game phase.
+> **Scope:** Details the C++ architecture of the state machine, including the "Object Pool" pattern and class hierarchies. Specific implementation plans for game phases are split into category-specific documents.
 > **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
 
 # Technical Design: Game State Machine
@@ -11,15 +11,15 @@ This document specifies a robust and scalable state machine architecture that pr
 
 ## 2. Feature Description
 
-This feature implements the central "brain" of the game, managing its state and flow. For the initial V1 implementation, this state machine will manage a simplified game flow:
+This feature implements the central "brain" of the game, managing its state and flow. The game logic is divided into three broad categories of phases:
 
-1.  **Game Start:** The game begins immediately upon startup with a hardcoded 4-player game (named "Player 1", "Player 2", etc.). There is no pre-game menu.
-2.  **Player Turn (`WAITING` phase):** The game waits for the current player to input scores from their dice rolls using the directional buttons. The `atRiskScore` accumulates with each button press.
-3.  **Bank (`BANKING` phase):** When the player presses the `BANK` button, the game enters an uninterruptible animation phase. The `atRiskScore` will appear to slowly drain to zero while the player's banked score ticks up. Once the animation is complete, play passes to the next player, and the game returns to the `WAITING` phase.
-4.  **Farkle (`FARKLING` phase):** When the player presses the `FARKLE` button, the game enters another uninterruptible animation phase where the `atRiskScore` slowly drains to zero, signifying the loss of those points. Play then passes to the next player, returning to the `WAITING` phase.
-5.  **Game End (`PostGamePhase_V1` - Final Round Logic):** A "final round" is triggered the first time any player's banked score meets or exceeds **the Target Score (default 5000)**. The game does *not* end immediately. Play continues, allowing all other players a chance to catch up. The game concludes and transitions to the `PostGamePhase_V1` if, at the *start* of a player's turn, `finalRoundTriggered` is true and that player's score is already the Target Score or more. In the `PostGamePhase_V1` state, the final scores are displayed, but all input is ignored. This serves as a placeholder for the full post-game experience.
+1.  **[Pre-Game Phases](PRE_GAME_PHASES.md):** Handle game initialization, player setup, and menu systems.
+2.  **[In-Game Phases](IN_GAME_PHASES.md):** Manage the core gameplay loop, including player turns, score entry, and animations.
+3.  **[Post-Game Phases](POST_GAME_PHASES.md):** Handle the end-of-game experience, displaying results and options to restart.
 
-All animations will be time-based, ensuring a smooth and consistent user experience regardless of processor load.
+For the initial V1 implementation, the state machine manages a simplified flow where the game starts immediately with hardcoded players, proceeds through waiting and animation phases, and ends when a player reaches the target score.
+
+All animations are time-based, ensuring a smooth and consistent user experience regardless of processor load.
 
 ## 3. Technical Discussion
 
@@ -56,11 +56,17 @@ After considering multiple alternatives, we have chosen to implement the **State
 *   **Phase-Local State Management and `onEnter()`:** The Object Pool pattern means phase objects are reused, not recreated. Therefore, any internal state they hold (like the animation accumulator) must be reset upon entry.
     *   **Discussion:** An alternative was considered where a common timestamp (`lastUpdateTime`) could be stored in the global `GameState`). However, this breaks down for state that is truly local to a phase (e.g., `scoreMoveAccumulator` is meaningless to `WaitingPhase`). Storing such state in `GameState` would break encapsulation and lead to state-reset bugs.
     *   **Decision:** Each phase is responsible for its own internal state. The `GamePhase` interface *must* include an `onEnter()` method. This method is called by the main `Game` engine immediately after a state transition, providing a clean entry point for each phase to reset its internal variables (e.g., `this->scoreMoveAccumulator = 0.0f;`).
-*   **Inheritance Hierarchy:** To prepare for future scalability, we will implement a three-layer class hierarchy from the start:
+*   **Inheritance Hierarchy:** To prepare for future scalability, we will implement a multi-layer class hierarchy. The phases are organized into three logical categories:
+    *   **Pre-Game:** (e.g., `SplashScreen`, `PlayerSetup`) Inherit from `GamePhase`.
+    *   **In-Game:** (e.g., `WaitingPhase`, `BankingPhase`) Inherit from `InGamePhase` for shared display logic.
+    *   **Post-Game:** (e.g., `PostGamePhase_V1`) Inherit from `GamePhase`.
+
+    The hierarchy starts with:
     *   `GamePhase` (Abstract Base Class)
     *   `InGamePhase` (Intermediate Class inheriting from `GamePhase`)
-    *   `WaitingPhase`, `BankingPhase`, etc. (Concrete classes inheriting from `InGamePhase`).
-    This structure allows for common logic to be shared at the `InGamePhase` level (like the `display()` method). For V1, the `PostGamePhase_V1` will inherit directly from `GamePhase` and temporarily contain duplicated display code, which is an acceptable trade-off.
+    *   Concrete classes (e.g., `WaitingPhase`, `PostGamePhase_V1`) inheriting from the appropriate level.
+
+    This structure allows for common logic to be shared at the `InGamePhase` level (like the `display()` method). For V1, the `PostGamePhase_V1` inherits directly from `GamePhase` and temporarily contains duplicated display code, which is an acceptable trade-off.
 
 ## 4. Implementation Plan
 
@@ -115,54 +121,16 @@ The following files will be created or modified to implement the Game State Mach
             6.  `currentPhase->display(state, displays);`
 
 #### New Files - Concrete Phase Implementations
-A new directory `src/farkle/src/phases/` will be created to house these files.
+Detailed implementation plans for each phase are organized by category:
 
-*   **`src/farkle/include/phases/WaitingPhase.h`** & **`src/farkle/src/phases/WaitingPhase.cpp`**
-    *   **Why:** Implements the main interactive phase and serves as the entry point for a player's turn.
-    *   **Implementation Details:** The `update()` method will contain all logic for this phase:
-        *   **Check for Game End:** At the start of the `update` method, it will check if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it will immediately `return game.getPhase<PostGamePhase_V1>();`.
-        *   **Handle Input:** A `switch(action)` block will handle `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
-        *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it will `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it will `return game.getPhase<FarklingPhase>();`.
-
-*   **`src/farkle/include/phases/BankingPhase.h`** & **`src/farkle/src/phases/BankingPhase.cpp`**
-    *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
-    *   **Implementation Details:**
-        0.  **Reset Farkle Count:** The `onEnter()` method will reset the current player's `farkle_count` to 0.
-        1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
-        2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
-        3.  **Finalize Turn:** Once a button is pressed:
-            a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
-            b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-            c. `return game.getPhase<WaitingPhase>();`.
-
-*   **`src/farkle/include/phases/FarklingPhase.h`** & **`src/farkle/src/phases/FarklingPhase.cpp`**
-    *   **Why:** Implements the farkle animation and the end-of-turn logic.
-    *   **Implementation Details:**
-        1.  **Increment Count:** The `onEnter()` method will check if `player.score > 0`. If true, it increments the `farkle_count`. If false (score is 0), the count is **not** incremented ("No Harm, No Foul").
-        2.  **Animate Score Loss:** The `update()` method will be similar to `BankingPhase`, running a time-based animation to drain `state.atRiskScore` to 0. It will ignore input during the animation.
-        3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
-        3.  **Finalize Turn:** Upon button press:
-            a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-            b. `return game.getPhase<WaitingPhase>();`.
-
-*   **`src/farkle/include/phases/PenaltyFarklingPhase.h`** & **`src/farkle/src/phases/PenaltyFarklingPhase.cpp`**
-    *   **Why:** Implements the catastrophic farkle penalty for a player's third consecutive farkle.
-    *   **Implementation Details:**
-        1.  **Initialize & Reset:** The `onEnter()` method will:
-            *   Calculate penalty: `min(1000, player.score)`.
-            *   Set `atRiskScore` to negative penalty (e.g., -1000).
-            *   Reset the player's `farkle_count` to 0 immediately (consistent with other phases).
-            *   Initialize a phase-local timer/state for the animation sequence.
-        2.  **3-Stage Animation (`update()`):**
-            *   **Stage 1: The Pain (0s - 3s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
-            *   **Stage 2: The Drain:** `atRisk` display stops blinking. Values animate: `atRisk` goes up to 0, Banked score goes down. Warning lights continue alternating.
-            *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
-        3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
-    *   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights), `InGamePhase::display()` should be refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplay()`) that this phase can override.
-
-*   **`src/farkle/include/phases/PostGamePhase_V1.h`** & **`src/farkle/src/phases/PostGamePhase_V1.cpp`**
-    *   **Why:** Implements the simplified "frozen" post-game phase for V1.
-    *   **Implementation Details:** Its `update()` method will be empty and simply `return this;`, ignoring all input.
+*   **[Pre-Game Phases](PRE_GAME_PHASES.md)**
+*   **[In-Game Phases](IN_GAME_PHASES.md)**
+    *   `WaitingPhase`
+    *   `BankingPhase`
+    *   `FarklingPhase`
+    *   `PenaltyFarklingPhase`
+*   **[Post-Game Phases](POST_GAME_PHASES.md)**
+    *   `PostGamePhase_V1`
 
 #### Modified Files
 *   **`src/farkle/src/main.cpp`**
