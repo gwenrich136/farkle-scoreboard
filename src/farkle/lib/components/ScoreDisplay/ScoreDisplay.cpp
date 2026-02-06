@@ -5,8 +5,8 @@
 #define NUM_DIGITS_PER_DISPLAY 5
 #define TEN_THOUSAND 10000
 
-#define SCORE_BLINK_LOW 4
-#define SCORE_BLINK_HIGH 10
+#define SCORE_BLINK_LOW 2
+#define SCORE_BLINK_HIGH 12
 #define SCORE_DEFAULT_INTENSITY 8
 
 ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)

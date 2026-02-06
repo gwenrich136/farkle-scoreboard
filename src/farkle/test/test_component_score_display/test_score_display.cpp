@@ -68,21 +68,21 @@ void test_ScoreDisplay_Correctness_Overflow(void) {
 
 void test_ScoreDisplay_Blinking_Intensity(void) {
     // Assuming millis starts at 0
-    // 0 ms -> (0 / 500) % 2 == 0 -> SCORE_BLINK_LOW (4)
+    // 0 ms -> (0 / 500) % 2 == 0 -> SCORE_BLINK_LOW (2)
     display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(4, mockLedIntensity[0]);
+    TEST_ASSERT_EQUAL_INT(2, mockLedIntensity[0]);
 
     // Advance to 500ms
-    // 500 ms -> (500 / 500) % 2 == 1 -> SCORE_BLINK_HIGH (10)
+    // 500 ms -> (500 / 500) % 2 == 1 -> SCORE_BLINK_HIGH (12)
     advance_millis(500);
     display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(10, mockLedIntensity[0]);
+    TEST_ASSERT_EQUAL_INT(12, mockLedIntensity[0]);
 
     // Advance to 1000ms
-    // 1000 ms -> (1000 / 500) % 2 == 0 -> SCORE_BLINK_LOW (4)
+    // 1000 ms -> (1000 / 500) % 2 == 0 -> SCORE_BLINK_LOW (2)
     advance_millis(500);
     display->print_number(123, 0, true);
-    TEST_ASSERT_EQUAL_INT(4, mockLedIntensity[0]);
+    TEST_ASSERT_EQUAL_INT(2, mockLedIntensity[0]);
 
     // Turn off blinking
     display->print_number(123, 0, false);

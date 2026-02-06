@@ -86,7 +86,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
     -   **5-8 Players:** Each player gets one row, starting with Player 1 at row 0.
 -   **Snaking Pixel Layout:** The underlying NeoPixel hardware is assumed to be wired in a snaking pattern, which is handled by the `get_pixel_index` helper.
 -   **Internal `maxScore` Calculation:** The `update` method calculates the effective `maxScore` for display scaling based on game rules (multiples of 2000, min 10000).
--   **Non-Linear Brightness (Gamma Correction):** To align with human visual perception, the "remainder" pixel (the partially lit LED at the end of a bar) uses a squared brightness curve ($brightness = remainder^2 \times max\_brightness$). This ensures that small increases at the low end of the scale (0-10%) result in smaller visual changes than linear increases, preventing the "jumpy" look of linear PWM.
+-   **Non-Linear Brightness (Gamma Correction):** To align with human visual perception, the "remainder" pixel (the partially lit LED at the end of a bar) uses a 4th-degree polynomial brightness curve ($brightness = (2.7x^4 - 3.15x^3 + 1.2x^2 + 0.25x) \times max\_brightness$). This curve ($y'(0)=0.25$, $y'(1)=4$) ensures a slow increase at the low end to allow distinguishing small values, while ramping up significantly at the high end to account for the fact that a noticeable difference requires a larger absolute change when brightness is already high.
 -   **Blinking:** Blinking effects for at-risk scores and pending players are handled internally, using `millis()` for timing (500ms on/off cycle).
 -   **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory". It only calls `_pixels.show()` if the input state (scores, current player, at-risk score, or blink state) has changed since the last refresh. An internal `isDirty` flag within the `State` struct can be used to force a refresh after operations like `reset()` or `addPlayer()`.
 
@@ -101,7 +101,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
 -   **`void print_number(int number, int deviceIndex, bool blink = false)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
     -   The number will be right-aligned on the 5-digit display.
-    -   If `blink` is `true`, the display's intensity will alternate between LOW (4) and HIGH (10) periodically.
+    -   If `blink` is `true`, the display's intensity will alternate between LOW (2) and HIGH (12) periodically.
 
 ### Key Logic & Behavior
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, intended for:
