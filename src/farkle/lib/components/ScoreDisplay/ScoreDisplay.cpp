@@ -24,12 +24,10 @@ void ScoreDisplay::begin() {
     _lc.setIntensity(i, SCORE_DEFAULT_INTENSITY); // Set brightness (0-15)
     _lc.clearDisplay(i);    // Clear display
   }
-  for (int i = 0; i < 3; i++) {
-    _states[i].isCleared = true;
-    _states[i].number = -1;
-    _states[i].blink = false;
-    _states[i].lastIntensity = -1;
-  }
+
+  setState(DisplayType::AT_RISK_SCORE, -1, false, true, -1);
+  setState(DisplayType::CURRENT_PLAYER_SCORE, -1, false, true, -1);
+  setState(DisplayType::COMPETITION_SCORE, -1, false, true, -1);
 }
 
 void ScoreDisplay::addDisplay(DisplayType type, int deviceIndex) {
@@ -44,10 +42,7 @@ void ScoreDisplay::clear(DisplayType type) {
   if (deviceIndex == -1) return;
   _lc.clearDisplay(deviceIndex);
 
-  _states[typeIdx].isCleared = true;
-  _states[typeIdx].number = -1;
-  _states[typeIdx].blink = false;
-  _states[typeIdx].lastIntensity = -1;
+  setState(type, -1, false, true, -1);
 }
 
 void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
@@ -75,8 +70,6 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
 
   if (intensityChanged || blinkModeChanged) {
     _lc.setIntensity(deviceIndex, targetIntensity);
-    _states[typeIdx].lastIntensity = targetIntensity;
-    _states[typeIdx].blink = blink;
   }
 
   if (numberChanged) {
@@ -104,8 +97,15 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
     for (int i = 0; i < len; ++i){
       _lc.setChar(deviceIndex, i + emptySlots, digits[len - 1 - i], false);
     }
-
-    _states[typeIdx].number = numberToDisplay;
-    _states[typeIdx].isCleared = false;
   }
+
+  setState(type, numberToDisplay, blink, false, targetIntensity);
+}
+
+void ScoreDisplay::setState(DisplayType type, int number, bool blink, bool isCleared, int lastIntensity) {
+  int typeIdx = static_cast<int>(type);
+  _states[typeIdx].number = number;
+  _states[typeIdx].blink = blink;
+  _states[typeIdx].isCleared = isCleared;
+  _states[typeIdx].lastIntensity = lastIntensity;
 }

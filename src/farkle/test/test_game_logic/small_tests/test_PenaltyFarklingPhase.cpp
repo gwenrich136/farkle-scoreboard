@@ -41,14 +41,15 @@ void test_PenaltyFarklingPhase_AnimationMath() {
 void test_PenaltyFarklingPhase_BlinkParameter() {
     Game game;
     game.setup();
+    game.state.players[0].score = 1000; // Ensure atRiskScore is non-zero
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
 
     simulateNoAction(game, 100); // Still in THE_PAIN
-    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[0]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 
     simulateNoAction(game, 3000); // Now in THE_DRAIN or AFTERMATH
-    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[0]);
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
 // Verifies that atRiskScore does not go above 0 (Zero Ceiling).

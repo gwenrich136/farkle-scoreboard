@@ -1,12 +1,28 @@
 #ifndef ScoreDisplay_h
 #define ScoreDisplay_h
 
+/**
+ * ScoreDisplay
+ *
+ * This component manages three 5-digit 7-segment displays driven by MAX7219 chips.
+ * It provides a high-level API for printing numbers and clearing displays, while
+ * internally tracking the state of each display to optimize hardware communication.
+ *
+ * Responsibilities:
+ * - Initialize and configure MAX7219 display drivers.
+ * - Map logical display types (At Risk, Current Player, Competition) to physical devices.
+ * - Format and render integers on the 5-digit displays with right-alignment.
+ * - Handle score overflow by capping values at 99,999.
+ * - Implement non-blocking blinking effects by toggling intensity.
+ * - Maintain an internal cache (State) of the last rendered values to skip redundant updates.
+ */
+
 #include <Arduino.h>
 #include <LedControl.h>
 
 class ScoreDisplay {
 public:
-  enum DisplayType { AT_RISK_SCORE, CURRENT_PLAYER_SCORE, COMPETITION_SCORE };
+  enum class DisplayType { AT_RISK_SCORE, CURRENT_PLAYER_SCORE, COMPETITION_SCORE };
 
   // dataPin, clkPin, csPin
   ScoreDisplay(int dataPin, int clkPin, int csPin);
@@ -34,6 +50,8 @@ private:
   LedControl _lc;
   int _deviceMap[3]; // Map DisplayType to deviceIndex
   State _states[3];
+
+  void setState(DisplayType type, int number, bool blink, bool isCleared, int lastIntensity);
 };
 
 #endif

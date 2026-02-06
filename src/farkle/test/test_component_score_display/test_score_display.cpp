@@ -32,6 +32,11 @@ void tearDown(void) {
     delete display;
 }
 
+/**
+ * test_ScoreDisplay_Correctness_Zero
+ *
+ * Verifies that printing '0' results in a right-aligned '0' on the display.
+ */
 void test_ScoreDisplay_Correctness_Zero(void) {
     display->print_number(0, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "    0" (4 spaces, 1 zero)
@@ -46,6 +51,11 @@ void test_ScoreDisplay_Correctness_Zero(void) {
     TEST_ASSERT_EQUAL_CHAR('0', mockLedState[0][4]);
 }
 
+/**
+ * test_ScoreDisplay_Correctness_Number
+ *
+ * Verifies that a multi-digit number is correctly formatted and right-aligned.
+ */
 void test_ScoreDisplay_Correctness_Number(void) {
     display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "  123"
@@ -56,6 +66,11 @@ void test_ScoreDisplay_Correctness_Number(void) {
     TEST_ASSERT_EQUAL_CHAR('3', mockLedState[0][4]);
 }
 
+/**
+ * test_ScoreDisplay_Correctness_Full
+ *
+ * Verifies that a 5-digit number correctly fills the entire display.
+ */
 void test_ScoreDisplay_Correctness_Full(void) {
     display->print_number(54321, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     // Expect "54321"
@@ -66,6 +81,11 @@ void test_ScoreDisplay_Correctness_Full(void) {
     TEST_ASSERT_EQUAL_CHAR('1', mockLedState[0][4]);
 }
 
+/**
+ * test_ScoreDisplay_Correctness_Overflow
+ *
+ * Verifies that numbers larger than 5 digits are capped at 99,999.
+ */
 void test_ScoreDisplay_Correctness_Overflow(void) {
     // Should cap at 99999
     display->print_number(100001, ScoreDisplay::DisplayType::AT_RISK_SCORE);
@@ -76,6 +96,11 @@ void test_ScoreDisplay_Correctness_Overflow(void) {
     TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][4]);
 }
 
+/**
+ * test_ScoreDisplay_Blinking_Intensity
+ *
+ * Verifies that the blink parameter correctly toggles intensity based on simulated time.
+ */
 void test_ScoreDisplay_Blinking_Intensity(void) {
     // Assuming millis starts at 0
     // 0 ms -> (0 / 500) % 2 == 0 -> SCORE_BLINK_LOW (2)
@@ -99,6 +124,11 @@ void test_ScoreDisplay_Blinking_Intensity(void) {
     TEST_ASSERT_EQUAL_INT(8, mockLedIntensity[0]);
 }
 
+/**
+ * test_ScoreDisplay_Clear
+ *
+ * Verifies that clearing the display sets all digits to empty spaces.
+ */
 void test_ScoreDisplay_Clear(void) {
     display->print_number(123, ScoreDisplay::DisplayType::AT_RISK_SCORE);
     TEST_ASSERT_EQUAL_CHAR('3', mockLedState[0][4]);
@@ -113,7 +143,14 @@ void test_ScoreDisplay_Clear(void) {
     TEST_ASSERT_EQUAL_CHAR(' ', mockLedState[0][4]);
 }
 
-void test_ScoreDisplay_Optimization(void) {
+/**
+ * test_ScoreDisplay_HardwareInteractionOptimization
+ *
+ * This test verifies that the ScoreDisplay maintains an internal state
+ * and skips redundant calls to the LedControl hardware library when
+ * the printed content or display intensity hasn't changed.
+ */
+void test_ScoreDisplay_HardwareInteractionOptimization(void) {
     // Reset counters after begin()
     mockSetIntensityCount = 0;
     mockClearDisplayCount = 0;
@@ -181,7 +218,7 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_Correctness_Overflow);
     RUN_TEST(test_ScoreDisplay_Blinking_Intensity);
     RUN_TEST(test_ScoreDisplay_Clear);
-    RUN_TEST(test_ScoreDisplay_Optimization);
+    RUN_TEST(test_ScoreDisplay_HardwareInteractionOptimization);
     RUN_TEST(test_ScoreDisplay_Performance);
     return UNITY_END();
 }
