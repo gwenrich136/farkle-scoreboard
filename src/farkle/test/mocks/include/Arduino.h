@@ -12,10 +12,27 @@ const int A0 = 0;
 const int A1 = 1;
 const int A2 = 2;
 
+// Pin modes
+const int INPUT = 0;
+const int OUTPUT = 1;
+const int INPUT_PULLUP = 2;
+
+// Pin levels
+const int LOW = 0;
+const int HIGH = 1;
+
 // Mock Arduino functions
 unsigned long millis();
 void delay(unsigned long ms);
 void advance_millis(unsigned long ms);
+
+void pinMode(int pin, int mode);
+int digitalRead(int pin);
+
+// Test helpers
+void setMockPinState(int pin, int state);
+int getMockPinMode(int pin);
+void resetMockPins();
 
 long random(long max);
 long random(long min, long max);

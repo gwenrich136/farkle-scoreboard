@@ -166,3 +166,8 @@ pio test -e component_tests
 ### 6.5 Example Test Cases: `ScoreDisplay`
 *   **`test_ScoreDisplay_Correctness_Overflow`**: Verifies that numbers greater than 99,999 are capped and displayed as "99999".
 *   **`test_ScoreDisplay_Blinking_Intensity`**: Verifies that when `blink` is enabled, calling `print_number` (which should be called every frame) results in the intensity toggling between `SCORE_BLINK_LOW` (2) and `SCORE_BLINK_HIGH` (12) as time advances.
+
+### 6.6 Example Test Cases: `ControlPad`
+*   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
+*   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
+*   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.
