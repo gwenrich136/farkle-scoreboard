@@ -3,6 +3,17 @@
 #include <vector>
 
 void InGamePhase::display(const GameState& state, const Displays& displays) {
+    // Optimization: Calculate leading score and populate score vector in a single pass
+    // to avoid redundant iterations in calculateLeadingScore and updateProgressGrid
+    m_scores.clear();
+    m_cachedLeadingScore = 0;
+    for (const auto& player : state.players) {
+        m_scores.push_back(player.score);
+        if (player.score > m_cachedLeadingScore) {
+            m_cachedLeadingScore = player.score;
+        }
+    }
+
     updateScoreDisplays(state, displays);
     updateProgressGrid(state, displays);
     updateWarningLights(state, displays);
@@ -28,15 +39,12 @@ void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const 
 }
 
 void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {
-    int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE);
+    // Use cached value calculated in display()
+    displays.scoreDisplay.print_number(m_cachedLeadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE);
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    m_scores.clear();
-    for (const auto& player : state.players) {
-        m_scores.push_back(player.score);
-    }
+    // m_scores is already populated in display()
     displays.grid.update(m_scores, state.currentPlayerIndex, state.atRiskScore);
 }
 

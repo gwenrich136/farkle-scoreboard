@@ -48,6 +48,7 @@ protected:
 
     // Reusable vector for scores to avoid repeated allocations
     std::vector<int> m_scores;
+    int m_cachedLeadingScore = 0;
 };
 
 #endif
