@@ -67,7 +67,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
     return this;
 }
 
-void PenaltyFarklingPhase::updateScoreDisplays(const GameState& state, const Displays& displays) {
+void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
     // Use the blink parameter provided by the updated ScoreDisplay library
     bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
 
@@ -76,11 +76,6 @@ void PenaltyFarklingPhase::updateScoreDisplays(const GameState& state, const Dis
     } else {
         displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
     }
-
-    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
-
-    int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE);
 }
 
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {

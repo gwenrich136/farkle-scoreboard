@@ -116,6 +116,11 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_TurnLifecycle_RoundRobin`:** Verifies that the game correctly cycles through all players.
     *   **`test_TurnLifecycle_ClearButton`:** Verifies that the clear button resets the `atRiskScore` to 0.
 
+*   **`test_display_logic.cpp`**
+    *   **`test_DisplayLogic_WaitingPhase_ShowsZero`:** Verifies that in `WaitingPhase`, an `atRiskScore` of 0 is displayed as "0" on the `ScoreDisplay`.
+    *   **`test_DisplayLogic_BankingPhase_ClearsZero`:** Verifies that in `BankingPhase`, an `atRiskScore` of 0 results in the display being cleared.
+    *   **`test_DisplayLogic_FarklingPhase_ClearsZero`:** Verifies that in `FarklingPhase`, an `atRiskScore` of 0 results in the display being cleared.
+
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
 **Location:** `test/test_game_logic/large_tests/`
