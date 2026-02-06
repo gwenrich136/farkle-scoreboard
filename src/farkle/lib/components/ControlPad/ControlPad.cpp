@@ -9,7 +9,7 @@ ControlPad::ControlPad() : _lastAction(ButtonAction::NONE) {
 }
 
 void ControlPad::addButton(int pin, ButtonAction buttonAction) {
-  if (pin < MAX_PINS) {
+  if (pin >= 0 && pin < MAX_PINS) {
     _buttonMap[pin] = buttonAction;
     pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
   }
