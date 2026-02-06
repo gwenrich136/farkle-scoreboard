@@ -68,6 +68,10 @@ int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness)
 }
 
 int LedProgressGrid::addPlayer() {
+    if (isMaxPlayersReached()) {
+        return -1;
+    }
+
     uint16_t newHue = getPlayerHue(_playerCount);
     _playerHues.push_back(newHue);
     
@@ -77,6 +81,10 @@ int LedProgressGrid::addPlayer() {
     _hasProspectiveFirstHue = false;
     
     return playerIndex;
+}
+
+bool LedProgressGrid::isMaxPlayersReached() {
+    return _playerCount >= MAX_PLAYERS;
 }
 
 void LedProgressGrid::clear() {
@@ -197,6 +205,10 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
 }
 
 void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+  if (isMaxPlayersReached()) {
+    isPlayerPending = false;
+  }
+
   _isBlinkOn = millis() % (2 * BLINK_HALF_PERIOD) > BLINK_HALF_PERIOD;
 
   State currentState;
