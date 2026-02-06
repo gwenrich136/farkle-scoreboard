@@ -12,9 +12,18 @@
 ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)
   : _lc(dataPin, clkPin, csPin, NUM_DEVICES)
 {
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < NUM_DISPLAY_TYPES; i++) {
     _deviceMap[i] = -1;
   }
+}
+
+bool ScoreDisplay::isValidType(DisplayType type) {
+  int t = static_cast<int>(type);
+  if (t < 0 || t >= NUM_DISPLAY_TYPES) {
+    Serial.println("Assertion failure: Invalid DisplayType");
+    return false;
+  }
+  return true;
 }
 
 void ScoreDisplay::begin() {
@@ -31,10 +40,12 @@ void ScoreDisplay::begin() {
 }
 
 void ScoreDisplay::addDisplay(DisplayType type, int deviceIndex) {
+  if (!isValidType(type)) return;
   _deviceMap[static_cast<int>(type)] = deviceIndex;
 }
 
 void ScoreDisplay::clear(DisplayType type) {
+  if (!isValidType(type)) return;
   int typeIdx = static_cast<int>(type);
   if (_states[typeIdx].isCleared) return;
 
@@ -47,6 +58,7 @@ void ScoreDisplay::clear(DisplayType type) {
 
 void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
 {
+  if (!isValidType(type)) return;
   int typeIdx = static_cast<int>(type);
   int deviceIndex = _deviceMap[typeIdx];
   if (deviceIndex == -1) return;
@@ -103,6 +115,7 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
 }
 
 void ScoreDisplay::setState(DisplayType type, int number, bool blink, bool isCleared, int lastIntensity) {
+  if (!isValidType(type)) return;
   int typeIdx = static_cast<int>(type);
   _states[typeIdx].number = number;
   _states[typeIdx].blink = blink;

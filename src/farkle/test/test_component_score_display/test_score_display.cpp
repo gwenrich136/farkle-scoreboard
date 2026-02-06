@@ -210,6 +210,25 @@ void test_ScoreDisplay_Performance(void) {
     std::cout << "PERFORMANCE_RESULT: " << duration.count() << " microseconds for " << (iterations * 3) << " calls" << std::endl;
 }
 
+/**
+ * test_ScoreDisplay_Security_InvalidType
+ *
+ * Verifies that using an invalid DisplayType does not cause a crash
+ * and handles the error gracefully (logging assertion failure).
+ */
+void test_ScoreDisplay_Security_InvalidType(void) {
+    ScoreDisplay::DisplayType invalidType = static_cast<ScoreDisplay::DisplayType>(99);
+
+    // These should not crash
+    display->addDisplay(invalidType, 99);
+    display->print_number(123, invalidType);
+    display->clear(invalidType);
+
+    // We can't easily verify the Serial output in this environment without modifying mocks,
+    // but successful execution of this test confirms no crash occurred.
+    TEST_ASSERT_TRUE(true);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_ScoreDisplay_Correctness_Zero);
@@ -220,5 +239,6 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_Clear);
     RUN_TEST(test_ScoreDisplay_HardwareInteractionOptimization);
     RUN_TEST(test_ScoreDisplay_Performance);
+    RUN_TEST(test_ScoreDisplay_Security_InvalidType);
     return UNITY_END();
 }

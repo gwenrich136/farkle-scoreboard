@@ -20,6 +20,8 @@
 #include <Arduino.h>
 #include <LedControl.h>
 
+#define NUM_DISPLAY_TYPES 3
+
 class ScoreDisplay {
 public:
   enum class DisplayType { AT_RISK_SCORE, CURRENT_PLAYER_SCORE, COMPETITION_SCORE };
@@ -48,9 +50,10 @@ public:
 
 private:
   LedControl _lc;
-  int _deviceMap[3]; // Map DisplayType to deviceIndex
-  State _states[3];
+  int _deviceMap[NUM_DISPLAY_TYPES]; // Map DisplayType to deviceIndex
+  State _states[NUM_DISPLAY_TYPES];
 
+  bool isValidType(DisplayType type);
   void setState(DisplayType type, int number, bool blink, bool isCleared, int lastIntensity);
 };
 
