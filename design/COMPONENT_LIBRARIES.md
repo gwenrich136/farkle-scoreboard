@@ -113,6 +113,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
 -   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
 -   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
+- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only calls `LedControl` methods (`setIntensity`, `clearDisplay`, `setChar`) if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
 
 ---
 
