@@ -5,6 +5,8 @@
 #include <Adafruit_NeoPixel.h>
 #include <vector> // Required for std::vector
 
+#define MAX_PLAYERS 8
+
 class LedProgressGrid {
 public:
   enum class DisplayMode {
@@ -44,6 +46,7 @@ public:
   LedProgressGrid(uint8_t pin);
   void begin();
   int addPlayer();
+  bool isMaxPlayersReached();
   void reset();
   void clear();
   void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
