@@ -17,4 +17,12 @@ unsigned long millis();
 void delay(unsigned long ms);
 void advance_millis(unsigned long ms);
 
+long random(long max);
+long random(long min, long max);
+
+template<typename T>
+T max(T a, T b) {
+    return (a > b) ? a : b;
+}
+
 #endif // ARDUINO_H

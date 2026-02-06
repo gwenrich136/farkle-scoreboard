@@ -26,3 +26,7 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
     captured_currentPlayerIndex = currentPlayerIndex;
     captured_atRiskScore = atRiskScore;
 }
+
+void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+    // Mock implementation for pregame
+}
