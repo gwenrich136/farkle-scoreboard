@@ -8,7 +8,7 @@
 // Simulates a full game where players take turns scoring until one player reaches the target score, triggering the final round.
 void test_FullGame_StandardGame() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
@@ -35,7 +35,7 @@ void test_FullGame_StandardGame() {
 // Test function to verify the triple farkle penalty and reset behavior
 void test_FullGame_TripleFarkle() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].score = 2500; // Give player 1 some points
 
     // --- First Farkle ---
@@ -68,7 +68,7 @@ void test_FullGame_TripleFarkle() {
 
 void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // --- Player 0 scores 500 points ---
     simulateButtonPress(game, ButtonAction::RIGHT_500);

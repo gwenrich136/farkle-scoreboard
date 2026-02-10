@@ -17,7 +17,7 @@ The system follows this sequence:
 
 ### PreGamePhase
 *   **Why:** Intermediate class for all pre-game states. It simplifies concrete implementations by providing a shared `display()` method that ensures the scoreboard's secondary displays (`ScoreDisplay`, `FarkleWarningLights`) remain OFF.
-*   **Defined in:** `src/farkle/include/GamePhase.h`
+*   **Defined in:** `src/farkle/include/GamePhase.h` & `src/farkle/src/phases/PreGamePhase.cpp`
 *   **Implementation Details:**
     *   **Shared Display Logic**: Implements `GamePhase::display()` by explicitly clearing the `ScoreDisplay` and `FarkleWarningLights`.
     *   **Virtual Hooks**: Provides `updateProgressGrid()` and `updateTextDisplay()` hooks for concrete subclasses.

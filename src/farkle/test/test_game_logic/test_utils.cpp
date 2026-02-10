@@ -7,6 +7,21 @@ void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_
     game.loop();
 }
 
+void setupGameWithPlayers(Game& game, int numPlayers) {
+    game.setup();
+    // Names from the pool to be consistent
+    const char* names[] = {"Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"};
+    for (int i = 0; i < numPlayers; ++i) {
+        // Find the index in available names. Since we are adding from start, it's just i.
+        // Actually, PlayerSelectionPhase filters them.
+        // We can just simulate the BANK button if we want to be realistic,
+        // but setupGameWithPlayers is meant to bypass selection.
+        game.addPlayer(names[i]);
+    }
+    // Transition to WaitingPhase
+    simulateButtonPress(game, ButtonAction::FARKLE);
+}
+
 void waitForScoreAnimation(Game& game) {
     while (game.state.atRiskScore != 0) {
         simulateNoAction(game);

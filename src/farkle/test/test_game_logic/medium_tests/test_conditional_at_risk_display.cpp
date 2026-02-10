@@ -3,9 +3,26 @@
 #include "../test_utils.h"
 #include <unity.h>
 
-void test_DisplayLogic_WaitingPhase_ShowsZero() {
+// Verifies that during the selection phase, ScoreDisplay segments and FarkleWarningLights are explicitly cleared.
+void test_DisplayLogic_PlayerSelection_DisplaysOff() {
     Game game;
     game.setup();
+
+    // Loop once to trigger display()
+    game.loop();
+
+    // Verify all score segments are cleared
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+
+    // Verify farkle lights are off
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_state);
+}
+
+void test_DisplayLogic_WaitingPhase_ShowsZero() {
+    Game game;
+    setupGameWithPlayers(game, 4);
 
     // Ensure we are in WaitingPhase
     game.state.atRiskScore = 0;
@@ -18,7 +35,7 @@ void test_DisplayLogic_WaitingPhase_ShowsZero() {
 
 void test_DisplayLogic_BankingPhase_ClearsZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Enter BankingPhase
     game.state.atRiskScore = 100;
@@ -38,7 +55,7 @@ void test_DisplayLogic_BankingPhase_ClearsZero() {
 
 void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].farkle_count = 2;
     game.state.players[0].score = 1000;
 
@@ -75,7 +92,7 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
 
 void test_DisplayLogic_FarklingPhase_ClearsZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Enter FarklingPhase
     game.state.atRiskScore = 100;
@@ -93,6 +110,7 @@ void test_DisplayLogic_FarklingPhase_ClearsZero() {
 }
 
 void run_display_logic_tests() {
+    RUN_TEST(test_DisplayLogic_PlayerSelection_DisplaysOff);
     RUN_TEST(test_DisplayLogic_WaitingPhase_ShowsZero);
     RUN_TEST(test_DisplayLogic_BankingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_FarklingPhase_ClearsZero);
