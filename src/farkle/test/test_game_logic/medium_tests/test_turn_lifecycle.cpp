@@ -7,7 +7,7 @@
 // Verifies that a standard turn correctly banks the score and advances to the next player.
 void test_TurnLifecycle_StandardTurn() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     simulateButtonPress(game, ButtonAction::UP_1000);
     simulateButtonPress(game, ButtonAction::RIGHT_500);
     
@@ -28,7 +28,7 @@ void test_TurnLifecycle_StandardTurn() {
 // Verifies that the game correctly cycles through all players.
 void test_TurnLifecycle_RoundRobin() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     for (int i = 0; i < 4; i++) {
         simulateButtonPress(game, ButtonAction::UP_1000);
@@ -49,7 +49,7 @@ void test_TurnLifecycle_RoundRobin() {
 // Verifies that the clear button resets the atRiskScore to 0.
 void test_TurnLifecycle_ClearButton() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     simulateButtonPress(game, ButtonAction::UP_1000);
     simulateButtonPress(game, ButtonAction::RIGHT_500);
     simulateButtonPress(game, ButtonAction::CLEAR);

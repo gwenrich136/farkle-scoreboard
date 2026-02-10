@@ -7,6 +7,19 @@ void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_
     game.loop();
 }
 
+void setupGameWithPlayers(Game& game, int numPlayers) {
+    game.setup();
+    // Assuming we start in PlayerSelectionPhase
+    for (int i = 0; i < numPlayers; ++i) {
+        // Just add players directly for testing convenience, or simulate buttons
+        char name[20];
+        sprintf(name, "PLAYER %d", i + 1);
+        game.addPlayer(name);
+    }
+    // Transition to WaitingPhase
+    simulateButtonPress(game, ButtonAction::FARKLE);
+}
+
 void waitForScoreAnimation(Game& game) {
     while (game.state.atRiskScore != 0) {
         simulateNoAction(game);

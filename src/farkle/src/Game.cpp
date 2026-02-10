@@ -42,23 +42,11 @@ void Game::setup() {
     controlPad.addButton(7, CLEAR);
     controlPad.addButton(8, FARKLE);
 
-    // 2. Initialize Game State with 4 hardcoded players for V1
-    state.players.push_back(Player("PLAYER 1"));
-    state.players.push_back(Player("PLAYER 2"));
-    state.players.push_back(Player("PLAYER 3"));
-    state.players.push_back(Player("PLAYER 4"));
-
-    // Add players to the grid to assign them colors
-    for (int i = 0; i < 4; ++i) {
-        grid.addPlayer();
-    }
-
-    state.currentPlayerIndex = 0;
-    state.atRiskScore = 0;
-    state.finalRoundTriggered = false;
+    // 2. Initialize Game State
+    resetGame();
 
     // 3. Set Initial State
-    currentPhase = &phasePool.waiting;
+    currentPhase = &phasePool.playerSelection;
     currentPhase->onEnter(state);
     
     lastUpdateTime = millis();
@@ -87,4 +75,19 @@ void Game::loop() {
 
     // 6. Display Current State
     currentPhase->display(state, displays);
+}
+
+void Game::addPlayer(const std::string& name) {
+    state.players.push_back(Player(name));
+    grid.addPlayer();
+}
+
+void Game::resetGame() {
+    state.reset();
+    grid.reset();
+}
+
+bool Game::canAddPlayer() const {
+    // We need to cast away const because LedProgressGrid::isMaxPlayersReached is not const
+    return !const_cast<LedProgressGrid&>(grid).isMaxPlayersReached();
 }

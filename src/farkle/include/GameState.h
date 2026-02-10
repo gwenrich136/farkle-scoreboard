@@ -21,6 +21,14 @@ struct GameState {
     int targetScore;
 
     GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000) {}
+
+    void reset() {
+        players.clear();
+        atRiskScore = 0;
+        currentPlayerIndex = 0;
+        finalRoundTriggered = false;
+        targetScore = 10000;
+    }
 };
 
 #endif
