@@ -16,17 +16,13 @@ void ControlPad::addButton(int pin, ButtonAction buttonAction) {
 
   if (buttonAction == ButtonAction::NONE) {
     Serial.println("Error: Cannot map button to NONE");
-#ifndef UNIT_TEST
     assert(false);
-#endif
     return;
   }
 
   if (_buttonMap[pin] != ButtonAction::NONE) {
     Serial.println("Error: Pin already mapped");
-#ifndef UNIT_TEST
     assert(false);
-#endif
     return;
   }
 
