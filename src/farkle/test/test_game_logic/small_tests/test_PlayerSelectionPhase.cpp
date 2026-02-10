@@ -114,6 +114,23 @@ void test_PlayerSelection_MaxPlayers() {
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
 }
 
+// Verifies that adding the last name in the filtered pool wraps the selection index to 0.
+void test_PlayerSelection_AddLastPlayerWraps() {
+    Game game;
+    game.setup();
+
+    // Pool size is 9. Add first 8 players one by one, but always selecting the LAST one.
+    // names: 0, 1, 2, 3, 4, 5, 6, 7, 8
+
+    // Move to last (index 8: Andrea)
+    for(int i=0; i<8; ++i) simulateButtonPress(game, ButtonAction::UP_1000);
+    TEST_ASSERT_EQUAL_STRING("Andrea", game.oled.captured_item.c_str());
+
+    // Add Andrea. List size becomes 8. Index 8 is out of bounds. Should wrap to 0 (Geewee).
+    simulateButtonPress(game, ButtonAction::BANK);
+    TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
+}
+
 void run_player_selection_phase_tests() {
     RUN_TEST(test_PlayerSelection_InitialState);
     RUN_TEST(test_PlayerSelection_Cycling);
@@ -121,4 +138,5 @@ void run_player_selection_phase_tests() {
     RUN_TEST(test_PlayerSelection_Filtering);
     RUN_TEST(test_PlayerSelection_TransitionValidation);
     RUN_TEST(test_PlayerSelection_MaxPlayers);
+    RUN_TEST(test_PlayerSelection_AddLastPlayerWraps);
 }

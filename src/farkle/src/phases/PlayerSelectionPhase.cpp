@@ -33,7 +33,7 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, ButtonActi
 
             // Adjust index if it's now out of bounds due to the smaller list
             if (!m_availableNames.empty() && m_selectionIndex >= (int)m_availableNames.size()) {
-                m_selectionIndex = m_availableNames.size() - 1;
+                m_selectionIndex = 0;
             }
         }
     } else if (action == ButtonAction::FARKLE) {
