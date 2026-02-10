@@ -11,3 +11,8 @@ void TextDisplay::begin() {
 void TextDisplay::print(const char* message) {
     captured_message = message;
 }
+
+void TextDisplay::printSelectionScreen(const char* selectionTitle, const char* selectionItem) {
+    captured_title = selectionTitle;
+    captured_item = selectionItem;
+}
