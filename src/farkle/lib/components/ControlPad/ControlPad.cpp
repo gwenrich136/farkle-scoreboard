@@ -1,6 +1,5 @@
 #include "ControlPad.h"
 #include "ButtonActions.h"
-#include <cassert>
 
 ControlPad::ControlPad() : _lastAction(ButtonAction::NONE), _activePinCount(0) {
   // Initialize all pins to NONE
@@ -16,13 +15,11 @@ void ControlPad::addButton(int pin, ButtonAction buttonAction) {
 
   if (buttonAction == ButtonAction::NONE) {
     Serial.println("Error: Cannot map button to NONE");
-    assert(false);
     return;
   }
 
   if (_buttonMap[pin] != ButtonAction::NONE) {
     Serial.println("Error: Pin already mapped");
-    assert(false);
     return;
   }
 
