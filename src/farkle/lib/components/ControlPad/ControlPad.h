@@ -15,6 +15,8 @@ public:
 private:
   ButtonAction _buttonMap[MAX_PINS];
   ButtonAction _lastAction;
+  int _activePins[MAX_PINS];
+  int _activePinCount;
 };
 
 #endif
