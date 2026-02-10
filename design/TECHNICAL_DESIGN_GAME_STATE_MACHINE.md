@@ -57,16 +57,17 @@ After considering multiple alternatives, we have chosen to implement the **State
     *   **Discussion:** An alternative was considered where a common timestamp (`lastUpdateTime`) could be stored in the global `GameState`). However, this breaks down for state that is truly local to a phase (e.g., `scoreMoveAccumulator` is meaningless to `WaitingPhase`). Storing such state in `GameState` would break encapsulation and lead to state-reset bugs.
     *   **Decision:** Each phase is responsible for its own internal state. The `GamePhase` interface *must* include an `onEnter()` method. This method is called by the main `Game` engine immediately after a state transition, providing a clean entry point for each phase to reset its internal variables (e.g., `this->scoreMoveAccumulator = 0.0f;`).
 *   **Inheritance Hierarchy:** To prepare for future scalability, we will implement a multi-layer class hierarchy. The phases are organized into three logical categories:
-    *   **Pre-Game:** (e.g., `SplashScreen`, `PlayerSetup`) Inherit from `GamePhase`.
+    *   **Pre-Game:** (e.g., `SplashScreen`, `PlayerSelectionPhase`) Inherit from `PreGamePhase` for shared display logic.
     *   **In-Game:** (e.g., `WaitingPhase`, `BankingPhase`) Inherit from `InGamePhase` for shared display logic.
     *   **Post-Game:** (e.g., `PostGamePhase_V1`) Inherit from `GamePhase`.
 
     The hierarchy starts with:
     *   `GamePhase` (Abstract Base Class)
+    *   `PreGamePhase` (Intermediate Class inheriting from `GamePhase`)
     *   `InGamePhase` (Intermediate Class inheriting from `GamePhase`)
-    *   Concrete classes (e.g., `WaitingPhase`, `PostGamePhase_V1`) inheriting from the appropriate level.
+    *   Concrete classes (e.g., `WaitingPhase`, `PlayerSelectionPhase`) inheriting from the appropriate level.
 
-    This structure allows for common logic to be shared at the `InGamePhase` level (like the `display()` method). For V1, the `PostGamePhase_V1` inherits directly from `GamePhase` and temporarily contains duplicated display code, which is an acceptable trade-off.
+    This structure allows for common logic to be shared at the intermediate levels. For example, `PreGamePhase` can ensure certain displays remain off by default, while `InGamePhase` provides shared hooks for score and grid updates.
 
 ## 4. Implementation Plan
 
@@ -101,6 +102,9 @@ The following files will be created or modified to implement the Game State Mach
             *   `virtual void onEnter(GameState& state) = 0;`
             *   `virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) = 0;`
             *   `virtual void display(const GameState& state, const Displays& displays) = 0;`
+        *   `class PreGamePhase : public GamePhase` will be an intermediate class.
+            *   It will provide a concrete, shared implementation of the `display()` method that ensures `ScoreDisplay` and `FarkleWarningLights` are explicitly cleared/OFF by default.
+            *   It will provide virtual hooks for `updateProgressGrid()` and `updateTextDisplay()`, allowing subclasses to focus solely on their specific UI elements.
         *   `class InGamePhase : public GamePhase` will be an intermediate class.
             *   It will provide a concrete, shared implementation of the `display()` method, which calls multiple virtual hooks (`updateScoreDisplays()`, `updateProgressGrid()`, etc.).
             *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
