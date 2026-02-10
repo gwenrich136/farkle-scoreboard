@@ -13,10 +13,10 @@ This document outlines the desired user experience and general gameplay flow for
 The game begins by guiding players through setup and configuration.
 
 ### 1.1 Player Selection
--   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names and an option to "Add New Player."
--   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy.
--   **Selecting an Existing Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player, and the system remains in the "Player Selection" state, ready for the next player.
--   **Adding a New Player:** Selecting the "Add New Player" option (by pressing `BANK`) transitions the device to the "Player Creation" screen.
+-   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names.
+-   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy with their assigned color.
+-   **Selecting a Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player from the available list, and the system remains in the "Player Selection" state, ready for the next player.
+-   **Player Limit**: Once the maximum number of players is reached (currently 8), the system stops showing a "pending" player and the ability to add more is disabled.
 
 ### 1.2 Player Creation
 -   **Purpose:** Allows users to input a new player name character by character.

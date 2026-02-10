@@ -4,14 +4,31 @@
 # Pre-Game Phases
 
 ## 1. Overview
-Pre-game phases handle the initialization of the game before the first turn begins. This includes player count selection, name entry, and setting the target score.
+Pre-game phases handle the initialization of the game before the first turn begins. This includes player selection and managing the transition into the main gameplay loop.
 
 ## 2. General Purpose
 The goal of this category is to populate the `GameState` with the necessary information to start a match.
 
 ## 3. Phase Relationships
-Currently, the game skips explicit pre-game phases and initializes with a hardcoded 4-player setup. Future phases will likely follow a sequence:
-`SplashScreen` -> `PlayerCountSelection` -> `PlayerNaming` -> `InGamePhase (Waiting)`
+The system follows this sequence:
+`PlayerSelectionPhase` -> `WaitingPhase` (In-Game)
 
 ## 4. Technical Details
-V1 does not implement any explicit pre-game phases. The `Game::setup()` method directly initializes the `GameState` and sets the initial phase to `WaitingPhase`.
+
+### PlayerSelectionPhase
+*   **Why:** Allows users to choose players from a predefined list and populates the `GameState` before gameplay begins.
+*   **Defined in:** `src/farkle/include/phases/PlayerSelectionPhase.h` & `src/farkle/src/phases/PlayerSelectionPhase.cpp`
+*   **Implementation Details:**
+    1.  **Name Pool**: Maintains a static list of available names: "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", and "Andrea".
+    2.  **Navigation**: 
+        *   `UP_1000` / `DOWN_50`: Increments/decrements a selection index.
+        *   The list of available names is filtered in real-time to exclude names already present in `state.players`.
+    3.  **Adding Players (GREEN/BANK)**: 
+        *   Checks `game.canAddPlayer()` (which queries `grid.isMaxPlayersReached()`).
+        *   If allowed, calls `game.addPlayer(selectedName)`. This updates both the `GameState` and the hardware (color assignment in `LedProgressGrid`).
+    4.  **Starting Game (RED/FARKLE)**: 
+        *   If `state.players.size() >= 1`, returns `game.getPhase<WaitingPhase>()`.
+    5.  **Display Logic**:
+        *   **TextDisplay**: Calls `oled.printSelectionScreen("Add Player", currentSelection)`.
+        *   **LedProgressGrid**: Calls `grid.displayPlayersPregame(isPlayerPending)`. `isPlayerPending` is true if the grid is not full.
+        *   **Other Displays**: Score segments and Farkle lights are explicitly cleared.

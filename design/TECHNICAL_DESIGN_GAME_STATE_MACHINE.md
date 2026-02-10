@@ -88,7 +88,8 @@ The following files will be created or modified to implement the Game State Mach
     *   **Why:** Defines the core data structures, keeping data separate from logic.
     *   **Implementation Details:**
         *   `struct Player`: Will contain `std::string name;`, `int score;`, `int farkle_count;`, and `std::vector<int> score_history;`.
-        *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 5000;`. For V1, the `players` vector will be initialized with 4 hardcoded `Player` instances.
+        *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`.
+        *   `void reset()`: Resets all flags and clears the player list.
 
 #### New Files - Phase Interfaces
 *   **`src/farkle/include/GamePhase.h`**
@@ -109,10 +110,14 @@ The following files will be created or modified to implement the Game State Mach
 *   **`src/farkle/include/Game.h`** & **`src/farkle/src/Game.cpp`**
     *   **Why:** Implements the main `Game` engine class, which acts as a pure state machine manager and context for the phases.
     *   **Implementation Details:**
-        *   The header will define the `PhasePool` as a private struct containing one instance of each concrete phase.
+        *   The header will define the `PhasePool` as a private struct containing one instance of each concrete phase, including the new `PlayerSelectionPhase`.
         *   The class will own the `PhasePool`, the `GameState` object, `GamePhase* currentPhase`, and all hardware component classes.
         *   It will provide a public templated method for phases to acquire pointers to other phases: `template<typename T> T* getPhase();`.
-        *   `Game::setup()` will initialize hardware, initialize the `GameState` with 4 players, and set the initial state: `currentPhase = &phasePool.waiting;`.
+        *   **Context Methods**:
+            *   `void addPlayer(const std::string& name)`: Coordinated update that adds a player to `GameState` and calls `grid.addPlayer()` to assign a color.
+            *   `bool canAddPlayer()`: Helper to query the hardware (`grid.isMaxPlayersReached()`).
+            *   `void resetGame()`: Resets the `GameState` and hardware components to a clean state.
+        *   `Game::setup()` will initialize hardware, call `resetGame()`, and set the initial state: `currentPhase = &phasePool.playerSelection;`.
         *   `Game::loop()` will be a pure state machine engine, containing no game-specific logic:
             1.  Calculate `deltaTime`.
             2.  Read input from the `ControlPad`.
@@ -125,6 +130,7 @@ The following files will be created or modified to implement the Game State Mach
 Detailed implementation plans for each phase are organized by category:
 
 *   **[Pre-Game Phases](PRE_GAME_PHASES.md)**
+    *   `PlayerSelectionPhase`
 *   **[In-Game Phases](IN_GAME_PHASES.md)**
     *   `WaitingPhase`
     *   `BankingPhase`
