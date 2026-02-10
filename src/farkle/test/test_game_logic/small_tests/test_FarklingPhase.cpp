@@ -9,7 +9,7 @@
 // Verifies that the atRiskScore drains to 0 but does NOT add to player score.
 void test_FarklingPhase_AnimationMath() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 500;
     game.state.players[0].score = 1000;
     game.currentPhase = game.getPhase<FarklingPhase>();
@@ -26,7 +26,7 @@ void test_FarklingPhase_AnimationMath() {
 // Verifies that atRiskScore does not go negative.
 void test_FarklingPhase_ZeroFloorSafety() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 50;
     game.currentPhase = game.getPhase<FarklingPhase>();
     game.currentPhase->onEnter(game.state);
@@ -39,7 +39,7 @@ void test_FarklingPhase_ZeroFloorSafety() {
 // Verifies that button presses are ignored while the farkling animation is in progress.
 void test_FarklingPhase_InputSpamming() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<FarklingPhase>();
     game.currentPhase->onEnter(game.state);
@@ -54,7 +54,7 @@ void test_FarklingPhase_InputSpamming() {
 // Verifies that farkle_count does NOT increment if the player has 0 points.
 void test_FarklingPhase_NoHarmNoFoul_NoIncrement() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].score = 0;
     game.state.players[0].farkle_count = 0;
 
@@ -67,7 +67,7 @@ void test_FarklingPhase_NoHarmNoFoul_NoIncrement() {
 // Verifies that farkle_count DOES increment if the player has points.
 void test_FarklingPhase_IncrementWithPoints() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].score = 100;
     game.state.players[0].farkle_count = 0;
 
@@ -80,7 +80,7 @@ void test_FarklingPhase_IncrementWithPoints() {
 // Verifies that a button press transitions to the WaitingPhase after the animation is complete.
 void test_FarklingPhase_ManualAdvance() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<FarklingPhase>();
     game.currentPhase->onEnter(game.state);

@@ -5,7 +5,7 @@
 
 void test_DisplayLogic_WaitingPhase_ShowsZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Ensure we are in WaitingPhase
     game.state.atRiskScore = 0;
@@ -18,7 +18,7 @@ void test_DisplayLogic_WaitingPhase_ShowsZero() {
 
 void test_DisplayLogic_BankingPhase_ClearsZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Enter BankingPhase
     game.state.atRiskScore = 100;
@@ -38,7 +38,7 @@ void test_DisplayLogic_BankingPhase_ClearsZero() {
 
 void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].farkle_count = 2;
     game.state.players[0].score = 1000;
 
@@ -75,7 +75,7 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
 
 void test_DisplayLogic_FarklingPhase_ClearsZero() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Enter FarklingPhase
     game.state.atRiskScore = 100;

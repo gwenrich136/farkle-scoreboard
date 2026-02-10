@@ -7,5 +7,6 @@
 void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_time_millis = 10);
 void simulateNoAction(Game& game, unsigned long advance_time_millis = 10);
 void waitForScoreAnimation(Game& game);
+void setupGameWithPlayers(Game& game, int numPlayers);
 
 #endif // TEST_UTILS_H

@@ -9,7 +9,7 @@
 // Verifies that the atRiskScore correctly accumulates when score buttons are pressed.
 void test_WaitingPhase_ScoreAccumulation() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Ensure atRiskScore is initially 0
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
@@ -25,7 +25,7 @@ void test_WaitingPhase_ScoreAccumulation() {
 // Verifies that the atRiskScore is cleared when the CLEAR button is pressed.
 void test_WaitingPhase_ScoreCorrection() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Add some score
     simulateButtonPress(game, ButtonAction::UP_1000);
@@ -41,7 +41,7 @@ void test_WaitingPhase_ScoreCorrection() {
 // Verifies that the game transitions to the BankingPhase when the BANK button is pressed.
 void test_WaitingPhase_TransitionToBanking() {
     Game game;
-    game.setup(); // Initialize the game
+    setupGameWithPlayers(game, 4); // Initialize the game
 
     // Ensure initial state is WaitingPhase
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
@@ -59,7 +59,7 @@ void test_WaitingPhase_TransitionToBanking() {
 // Verifies that the game transitions to the FarklingPhase when the FARKLE button is pressed.
 void test_WaitingPhase_TransitionToFarkling() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
 
     // Ensure initial state is WaitingPhase
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
@@ -74,7 +74,7 @@ void test_WaitingPhase_TransitionToFarkling() {
 // Verifies that PenaltyFarklingPhase IS triggered if the player has 3 consecutive farkles.
 void test_WaitingPhase_TransitionToPenaltyFarkling() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].farkle_count = 2;
     game.state.players[0].score = 1000;
 

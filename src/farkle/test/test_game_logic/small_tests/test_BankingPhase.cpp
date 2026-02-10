@@ -9,7 +9,7 @@
 // Verifies that the score animation correctly moves points from atRiskScore to the player's score.
 void test_BankingPhase_AnimationMath() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 500;
     game.state.players[0].score = 0;
     game.currentPhase = game.getPhase<BankingPhase>();
@@ -25,7 +25,7 @@ void test_BankingPhase_AnimationMath() {
 // Verifies that atRiskScore does not go negative when the points to be moved in one loop are greater than the remaining atRiskScore.
 void test_BankingPhase_ZeroFloorSafety() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 50;
     game.state.players[0].score = 0;
     game.currentPhase = game.getPhase<BankingPhase>();
@@ -39,7 +39,7 @@ void test_BankingPhase_ZeroFloorSafety() {
 // Verifies that button presses are ignored while the banking animation is in progress.
 void test_BankingPhase_InputSpamming() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<BankingPhase>();
 
@@ -53,7 +53,7 @@ void test_BankingPhase_InputSpamming() {
 // Verifies that a button press transitions to the WaitingPhase after the banking animation is complete.
 void test_BankingPhase_ManualAdvance() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<BankingPhase>();
 
@@ -68,7 +68,7 @@ void test_BankingPhase_ManualAdvance() {
 // Verifies that the farkle count is reset immediately upon entering the BankingPhase.
 void test_BankingPhase_FarkleResetOnEnter() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].farkle_count = 2;
 
     // Explicitly enter the phase
@@ -80,7 +80,7 @@ void test_BankingPhase_FarkleResetOnEnter() {
 // Verifies that the farkle warning lights are off during the banking animation.
 void test_BankingPhase_LightsOffDuringAnimation() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.state.players[0].farkle_count = 2;
     game.currentPhase = game.getPhase<BankingPhase>();
 

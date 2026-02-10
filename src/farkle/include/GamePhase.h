@@ -24,6 +24,17 @@ public:
     virtual void display(const GameState& state, const Displays& displays) = 0;
 };
 
+// Intermediate class for common pre-game logic and display behavior
+class PreGamePhase : public GamePhase {
+public:
+    virtual void display(const GameState& state, const Displays& displays) override;
+
+protected:
+    // Virtual hooks to allow overriding specific parts of the display
+    virtual void updateProgressGrid(const GameState& state, const Displays& displays) {}
+    virtual void updateTextDisplay(const GameState& state, const Displays& displays) {}
+};
+
 // Intermediate class for common in-game logic and display behavior
 class InGamePhase : public GamePhase {
 public:
