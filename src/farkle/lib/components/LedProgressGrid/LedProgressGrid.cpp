@@ -160,15 +160,19 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   State currentState;
   currentState.mode = DisplayMode::IN_GAME;
 
-  int safePlayerCount = (_playerCount > MAX_PLAYERS) ? MAX_PLAYERS : _playerCount;
-  for (int i = 0; i < safePlayerCount; ++i) {
+  // Assume _playerCount <= MAX_PLAYERS because addPlayer checks this.
+  for (int i = 0; i < _playerCount; ++i) {
     currentState.scores[i] = scores[i];
+  }
+  // Zero out the rest of the array just to be safe/clean, though initialization did this.
+  for (int i = _playerCount; i < MAX_PLAYERS; ++i) {
+    currentState.scores[i] = 0;
   }
 
   currentState.currentPlayerIndex = currentPlayerIndex;
   currentState.atRiskScore = atRiskScore;
   currentState.isBlinkOn = _isBlinkOn;
-  currentState.playerCount = safePlayerCount;
+  currentState.playerCount = _playerCount;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {
