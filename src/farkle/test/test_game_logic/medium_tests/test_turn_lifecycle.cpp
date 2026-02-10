@@ -4,6 +4,51 @@
 #include <unity.h>
 #include "Arduino.h"
 
+/**
+ * test_TurnLifecycle_FullSetupAndTurn
+ *
+ * This test simulates the full user journey from the initial Player Selection Phase
+ * to the first turn in WaitingPhase. It verifies:
+ * 1. The game starts in selection phase.
+ * 2. Navigation through the name pool works.
+ * 3. Adding specific players works and assigns them to the roster.
+ * 4. The transition to WaitingPhase only happens after players are added.
+ * 5. The correct player is active when the game starts.
+ */
+void test_TurnLifecycle_FullSetupAndTurn() {
+    Game game;
+    game.setup();
+    game.loop();
+
+    // 1. Initial state (Geewee selected)
+    TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
+
+    // 2. Navigate to "Coach"
+    simulateButtonPress(game, ButtonAction::UP_1000); // Sammy
+    simulateButtonPress(game, ButtonAction::UP_1000); // Coach
+
+    // 3. Add Coach
+    simulateButtonPress(game, ButtonAction::BANK);
+    TEST_ASSERT_EQUAL_INT(1, game.state.players.size());
+    TEST_ASSERT_EQUAL_STRING("Coach", game.state.players[0].name.c_str());
+
+    // 4. Add "Alex"
+    // After adding Coach (index 2), Sheshe is now at index 2.
+    // Alex is at index 3. So one UP_1000 is needed.
+    simulateButtonPress(game, ButtonAction::UP_1000); // Alex
+    simulateButtonPress(game, ButtonAction::BANK);
+    TEST_ASSERT_EQUAL_INT(2, game.state.players.size());
+    TEST_ASSERT_EQUAL_STRING("Alex", game.state.players[1].name.c_str());
+
+    // 5. Start Game
+    simulateButtonPress(game, ButtonAction::FARKLE);
+
+    // Should be in WaitingPhase, showing first player (Coach)
+    TEST_ASSERT_EQUAL_STRING("Coach", game.oled.captured_message.c_str());
+    TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
+}
+
 // Verifies that a standard turn correctly banks the score and advances to the next player.
 void test_TurnLifecycle_StandardTurn() {
     Game game;
@@ -58,6 +103,7 @@ void test_TurnLifecycle_ClearButton() {
 }
 
 void run_turn_lifecycle_tests() {
+    RUN_TEST(test_TurnLifecycle_FullSetupAndTurn);
     RUN_TEST(test_TurnLifecycle_StandardTurn);
     RUN_TEST(test_TurnLifecycle_RoundRobin);
     RUN_TEST(test_TurnLifecycle_ClearButton);

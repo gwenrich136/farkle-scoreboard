@@ -3,6 +3,23 @@
 #include "../test_utils.h"
 #include <unity.h>
 
+// Verifies that during the selection phase, ScoreDisplay segments and FarkleWarningLights are explicitly cleared.
+void test_DisplayLogic_PlayerSelection_DisplaysOff() {
+    Game game;
+    game.setup();
+
+    // Loop once to trigger display()
+    game.loop();
+
+    // Verify all score segments are cleared
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+
+    // Verify farkle lights are off
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_state);
+}
+
 void test_DisplayLogic_WaitingPhase_ShowsZero() {
     Game game;
     setupGameWithPlayers(game, 4);
@@ -93,6 +110,7 @@ void test_DisplayLogic_FarklingPhase_ClearsZero() {
 }
 
 void run_display_logic_tests() {
+    RUN_TEST(test_DisplayLogic_PlayerSelection_DisplaysOff);
     RUN_TEST(test_DisplayLogic_WaitingPhase_ShowsZero);
     RUN_TEST(test_DisplayLogic_BankingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_FarklingPhase_ClearsZero);

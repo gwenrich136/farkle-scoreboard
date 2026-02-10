@@ -4,6 +4,7 @@
 #include <unity.h>
 #include "Arduino.h"
 
+// Verifies that the phase starts with the first name in the pool ("Geewee") and an empty player list.
 void test_PlayerSelection_InitialState() {
     Game game;
     game.setup();
@@ -15,6 +16,7 @@ void test_PlayerSelection_InitialState() {
     TEST_ASSERT_EQUAL_INT(0, game.state.players.size());
 }
 
+// Verifies that UP_1000 and DOWN_50 navigate the name list correctly, including wrapping.
 void test_PlayerSelection_Navigation() {
     Game game;
     game.setup();
@@ -36,37 +38,45 @@ void test_PlayerSelection_Navigation() {
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 }
 
+// Verifies that pressing BANK adds the selected name and the selection "stays in place" (shifts to next name).
 void test_PlayerSelection_AddPlayer() {
     Game game;
     game.setup();
 
-    // Add Geewee
+    // Navigate to Sammy (index 1)
+    simulateButtonPress(game, ButtonAction::UP_1000);
+    TEST_ASSERT_EQUAL_STRING("Sammy", game.oled.captured_item.c_str());
+
+    // Add Sammy. List becomes: Geewee, Coach, Sheshe, ...
+    // index 1 should now point to "Coach"
     simulateButtonPress(game, ButtonAction::BANK);
     TEST_ASSERT_EQUAL_INT(1, game.state.players.size());
-    TEST_ASSERT_EQUAL_STRING("Geewee", game.state.players[0].name.c_str());
+    TEST_ASSERT_EQUAL_STRING("Sammy", game.state.players[0].name.c_str());
 
-    // Geewee should be filtered out, next should be Sammy
-    TEST_ASSERT_EQUAL_STRING("Sammy", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("Coach", game.oled.captured_item.c_str());
 }
 
+// Verifies that multiple added players are all removed from the selection list and index stays valid.
 void test_PlayerSelection_Filtering() {
     Game game;
     game.setup();
 
-    // Add Geewee
+    // Add Geewee (index 0)
     simulateButtonPress(game, ButtonAction::BANK);
+    // index 0 is now Sammy
 
-    // Add Sammy
+    // Add Sammy (index 0)
     simulateButtonPress(game, ButtonAction::BANK);
+    // index 0 is now Coach
 
     TEST_ASSERT_EQUAL_INT(2, game.state.players.size());
     TEST_ASSERT_EQUAL_STRING("Geewee", game.state.players[0].name.c_str());
     TEST_ASSERT_EQUAL_STRING("Sammy", game.state.players[1].name.c_str());
 
-    // Next available should be Coach
     TEST_ASSERT_EQUAL_STRING("Coach", game.oled.captured_item.c_str());
 }
 
+// Verifies that the game cannot start with 0 players but successfully transitions with >= 1.
 void test_PlayerSelection_TransitionToWaiting() {
     Game game;
     game.setup();
@@ -85,6 +95,7 @@ void test_PlayerSelection_TransitionToWaiting() {
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_message.c_str());
 }
 
+// Verifies that the phase respects the 8-player hardware limit and shows "ROSTER FULL".
 void test_PlayerSelection_MaxPlayers() {
     Game game;
     game.setup();

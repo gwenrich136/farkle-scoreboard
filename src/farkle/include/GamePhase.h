@@ -24,7 +24,17 @@ public:
     virtual void display(const GameState& state, const Displays& displays) = 0;
 };
 
-// Intermediate class for common pre-game logic and display behavior
+/**
+ * PreGamePhase
+ *
+ * Intermediate class for common pre-game logic and display behavior.
+ * It ensures that primary gameplay displays (ScoreDisplay, FarkleWarningLights)
+ * are explicitly cleared during setup phases.
+ *
+ * Responsibilities:
+ * - Implement shared display logic for setup/menu phases.
+ * - Provide virtual hooks for progress grid and text display updates.
+ */
 class PreGamePhase : public GamePhase {
 public:
     virtual void display(const GameState& state, const Displays& displays) override;

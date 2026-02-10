@@ -8,12 +8,13 @@ const std::vector<std::string> PlayerSelectionPhase::s_namePool = {
 
 void PlayerSelectionPhase::onEnter(GameState& state) {
     m_selectionIndex = 0;
+    updateAvailableNames(state);
 }
 
 GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
-    std::vector<std::string> availableNames = getAvailableNames(state);
+    updateAvailableNames(state);
 
-    if (availableNames.empty()) {
+    if (m_availableNames.empty()) {
         if (action == ButtonAction::FARKLE && state.players.size() >= 1) {
             return game.getPhase<WaitingPhase>();
         }
@@ -22,13 +23,18 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, ButtonActi
 
     // Wrap selection index
     if (action == ButtonAction::UP_1000) {
-        m_selectionIndex = (m_selectionIndex + 1) % availableNames.size();
+        m_selectionIndex = (m_selectionIndex + 1) % m_availableNames.size();
     } else if (action == ButtonAction::DOWN_50) {
-        m_selectionIndex = (m_selectionIndex - 1 + availableNames.size()) % availableNames.size();
+        m_selectionIndex = (m_selectionIndex - 1 + m_availableNames.size()) % m_availableNames.size();
     } else if (action == ButtonAction::BANK) {
         if (game.canAddPlayer()) {
-            game.addPlayer(availableNames[m_selectionIndex]);
-            m_selectionIndex = 0; // Reset selection index after adding
+            game.addPlayer(m_availableNames[m_selectionIndex]);
+            updateAvailableNames(state); // Update immediately to reflect changes
+
+            // Adjust index if it's now out of bounds due to the smaller list
+            if (!m_availableNames.empty() && m_selectionIndex >= (int)m_availableNames.size()) {
+                m_selectionIndex = m_availableNames.size() - 1;
+            }
         }
     } else if (action == ButtonAction::FARKLE) {
         if (state.players.size() >= 1) {
@@ -44,18 +50,17 @@ void PlayerSelectionPhase::updateProgressGrid(const GameState& state, const Disp
 }
 
 void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    std::vector<std::string> availableNames = getAvailableNames(state);
-    if (displays.grid.isMaxPlayersReached()) {
+    // In the current configuration (pool=9, max=8), the list will never be empty before the roster is full.
+    // However, we merge the conditions here as requested to simplify the logic.
+    if (displays.grid.isMaxPlayersReached() || m_availableNames.empty()) {
         displays.oled.printSelectionScreen("Add Player", "ROSTER FULL");
-    } else if (availableNames.empty()) {
-        displays.oled.printSelectionScreen("Add Player", "NO MORE NAMES");
     } else {
-        displays.oled.printSelectionScreen("Add Player", availableNames[m_selectionIndex].c_str());
+        displays.oled.printSelectionScreen("Add Player", m_availableNames[m_selectionIndex].c_str());
     }
 }
 
-std::vector<std::string> PlayerSelectionPhase::getAvailableNames(const GameState& state) const {
-    std::vector<std::string> available;
+void PlayerSelectionPhase::updateAvailableNames(const GameState& state) {
+    m_availableNames.clear();
     for (const auto& name : s_namePool) {
         bool alreadyAdded = false;
         for (const auto& player : state.players) {
@@ -65,8 +70,7 @@ std::vector<std::string> PlayerSelectionPhase::getAvailableNames(const GameState
             }
         }
         if (!alreadyAdded) {
-            available.push_back(name);
+            m_availableNames.push_back(name);
         }
     }
-    return available;
 }
