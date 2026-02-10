@@ -17,7 +17,7 @@ void test_PlayerSelection_InitialState() {
 }
 
 // Verifies that UP_1000 and DOWN_50 navigate the name list correctly, including wrapping.
-void test_PlayerSelection_Navigation() {
+void test_PlayerSelection_Cycling() {
     Game game;
     game.setup();
 
@@ -77,7 +77,7 @@ void test_PlayerSelection_Filtering() {
 }
 
 // Verifies that the game cannot start with 0 players but successfully transitions with >= 1.
-void test_PlayerSelection_TransitionToWaiting() {
+void test_PlayerSelection_TransitionValidation() {
     Game game;
     game.setup();
 
@@ -95,7 +95,7 @@ void test_PlayerSelection_TransitionToWaiting() {
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_message.c_str());
 }
 
-// Verifies that the phase respects the 8-player hardware limit and shows "ROSTER FULL".
+// Verifies that the phase respects the 8-player hardware limit and shows "ROSTER FULL" using a simple print.
 void test_PlayerSelection_MaxPlayers() {
     Game game;
     game.setup();
@@ -107,7 +107,7 @@ void test_PlayerSelection_MaxPlayers() {
 
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
     TEST_ASSERT_TRUE(game.grid.isMaxPlayersReached());
-    TEST_ASSERT_EQUAL_STRING("ROSTER FULL", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("ROSTER FULL", game.oled.captured_message.c_str());
 
     // Try to add one more
     simulateButtonPress(game, ButtonAction::BANK);
@@ -116,9 +116,9 @@ void test_PlayerSelection_MaxPlayers() {
 
 void run_player_selection_phase_tests() {
     RUN_TEST(test_PlayerSelection_InitialState);
-    RUN_TEST(test_PlayerSelection_Navigation);
+    RUN_TEST(test_PlayerSelection_Cycling);
     RUN_TEST(test_PlayerSelection_AddPlayer);
     RUN_TEST(test_PlayerSelection_Filtering);
-    RUN_TEST(test_PlayerSelection_TransitionToWaiting);
+    RUN_TEST(test_PlayerSelection_TransitionValidation);
     RUN_TEST(test_PlayerSelection_MaxPlayers);
 }

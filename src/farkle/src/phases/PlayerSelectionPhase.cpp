@@ -53,7 +53,7 @@ void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displ
     // In the current configuration (pool=9, max=8), the list will never be empty before the roster is full.
     // However, we merge the conditions here as requested to simplify the logic.
     if (displays.grid.isMaxPlayersReached() || m_availableNames.empty()) {
-        displays.oled.printSelectionScreen("Add Player", "ROSTER FULL");
+        displays.oled.print("ROSTER FULL");
     } else {
         displays.oled.printSelectionScreen("Add Player", m_availableNames[m_selectionIndex].c_str());
     }
