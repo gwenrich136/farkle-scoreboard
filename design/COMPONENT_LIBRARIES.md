@@ -124,16 +124,30 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
 
 ### API Design
 
--   **`TextDisplay()`**: Constructor.
--   **`void begin()`**: Initializes the I2C connection and the display hardware.
+#### Static Text Display Modes
 -   **`void print(const char* message)`**: Displays a single message centered on the screen.
+-   **`void displayTitle(const char* title)`**: Displays a single line of `title` text, centered horizontally and vertically, using a default large font.
+-   **`void displayTitleWithSubtitle(const char* title, const char* subtitle)`**: Displays a main `title` centered towards the top, with a smaller `subtitle` centered towards the bottom.
+-   **`void displayTitleWithSubtitles(const char* title, const char* leftSubtitle, const char* rightSubtitle)`**: Displays a main `title` centered towards the top, with two smaller subtitles at the bottom: one left-aligned (`leftSubtitle`) and one right-aligned (`rightSubtitle`).
+
+#### Animated Scrolling Mode (Future/TODO)
+-   **`void setScrollingMessage(const char* message)`**: Sets the text to be scrolled.
+-   **`void updateScrollingMessage()`**: To be called repeatedly in the main loop to animate a vertical (Star Wars-style) scroll of the message. (Currently a **TODO** for future implementation).
+
+#### Interactive UI Modes
 -   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem)`**: Renders an interactive selection screen.
     -   Displays `selectionTitle` centered near the top using a smaller font.
     -   Displays `selectionItem` centered below using a larger font.
     -   Draws up/down arrows above and below the `selectionItem` to indicate that the value can be changed.
 
+-   **`void displayCharacterInput(const char* currentName, int activeIndex)`**: Renders an interactive screen for character-by-character name input.
+    -   The character at `currentName[activeIndex]` is displayed large and centered, with "carrot-like" up/down arrows above and below it (to change the character).
+    -   The rest of the `currentName` string is drawn in a smaller font to the left and right of the active character.
+    -   As `activeIndex` changes (controlled by left/right buttons in the main game loop), the background string appears to slide, keeping the active character centered.
+    -   Player names have a maximum length (e.g., 12 characters), but the display can handle names that temporarily extend beyond the screen width, which will scroll into view as `activeIndex` changes.
+
 ### Key Logic & Behavior
--   **Dynamic Centering:** All text display functions dynamically calculate positioning using `U8g2lib` font metrics.
+-   **Dynamic Centering:** All text display functions will dynamically calculate positioning using `U8g2lib` font metrics, ensuring proper alignment regardless of font or message length.
 -   **State Caching:** The component caches the last rendered content and current mode to prevent unnecessary screen refreshes, optimizing I2C bus usage.
 -   **I2C Communication:** Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
 -   **Visual Styling:** Uses specific fonts for titles and main text to ensure hierarchy and readability.
