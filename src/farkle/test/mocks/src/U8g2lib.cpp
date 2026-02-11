@@ -3,6 +3,7 @@
 // Define constants
 const uint8_t u8g2_font_ncenB10_tr[1] = {0};
 const uint8_t u8g2_font_ncenB08_tr[1] = {0};
+const uint8_t u8g2_font_ncenB18_tr[1] = {0};
 
 void u8g2_cb_r0(void) {}
 

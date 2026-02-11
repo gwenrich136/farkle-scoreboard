@@ -13,6 +13,7 @@ typedef int u8g2_uint_t;
 #define U8X8_PIN_NONE 255
 extern const uint8_t u8g2_font_ncenB10_tr[];
 extern const uint8_t u8g2_font_ncenB08_tr[]; // For smaller font if needed
+extern const uint8_t u8g2_font_ncenB18_tr[]; // For large font
 
 // Rotation callback mock
 extern void u8g2_cb_r0(void);
@@ -45,14 +46,16 @@ public:
 
     void setI2CAddress(uint8_t adr) {}
 
-    void begin() {
+    uint8_t begin() {
         mockU8g2BeginCount++;
+        return 1;
     }
 
     void setFont(const uint8_t *font) {
         mockU8g2SetFontCount++;
         if (font == u8g2_font_ncenB10_tr) mockU8g2LastFont = "ncenB10";
         else if (font == u8g2_font_ncenB08_tr) mockU8g2LastFont = "ncenB08";
+        else if (font == u8g2_font_ncenB18_tr) mockU8g2LastFont = "ncenB18";
         else mockU8g2LastFont = "unknown";
     }
 
