@@ -63,16 +63,17 @@ void TextDisplay::printSelectionScreen(const char* selectionTitle, const char* s
 
     // 2. Pre-calculate vertical positioning (Deterministic)
     int titleY = 2; // Fixed top margin (with setFontPosTop)
-    int itemY = (_display.getDisplayHeight() - TEXT_DISPLAY_MAIN_HEIGHT) / 2 + 5; 
+    int itemY = 38; // Pushed down to create more space from title
 
     // 3. Pre-calculate arrow geometry
-    int arrowSize = TEXT_DISPLAY_ARROW_SIZE;
+    int arrowWidth = TEXT_DISPLAY_ARROW_WIDTH;
+    int arrowHeight = TEXT_DISPLAY_ARROW_HEIGHT;
     int arrowSpacing = TEXT_DISPLAY_ARROW_SPACING;
     
     // Up arrow is above the item text
-    int upArrowCenterY = itemY - arrowSpacing - arrowSize/2;
+    int upArrowCenterY = itemY - arrowSpacing - arrowHeight/2;
     // Down arrow is below the item text
-    int downArrowCenterY = itemY + TEXT_DISPLAY_MAIN_HEIGHT + arrowSpacing + arrowSize/2;
+    int downArrowCenterY = itemY + TEXT_DISPLAY_MAIN_HEIGHT + arrowSpacing + arrowHeight/2;
 
     _display.firstPage();
     do {
@@ -92,17 +93,16 @@ void TextDisplay::printSelectionScreen(const char* selectionTitle, const char* s
 }
 
 void TextDisplay::drawArrow(int x, int y, bool up) {
-    int size = TEXT_DISPLAY_ARROW_SIZE / 2;
+    int halfW = TEXT_DISPLAY_ARROW_WIDTH / 2;
+    int halfH = TEXT_DISPLAY_ARROW_HEIGHT / 2;
+    
     if (up) {
-        // Tip (x, y-size), Left (x-size, y+size), Right (x+size, y+size)
-        // User requested diagonal lines meeting at right angle "like ^"
-        // This means a caret.
-        _display.drawLine(x - size, y + size, x, y - size);
-        _display.drawLine(x + size, y + size, x, y - size);
+        // Tip (x, y-halfH), Left (x-halfW, y+halfH), Right (x+halfW, y+halfH)
+        _display.drawLine(x - halfW, y + halfH, x, y - halfH);
+        _display.drawLine(x + halfW, y + halfH, x, y - halfH);
     } else {
-        // Tip (x, y+size), Left (x-size, y-size), Right (x+size, y-size)
-        // "v"
-        _display.drawLine(x - size, y - size, x, y + size);
-        _display.drawLine(x + size, y - size, x, y + size);
+        // Tip (x, y+halfH), Left (x-halfW, y-halfH), Right (x+halfW, y-halfH)
+        _display.drawLine(x - halfW, y - halfH, x, y + halfH);
+        _display.drawLine(x + halfW, y - halfH, x, y + halfH);
     }
 }

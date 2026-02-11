@@ -12,8 +12,9 @@
 #define TEXT_DISPLAY_TITLE_HEIGHT 12
 
 // Define arrow geometry
-#define TEXT_DISPLAY_ARROW_SIZE 8 // Height/Width of arrow in pixels
-#define TEXT_DISPLAY_ARROW_SPACING 6 // Vertical spacing from text
+#define TEXT_DISPLAY_ARROW_WIDTH 10
+#define TEXT_DISPLAY_ARROW_HEIGHT 4
+#define TEXT_DISPLAY_ARROW_SPACING 2 // Vertical spacing from text
 
 enum class DisplayMode {
     NONE,
