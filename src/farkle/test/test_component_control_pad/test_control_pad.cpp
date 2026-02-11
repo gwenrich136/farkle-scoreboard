@@ -57,6 +57,8 @@ void test_read_valid_button(void) {
 
     // Simulate button press (LOW)
     setMockPinState(pin, LOW);
+    controlPad->read(); // Start debounce
+    advance_millis(DEBOUNCE_DELAY + 1);
 
     TEST_ASSERT_EQUAL(action, controlPad->read());
 }
@@ -88,9 +90,33 @@ void test_add_duplicate_pin_fails(void) {
 
     // Press the button
     setMockPinState(pin, LOW);
+    controlPad->read(); // Start debounce
+    advance_millis(DEBOUNCE_DELAY + 1);
 
     // Should still return BANK (first action)
     TEST_ASSERT_EQUAL(ButtonAction::BANK, controlPad->read());
+}
+
+void test_read_with_bouncing(void) {
+    int pin = 5;
+    ButtonAction action = ButtonAction::CLEAR;
+    controlPad->addButton(pin, action);
+
+    // 1. Initial press (LOW)
+    setMockPinState(pin, LOW);
+    controlPad->read(); // Trigger debounce timer
+    advance_millis(DEBOUNCE_DELAY + 1);
+    TEST_ASSERT_EQUAL(action, controlPad->read());
+
+    // 2. Bounce to HIGH (released) briefly
+    setMockPinState(pin, HIGH);
+    controlPad->read(); // Should still be debounced as LOW
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, controlPad->read()); // NONE because pressedAction (action) == _lastAction (action)
+
+    // 3. Bounce back to LOW (pressed)
+    setMockPinState(pin, LOW);
+    // Should still return NONE because it never stabilized at HIGH
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, controlPad->read());
 }
 
 int main(int argc, char **argv) {
@@ -101,5 +127,6 @@ int main(int argc, char **argv) {
     RUN_TEST(test_read_valid_button);
     RUN_TEST(test_add_none_action_fails);
     RUN_TEST(test_add_duplicate_pin_fails);
+    RUN_TEST(test_read_with_bouncing);
     return UNITY_END();
 }

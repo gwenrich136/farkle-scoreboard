@@ -5,6 +5,9 @@ ControlPad::ControlPad() : _lastAction(ButtonAction::NONE), _activePinCount(0) {
   // Initialize all pins to NONE
   for (int i = 0; i < MAX_PINS; i++) {
     _buttonMap[i] = ButtonAction::NONE;
+    _lastDebounceTime[i] = 0;
+    _lastButtonState[i] = HIGH; // Pull-up means default state is HIGH
+    _buttonState[i] = HIGH;
   }
 }
 
@@ -25,6 +28,9 @@ void ControlPad::addButton(int pin, ButtonAction buttonAction) {
 
   _buttonMap[pin] = buttonAction;
   _activePins[_activePinCount++] = pin;
+  _lastDebounceTime[pin] = 0;
+  _lastButtonState[pin] = HIGH;
+  _buttonState[pin] = HIGH;
   pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
 }
 
@@ -32,14 +38,29 @@ ButtonAction ControlPad::read() {
   int pressedCount = 0;
   ButtonAction pressedAction = ButtonAction::NONE;
 
+  unsigned long now = millis();
+
   for (int i = 0; i < _activePinCount; i++) {
     int pin = _activePins[i];
-    // If a button action is assigned to this pin
-    if (_buttonMap[pin] != ButtonAction::NONE) {
-      if (digitalRead(pin) == LOW) { // Button is pressed (LOW due to INPUT_PULLUP)
-        pressedCount++;
-        pressedAction = _buttonMap[pin];
+
+    int reading = digitalRead(pin);
+
+    if (reading != _lastButtonState[pin]) {
+      _lastDebounceTime[pin] = now;
+    }
+
+    if ((now - _lastDebounceTime[pin]) > DEBOUNCE_DELAY) {
+      if (reading != _buttonState[pin]) {
+        _buttonState[pin] = reading;
       }
+    }
+
+    _lastButtonState[pin] = reading;
+
+    // Use the debounced state
+    if (_buttonState[pin] == LOW) { // Button is pressed (LOW due to INPUT_PULLUP)
+      pressedCount++;
+      pressedAction = _buttonMap[pin];
     }
   }
 
