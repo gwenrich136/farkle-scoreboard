@@ -8,6 +8,8 @@
 // Define fonts as macros for easy configuration
 #define TEXT_DISPLAY_MAIN_FONT u8g2_font_ncenB10_tr
 #define TEXT_DISPLAY_TITLE_FONT u8g2_font_ncenB08_tr
+#define TEXT_DISPLAY_MAIN_HEIGHT 15
+#define TEXT_DISPLAY_TITLE_HEIGHT 12
 
 // Define arrow geometry
 #define TEXT_DISPLAY_ARROW_SIZE 8 // Height/Width of arrow in pixels

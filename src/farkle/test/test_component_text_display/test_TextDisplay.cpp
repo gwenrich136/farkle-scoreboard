@@ -39,7 +39,8 @@ void test_begin(void) {
 
 void test_print(void) {
     textDisplay->print("Hello");
-    TEST_ASSERT_EQUAL(1, mockU8g2DrawStrCalls.size());
+    // With nextPage mock returning 1 once, the loop runs twice (2 pages).
+    TEST_ASSERT_EQUAL(2, mockU8g2DrawStrCalls.size());
     if (!mockU8g2DrawStrCalls.empty()) {
         TEST_ASSERT_EQUAL_STRING("Hello", mockU8g2DrawStrCalls[0].str.c_str());
     }
@@ -55,7 +56,8 @@ void test_print_caching(void) {
     TEST_ASSERT_EQUAL(initialCalls, mockU8g2DrawStrCalls.size());
 
     textDisplay->print("World"); // Should update
-    TEST_ASSERT_EQUAL(initialCalls + 1, mockU8g2DrawStrCalls.size());
+    // It should add 2 more calls (one for each of the 2 pages)
+    TEST_ASSERT_EQUAL(initialCalls + 2, mockU8g2DrawStrCalls.size());
     if (!mockU8g2DrawStrCalls.empty()) {
         TEST_ASSERT_EQUAL_STRING("World", mockU8g2DrawStrCalls.back().str.c_str());
     }
@@ -65,20 +67,21 @@ void test_printSelectionScreen(void) {
     textDisplay->printSelectionScreen("Select Player", "Player 1");
 
     // Verify strings
-    // Should draw Title then Item
-    TEST_ASSERT_EQUAL(2, mockU8g2DrawStrCalls.size());
+    // Should draw Title then Item per page. 2 pages * 2 strings = 4 calls.
+    TEST_ASSERT_EQUAL(4, mockU8g2DrawStrCalls.size());
     if (mockU8g2DrawStrCalls.size() >= 2) {
         TEST_ASSERT_EQUAL_STRING("Select Player", mockU8g2DrawStrCalls[0].str.c_str());
         TEST_ASSERT_EQUAL_STRING("Player 1", mockU8g2DrawStrCalls[1].str.c_str());
     }
 
     // Verify arrows
-    // Should draw 2 arrows (up and down), each made of 2 lines. Total 4 lines.
-    TEST_ASSERT_EQUAL(4, mockU8g2DrawLineCalls.size());
+    // Should draw 2 arrows (up and down), each made of 2 lines. Total 4 lines per page.
+    // 2 pages * 4 lines = 8 lines.
+    TEST_ASSERT_EQUAL(8, mockU8g2DrawLineCalls.size());
 
     // Verify font switching
-    // We expect at least 2 font set calls (Title font, Item font)
-    TEST_ASSERT_TRUE(mockU8g2SetFontCount >= 2);
+    // We expect 2 font set calls per page (Title, Main). 2 pages * 2 = 4.
+    TEST_ASSERT_TRUE(mockU8g2SetFontCount >= 4);
 }
 
 void test_mode_switching(void) {

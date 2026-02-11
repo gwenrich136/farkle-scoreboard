@@ -147,7 +147,9 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
     -   Player names have a maximum length (e.g., 12 characters), but the display can handle names that temporarily extend beyond the screen width, which will scroll into view as `activeIndex` changes.
 
 ### Key Logic & Behavior
--   **Dynamic Centering:** All text display functions will dynamically calculate positioning using `U8g2lib` font metrics, ensuring proper alignment regardless of font or message length.
--   **State Caching:** The component caches the last rendered content and current mode to prevent unnecessary screen refreshes, optimizing I2C bus usage.
--   **I2C Communication:** Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
--   **Visual Styling:** Uses specific fonts for titles and main text to ensure hierarchy and readability.
+-   **Multi-Page Rendering**: The SH1106 display uses a page-buffered approach. The `do...while` loops in the drawing methods ensure that the entire screen is rendered correctly by running all drawing commands for each vertical "page" of the display.
+-   **Deterministic Layout**: To prevent visual jitter or "shimmering" on the I2C OLED, all coordinates (x, y) are pre-calculated once per frame **before** entering the `do...while` page loop. This ensures that every page of the buffer is rendered with identical, stable coordinates.
+-   **Vertical Alignment**: The component uses `setFontPosTop()` and fixed font height constants (e.g., `TEXT_DISPLAY_MAIN_HEIGHT`) to ensure that vertical positioning is absolute and independent of character-specific metrics (like descenders in 'y' or 'g'). This prevents text from "jumping" when the content changes.
+-   **State Caching**: The component caches the last rendered content and current mode using `std::string` comparison to prevent unnecessary screen refreshes, optimizing I2C bus usage.
+-   **I2C Communication**: Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
+-   **Visual Styling**: Uses specific fonts for titles and main text to ensure hierarchy and readability.

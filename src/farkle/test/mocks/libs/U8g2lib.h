@@ -56,6 +56,9 @@ public:
         else mockU8g2LastFont = "unknown";
     }
 
+    void setFontPosTop() {}
+    void setFontRefHeightExtendedText() {}
+
     int getStrWidth(const char *s) {
         return std::string(s).length() * 10; // Simplified width calculation
     }
@@ -63,8 +66,11 @@ public:
     int getDisplayWidth() { return 128; }
     int getDisplayHeight() { return 64; }
 
-    void firstPage() {}
-    uint8_t nextPage() { return 0; } // Return 0 to stop loop immediately in tests unless logic requires looping
+    void firstPage() { _pageCount = 0; }
+    uint8_t nextPage() { 
+        _pageCount++;
+        return (_pageCount < 2) ? 1 : 0; // Return 1 once to allow one loop iteration
+    }
 
     int drawStr(int x, int y, const char *s) {
         mockU8g2DrawStrCalls.push_back({x, y, s});
@@ -78,6 +84,8 @@ public:
     // Additional methods if needed
     void sendBuffer() {}
     void clearBuffer() {}
+private:
+    int _pageCount = 0;
 };
 
 #endif

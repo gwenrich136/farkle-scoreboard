@@ -16,6 +16,10 @@ void TextDisplay::begin() {
   Serial.println("    TEXT: Calling U8g2.begin()...");
   _display.begin();
   
+  // Configure deterministic font behavior
+  _display.setFontPosTop();
+  _display.setFontRefHeightExtendedText();
+
   Serial.println("    TEXT: Init complete.");
 }
 
@@ -30,7 +34,7 @@ void TextDisplay::print(const char* message)
   _display.setFont(TEXT_DISPLAY_MAIN_FONT);
   int message_width = _display.getStrWidth(message);
   int x = (_display.getDisplayWidth() - message_width) / 2;
-  int y = (_display.getDisplayHeight() + 10) / 2; // +10 for font height approx
+  int y = (_display.getDisplayHeight() - TEXT_DISPLAY_MAIN_HEIGHT) / 2;
   
   _display.firstPage();
   do {
@@ -47,33 +51,37 @@ void TextDisplay::printSelectionScreen(const char* selectionTitle, const char* s
     _lastTitle = selectionTitle;
     _lastItem = selectionItem;
 
-    int centerX = _display.getDisplayWidth() / 2;
-    // Calculate vertical positions
-    int titleY = 10; // Top margin
-    int itemY = (_display.getDisplayHeight() + 10) / 2 + 8; // Lower center
+    // 1. Pre-calculate horizontal alignment
+    _display.setFont(TEXT_DISPLAY_TITLE_FONT);
+    int titleWidth = _display.getStrWidth(selectionTitle);
+    int titleX = (_display.getDisplayWidth() - titleWidth) / 2;
 
-    // Draw Arrows
+    _display.setFont(TEXT_DISPLAY_MAIN_FONT);
+    int itemWidth = _display.getStrWidth(selectionItem);
+    int itemX = (_display.getDisplayWidth() - itemWidth) / 2;
+    int centerX = _display.getDisplayWidth() / 2;
+
+    // 2. Pre-calculate vertical positioning (Deterministic)
+    int titleY = 2; // Fixed top margin (with setFontPosTop)
+    int itemY = (_display.getDisplayHeight() - TEXT_DISPLAY_MAIN_HEIGHT) / 2 + 5; 
+
+    // 3. Pre-calculate arrow geometry
     int arrowSize = TEXT_DISPLAY_ARROW_SIZE;
     int arrowSpacing = TEXT_DISPLAY_ARROW_SPACING;
-
-    // Up arrow above item (approx 15px text height)
-    // Center of arrow is at itemY - 15 - spacing - size/2
-    int upArrowCenterY = itemY - 15 - arrowSpacing - arrowSize/2;
-    // Down arrow below item (approx baseline)
-    int downArrowCenterY = itemY + arrowSpacing + arrowSize/2;
+    
+    // Up arrow is above the item text
+    int upArrowCenterY = itemY - arrowSpacing - arrowSize/2;
+    // Down arrow is below the item text
+    int downArrowCenterY = itemY + TEXT_DISPLAY_MAIN_HEIGHT + arrowSpacing + arrowSize/2;
 
     _display.firstPage();
     do {
         // Draw Title
         _display.setFont(TEXT_DISPLAY_TITLE_FONT);
-        int titleWidth = _display.getStrWidth(selectionTitle);
-        int titleX = (_display.getDisplayWidth() - titleWidth) / 2;
         _display.drawStr(titleX, titleY, selectionTitle);
 
         // Draw Item
         _display.setFont(TEXT_DISPLAY_MAIN_FONT);
-        int itemWidth = _display.getStrWidth(selectionItem);
-        int itemX = (_display.getDisplayWidth() - itemWidth) / 2;
         _display.drawStr(itemX, itemY, selectionItem);
 
         // Draw Arrows
