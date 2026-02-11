@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 struct Player {
     std::string name;
@@ -20,13 +21,34 @@ struct GameState {
     bool finalRoundTriggered;
     int targetScore;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000) {}
+    uint32_t scoresVersion;
+
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1) {}
 
     void reset() {
         players.clear();
         atRiskScore = 0;
         currentPlayerIndex = 0;
         finalRoundTriggered = false;
+        scoresVersion++;
+    }
+
+    void updatePlayerScore(int playerIndex, int newScore) {
+        if (playerIndex >= 0 && playerIndex < (int)players.size()) {
+            if (players[playerIndex].score != newScore) {
+                players[playerIndex].score = newScore;
+                scoresVersion++;
+            }
+        }
+    }
+
+    void addPlayerScore(int playerIndex, int delta) {
+        if (playerIndex >= 0 && playerIndex < (int)players.size()) {
+            if (delta != 0) {
+                players[playerIndex].score += delta;
+                scoresVersion++;
+            }
+        }
     }
 };
 

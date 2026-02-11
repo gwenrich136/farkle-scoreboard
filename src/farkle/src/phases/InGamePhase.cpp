@@ -33,9 +33,12 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    m_scores.clear();
-    for (const auto& player : state.players) {
-        m_scores.push_back(player.score);
+    if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
+        m_scores.clear();
+        for (const auto& player : state.players) {
+            m_scores.push_back(player.score);
+        }
+        m_lastScoresVersion = state.scoresVersion;
     }
     displays.grid.update(m_scores, state.currentPlayerIndex, state.atRiskScore);
 }

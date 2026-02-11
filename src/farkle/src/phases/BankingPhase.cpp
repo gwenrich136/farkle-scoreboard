@@ -21,7 +21,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
                 pointsToMove = state.atRiskScore;
             }
 
-            state.players[state.currentPlayerIndex].score += pointsToMove;
+            state.addPlayerScore(state.currentPlayerIndex, pointsToMove);
             state.atRiskScore -= pointsToMove;
             scoreMoveAccumulator -= (float)pointsToMove;
         }

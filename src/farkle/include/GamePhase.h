@@ -69,6 +69,7 @@ protected:
 
     // Reusable vector for scores to avoid repeated allocations
     std::vector<int> m_scores;
+    uint32_t m_lastScoresVersion = 0;
 };
 
 #endif

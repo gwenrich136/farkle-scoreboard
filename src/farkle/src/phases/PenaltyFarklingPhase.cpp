@@ -36,14 +36,12 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
                 int pointsToSubtract = (int)scoreMoveAccumulator;
 
                 if (pointsToSubtract > 0) {
-                    Player& currentPlayer = state.players[state.currentPlayerIndex];
-
                     // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
                     if (pointsToSubtract > -state.atRiskScore) {
                         pointsToSubtract = -state.atRiskScore;
                     }
 
-                    currentPlayer.score -= pointsToSubtract;
+                    state.addPlayerScore(state.currentPlayerIndex, -pointsToSubtract);
                     state.atRiskScore += pointsToSubtract;
                     scoreMoveAccumulator -= (float)pointsToSubtract;
                 }

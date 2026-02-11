@@ -89,8 +89,10 @@ The following files will be created or modified to implement the Game State Mach
     *   **Why:** Defines the core data structures, keeping data separate from logic.
     *   **Implementation Details:**
         *   `struct Player`: Will contain `std::string name;`, `int score;`, `int farkle_count;`, and `std::vector<int> score_history;`.
-        *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`.
-        *   `void reset()`: Resets all flags and clears the player list.
+        *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`, `uint32_t scoresVersion`.
+        *   `void reset()`: Resets all flags, clears the player list, and increments `scoresVersion`.
+        *   `void updatePlayerScore(int playerIndex, int newScore)`: Helper to update score and increment `scoresVersion`.
+        *   `void addPlayerScore(int playerIndex, int delta)`: Helper to add to score and increment `scoresVersion`.
 
 #### New Files - Phase Interfaces
 *   **`src/farkle/include/GamePhase.h`**
@@ -109,6 +111,7 @@ The following files will be created or modified to implement the Game State Mach
             *   It will provide a concrete, shared implementation of the `display()` method, which calls multiple virtual hooks (`updateScoreDisplays()`, `updateProgressGrid()`, etc.).
             *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
             *   It will provide a protected helper method `void endTurn(GameState& state);` which will increment the `currentPlayerIndex`.
+            *   It will maintain `m_scores` vector and `m_lastScoresVersion` to optimize progress grid updates.
 
 #### New Files - Game Engine
 *   **`src/farkle/include/Game.h`** & **`src/farkle/src/Game.cpp`**
