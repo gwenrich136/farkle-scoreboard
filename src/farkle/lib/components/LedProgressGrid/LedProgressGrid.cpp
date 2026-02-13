@@ -18,6 +18,12 @@ void LedProgressGrid::begin() {
   reset(); // Call reset to initialize all state and clear display
 }
 
+void LedProgressGrid::setTargetScore(int target) {
+    _targetScore = target;
+    _maxScore = target;
+    _lastState.isDirty = true;
+}
+
 void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
@@ -173,6 +179,7 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   currentState.atRiskScore = atRiskScore;
   currentState.isBlinkOn = _isBlinkOn;
   currentState.playerCount = _playerCount;
+  currentState.maxScore = _maxScore;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {
@@ -229,6 +236,7 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
   currentState.isPlayerPending = isPlayerPending;
   currentState.isBlinkOn = _isBlinkOn;
   currentState.playerCount = _playerCount;
+  currentState.maxScore = _maxScore;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {
