@@ -104,11 +104,48 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].score);
 }
 
+// Verifies that the Competition Score display begins blinking as soon as the final round is triggered.
+void test_FullGame_FinalRoundBlinking() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    // Player 0 is about to reach the target score (10,000)
+    game.state.players[0].score = 9500;
+    game.state.currentPlayerIndex = 0;
+
+    // Verify it is NOT blinking yet
+    game.loop();
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+
+    // Player 0 scores enough to cross the target score
+    simulateButtonPress(game, ButtonAction::RIGHT_500); // 9500 + 500 = 10000
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+
+    // Verify it is NOT blinking yet because finalRoundTriggered is set after banking is dismissed
+    game.loop();
+    TEST_ASSERT_FALSE(game.state.finalRoundTriggered);
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+
+    // Dismiss the banking phase
+    simulateButtonPress(game, ButtonAction::CLEAR);
+
+    // Now finalRoundTriggered should be true
+    TEST_ASSERT_TRUE(game.state.finalRoundTriggered);
+
+    // Run one loop to update displays
+    game.loop();
+
+    // Verify it IS blinking now
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+}
+
 
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
     RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
+    RUN_TEST(test_FullGame_FinalRoundBlinking);
 }
 
 // Helper function to advance turns until it is player 0's turn again.

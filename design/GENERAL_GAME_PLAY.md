@@ -98,7 +98,7 @@ The game begins by guiding players through setup and configuration.
 ### 3.1 The "Last Round" Trigger
 -   **Trigger Condition:** The first time any player's banked score exceeds **the Target Score**.
 -   **Visual & Audio Cue:**
-    -   The `ScoreDisplay` segment showing the high score begins to blink continuously.
+    -   The `ScoreDisplay` segment showing the Competition Score (leading score) begins to blink continuously.
     -   A "bell sound" plays (future implementation) to signify the final round.
 -   **Game Rule:** The game does not end immediately; every other player (including the one who just crossed 10,000) gets one final turn to surpass the highest score.
 

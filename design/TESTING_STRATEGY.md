@@ -144,6 +144,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 *   **`test_full_game.cpp`**
     *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
+    *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
 
 
 ## 5. Implementation Steps

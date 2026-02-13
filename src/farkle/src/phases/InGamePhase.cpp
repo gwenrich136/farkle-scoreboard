@@ -29,7 +29,7 @@ void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const 
 
 void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {
     int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE);
+    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
