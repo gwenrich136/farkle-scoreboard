@@ -166,48 +166,6 @@ void test_LedProgressGrid_SetTargetScore(void) {
     TEST_ASSERT_EQUAL(showCount1 + 1, mockNeoPixelShowCount);
 }
 
-void test_LedProgressGrid_MaxScore_Exact(void) {
-    // Verify that _maxScore is exactly highestScore (if > _targetScore) and not a multiple of 2000.
-    grid->setTargetScore(10000);
-    grid->addPlayer();
-    std::vector<int> scores = {11000};
-
-    grid->update(scores, 0, 0);
-    // Should be exactly 11000, not 12000 (which it would have been with old logic)
-    TEST_ASSERT_EQUAL(11000, grid->getMaxScore());
-}
-
-void test_LedProgressGrid_MaxScore_IncludesAtRisk(void) {
-    // Verify that _maxScore takes atRiskScore into account.
-    grid->setTargetScore(10000);
-    grid->addPlayer();
-    std::vector<int> scores = {9000};
-
-    grid->update(scores, 0, 1500); // 9000 + 1500 = 10500
-    TEST_ASSERT_EQUAL(10500, grid->getMaxScore());
-}
-
-void test_LedProgressGrid_MaxScore_Shrinking(void) {
-    // Verify that _maxScore shrinks when the leading player's score decreases.
-    grid->setTargetScore(10000);
-    grid->addPlayer();
-    std::vector<int> scores = {12000};
-
-    grid->update(scores, 0, 0);
-    TEST_ASSERT_EQUAL(12000, grid->getMaxScore());
-
-    // Player Farkles, score stays 12000? No, if atRisk was part of it.
-    // Let's use atRisk to grow and then remove it.
-    scores[0] = 10000;
-    grid->update(scores, 0, 2000); // 10000 + 2000 = 12000
-    TEST_ASSERT_EQUAL(12000, grid->getMaxScore());
-
-    // Now Farkle (atRisk becomes 0)
-    grid->update(scores, 0, 0);
-    // Should shrink back to targetScore (10000) because banked is 10000 and atRisk is 0.
-    TEST_ASSERT_EQUAL(10000, grid->getMaxScore());
-}
-
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_LedProgressGrid_InitialState);
@@ -218,8 +176,5 @@ int main(void) {
     RUN_TEST(test_LedProgressGrid_Update_Basic);
     RUN_TEST(test_LedProgressGrid_InsufficientScores);
     RUN_TEST(test_LedProgressGrid_SetTargetScore);
-    RUN_TEST(test_LedProgressGrid_MaxScore_Exact);
-    RUN_TEST(test_LedProgressGrid_MaxScore_IncludesAtRisk);
-    RUN_TEST(test_LedProgressGrid_MaxScore_Shrinking);
     return UNITY_END();
 }

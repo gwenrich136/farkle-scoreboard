@@ -67,14 +67,13 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
     -   If `isPlayerPending` is `true`: The rows that would be assigned to the *next* player (Player `_playerCount`) will blink with their prospective hue. If no players are added yet (`_playerCount == 0`), the middle four rows will blink.
 
 -   **`void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore)`**: The primary method for rendering game scores during active gameplay. This should be called repeatedly in the main game loop.
-    -   The `LedProgressGrid` internally calculates `maxScore` as the maximum of the `targetScore` and the highest potential score (banked + at-risk) among all players.
+    -   The `LedProgressGrid` internally calculates `maxScore` based on the highest score provided (lowest multiple of 2000 greater than the highest score, with a minimum of 10,000).
     -   Displays `scores[playerIndex]` as solid progress bars for all players, using their assigned colors. The progress bar fills **uniformly across all assigned rows simultaneously**. For example, if a player is assigned 2 rows and has 50% of the max score, both rows should be 50% illuminated, rather than one row being full and the other empty.
     -   For the `currentPlayerIndex`:
         -   Their `scores[currentPlayerIndex]` (banked score) is shown as solid.
         -   Their `atRiskScore` is shown as a blinking extension to their progress bar, using half brightness and a 500ms on/off cycle.
 
 -   **`void clear()`**: Turns off all pixels on the grid.
--   **`int getMaxScore()`**: Returns the current internal `maxScore` used for scaling. Primarily used for testing.
 
 ### Key Logic & Behavior
 -   **Player-Agnostic Core:** The `update()` method is designed to be called with game state, while player-specific configurations (hues, row mapping) are managed internally.
@@ -86,7 +85,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
     -   **4 Players:** P1 uses rows 0, 1; P2 uses rows 2, 3; P3 uses rows 4, 5; P4 uses rows 6, 7.
     -   **5-8 Players:** Each player gets one row, starting with Player 1 at row 0.
 -   **Snaking Pixel Layout:** The underlying NeoPixel hardware is assumed to be wired in a snaking pattern, which is handled by the `get_pixel_index` helper.
--   **Internal `maxScore` Calculation:** The `update` method calculates the effective `maxScore` for display scaling as `max(targetScore, max_potential_player_score)`. This ensures that the grid bounds expand when a player reaches or exceeds the target, providing clear visual feedback on the progress relative to the goal and the competition.
+-   **Internal `maxScore` Calculation:** The `update` method calculates the effective `maxScore` for display scaling based on game rules (multiples of 2000, min 10000).
 -   **Non-Linear Brightness (Gamma Correction):** To align with human visual perception, the "remainder" pixel (the partially lit LED at the end of a bar) uses a 4th-degree polynomial brightness curve ($brightness = (2.7x^4 - 3.15x^3 + 1.2x^2 + 0.25x) \times max\_brightness$). This curve ($y'(0)=0.25$, $y'(1)=4$) ensures a slow increase at the low end to allow distinguishing small values, while ramping up significantly at the high end to account for the fact that a noticeable difference requires a larger absolute change when brightness is already high.
 -   **Blinking:** Blinking effects for at-risk scores and pending players are handled internally, using `millis()` for timing (500ms on/off cycle).
 -   **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory". It only calls `_pixels.show()` if the input state (scores, current player, at-risk score, or blink state) has changed since the last refresh. An internal `isDirty` flag within the `State` struct can be used to force a refresh after operations like `reset()` or `addPlayer()`.

@@ -111,6 +111,7 @@ The following files will be created or modified to implement the Game State Mach
         *   `class InGamePhase : public GamePhase` will be an intermediate class.
             *   It will provide a concrete, shared implementation of the `display()` method, which calls multiple virtual hooks (`updateScoreDisplays()`, `updateProgressGrid()`, etc.).
             *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+            *   **Visual Feedback:** The `updateCompetitionScoreDisplay()` implementation will trigger a flashing effect on the hardware if `state.finalRoundTriggered` is true.
             *   It will provide a protected helper method `void endTurn(GameState& state);` which will increment the `currentPlayerIndex`.
             *   It will maintain `m_scores` vector and `m_lastScoresVersion` to optimize progress grid updates.
 

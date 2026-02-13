@@ -70,4 +70,5 @@ This category handles user input for scoring, provides feedback through animatio
 ### Score Display Behavior
 - **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.
 - **WaitingPhase:** Overrides `updateAtRiskScoreDisplay` to show 0 even when `atRiskScore` is 0.
-- **Rationale:** This provides clear visual feedback of when a turn has truly ended and the next turn is ready to begin.
+- **Competition Score:** In all `InGamePhase` subclasses, the leading score display (Competition Score) flashes during the final round (`state.finalRoundTriggered == true`) to indicate urgency.
+- **Rationale:** The `WaitingPhase` behavior provides clear visual feedback of when a turn has truly ended. The Competition Score flashing provides an "urgency" indicator (the "bell lap") for all players to catch the leader.

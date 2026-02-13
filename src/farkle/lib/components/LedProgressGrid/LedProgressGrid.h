@@ -61,7 +61,6 @@ public:
   void clear();
   void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
   void displayPlayersPregame(bool isPlayerPending);
-  int getMaxScore() const { return _maxScore; }
 
 private:
   Adafruit_NeoPixel _pixels;

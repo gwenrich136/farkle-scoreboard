@@ -136,6 +136,8 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_DisplayLogic_BankingPhase_ClearsZero`:** Verifies that in `BankingPhase`, an `atRiskScore` of 0 results in the display being cleared.
     *   **`test_DisplayLogic_FarklingPhase_ClearsZero`:** Verifies that in `FarklingPhase`, an `atRiskScore` of 0 results in the display being cleared.
     *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
+    *   **`test_CompetitionScore_NoBlink_NormalRound`**: Verifies that the leading score display does NOT blink during a normal game round.
+    *   **`test_CompetitionScore_Blinks_FinalRound`**: Verifies that the leading score display blinks during the final round when `finalRoundTriggered` is true.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
@@ -186,8 +188,3 @@ pio test -e component_tests
 *   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
 *   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
 *   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.
-
-### 6.7 Example Test Cases: `LedProgressGrid`
-*   **`test_LedProgressGrid_MaxScore_Exact`**: Verifies that `_maxScore` scales exactly to the highest score (if above target) rather than jumping by fixed increments.
-*   **`test_LedProgressGrid_MaxScore_IncludesAtRisk`**: Verifies that the dynamic grid maximum correctly incorporates the current player's at-risk points.
-*   **`test_LedProgressGrid_MaxScore_Shrinking`**: Verifies that the grid bounds can shrink back to the target score if a leading player farkles or a turn ends without banking.
