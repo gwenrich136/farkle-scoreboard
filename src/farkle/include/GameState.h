@@ -19,19 +19,17 @@ struct GameState {
     int atRiskScore;
     int currentPlayerIndex;
     bool finalRoundTriggered;
-    int firstToReachTargetIndex;
     int targetScore;
 
     uint32_t scoresVersion;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), firstToReachTargetIndex(-1), targetScore(10000), scoresVersion(1) {}
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1) {}
 
     void reset() {
         players.clear();
         atRiskScore = 0;
         currentPlayerIndex = 0;
         finalRoundTriggered = false;
-        firstToReachTargetIndex = -1;
         scoresVersion++;
     }
 

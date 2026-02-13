@@ -160,7 +160,6 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 
     // Verify Player 2 wins (Sammy) because they reached 3000 FIRST.
-    // Currently, this test is EXPECTED TO FAIL because P1 (Geewee) will be picked.
     TEST_ASSERT_EQUAL_STRING("Sammy WINS!", game.oled.captured_message.c_str());
 }
 
