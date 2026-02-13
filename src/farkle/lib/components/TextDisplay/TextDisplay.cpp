@@ -2,7 +2,7 @@
 #include <Wire.h> // Include Wire.h for I2C communication
 #include <Arduino.h>
 
-TextDisplay::TextDisplay() : _display(U8G2_SH1106_128X64_NONAME_1_HW_I2C(U8G2_R0, U8X8_PIN_NONE)), _currentMode(DisplayMode::NONE)
+TextDisplay::TextDisplay() : _display(U8G2_SH1106_128X64_NONAME_1_HW_I2C(U8G2_R0, U8X8_PIN_NONE))
 {}
 
 void TextDisplay::begin() {
@@ -25,12 +25,6 @@ void TextDisplay::begin() {
 
 void TextDisplay::print(const char* message)
 {
-  if (_currentMode == DisplayMode::MESSAGE && _lastMessage == message) {
-    return; // Optimization: Don't redraw if text hasn't changed
-  }
-  _currentMode = DisplayMode::MESSAGE;
-  _lastMessage = message;
-
   _display.setFont(TEXT_DISPLAY_MAIN_FONT);
   int message_width = _display.getStrWidth(message);
   int x = (_display.getDisplayWidth() - message_width) / 2;
@@ -44,13 +38,6 @@ void TextDisplay::print(const char* message)
 
 void TextDisplay::printSelectionScreen(const char* selectionTitle, const char* selectionItem)
 {
-    if (_currentMode == DisplayMode::SELECTION && _lastTitle == selectionTitle && _lastItem == selectionItem) {
-        return;
-    }
-    _currentMode = DisplayMode::SELECTION;
-    _lastTitle = selectionTitle;
-    _lastItem = selectionItem;
-
     // 1. Pre-calculate horizontal alignment
     _display.setFont(TEXT_DISPLAY_TITLE_FONT);
     int titleWidth = _display.getStrWidth(selectionTitle);
