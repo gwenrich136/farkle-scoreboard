@@ -18,4 +18,8 @@ In V1, once entered, the game remains in `PostGamePhase_V1` indefinitely.
 ### PostGamePhase_V1
 *   **Why:** Implements the simplified "frozen" post-game phase for V1.
 *   **Defined in:** `src/farkle/include/phases/PostGamePhase_V1.h` & `src/farkle/src/phases/PostGamePhase_V1.cpp`
+*   **Winner Determination Logic:**
+    1.  Identifies the winner using a **cyclical search**.
+    2.  The search starts at `GameState::currentPlayerIndex` (the player who triggered the final round and eventually ended the game).
+    3.  The search iterates through all players to find the highest score. If multiple players share the highest score, the one who appears first in the rotation starting from `currentPlayerIndex` is declared the winner.
 *   **Implementation Details:** Its `update()` method is empty and simply `return this;`, ignoring all input.

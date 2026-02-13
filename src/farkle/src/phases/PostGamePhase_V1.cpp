@@ -2,9 +2,13 @@
 
 void PostGamePhase_V1::onEnter(GameState& state) {
     // Determine winner and cache display data
-    m_winnerIdx = 0;
-    m_highestScore = -1;
-    for (int i = 0; i < state.players.size(); ++i) {
+    // Tie-breaking: first person to reach the high score in the rotation wins.
+    // We start searching from the current player, who is the one who reached the target first.
+    m_highestScore = state.players[state.currentPlayerIndex].score;
+    m_winnerIdx = state.currentPlayerIndex;
+    int numPlayers = (int)state.players.size();
+
+    for (int i = (state.currentPlayerIndex + 1) % numPlayers; i != state.currentPlayerIndex; i = (i + 1) % numPlayers) {
         if (state.players[i].score > m_highestScore) {
             m_highestScore = state.players[i].score;
             m_winnerIdx = i;
