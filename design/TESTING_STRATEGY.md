@@ -186,3 +186,8 @@ pio test -e component_tests
 *   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
 *   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
 *   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.
+
+### 6.7 Example Test Cases: `LedProgressGrid`
+*   **`test_LedProgressGrid_MaxScore_Exact`**: Verifies that `_maxScore` scales exactly to the highest score (if above target) rather than jumping by fixed increments.
+*   **`test_LedProgressGrid_MaxScore_IncludesAtRisk`**: Verifies that the dynamic grid maximum correctly incorporates the current player's at-risk points.
+*   **`test_LedProgressGrid_MaxScore_Shrinking`**: Verifies that the grid bounds can shrink back to the target score if a leading player farkles or a turn ends without banking.
