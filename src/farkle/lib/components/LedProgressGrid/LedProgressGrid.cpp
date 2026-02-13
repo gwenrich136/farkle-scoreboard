@@ -163,6 +163,20 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
 
   _isBlinkOn = millis() % (2 * BLINK_HALF_PERIOD) > BLINK_HALF_PERIOD;
 
+  // 1. Calculate new max score
+  int highestScore = 0;
+  for (int i = 0; i < _playerCount; ++i) {
+    int potentialScore = scores[i];
+    if (i == currentPlayerIndex) {
+        potentialScore += atRiskScore;
+    }
+    if (potentialScore > highestScore) {
+      highestScore = potentialScore;
+    }
+  }
+  _maxScore = max(_targetScore, highestScore);
+
+  // 2. Prepare state for refresh check
   State currentState;
   currentState.mode = DisplayMode::IN_GAME;
 
@@ -184,24 +198,6 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
 
   if (!shouldRefresh(currentState)) {
     return;
-  }
-
-  // 2. Update max score
-  int highestScore = 0;
-  for (int i = 0; i < _playerCount; ++i) {
-    int potentialScore = scores[i];
-    if (i == currentPlayerIndex) {
-        potentialScore += atRiskScore;
-    }
-    if (potentialScore > highestScore) {
-      highestScore = potentialScore;
-    }
-  }
-  
-  if (highestScore > _maxScore) {
-    // As per design: "lowest multiple of 2000 greater than the highest score, with a minimum of _targetScore"
-    int newMax = ( (highestScore / 2000) + 1) * 2000;
-    _maxScore = max(_targetScore, newMax);
   }
 
   _pixels.clear();
