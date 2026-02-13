@@ -8,6 +8,10 @@ void LedProgressGrid::begin() {
     // Begin can be empty for the mock
 }
 
+void LedProgressGrid::setTargetScore(int target) {
+    captured_targetScore = target;
+}
+
 int LedProgressGrid::addPlayer() {
     if (isMaxPlayersReached()) {
         return -1;

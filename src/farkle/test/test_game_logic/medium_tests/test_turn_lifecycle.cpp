@@ -20,20 +20,27 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     game.setup();
     game.loop();
 
-    // 1. Initial state (Geewee selected)
+    // 1. Target Score Selection
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("10000", game.oled.captured_item.c_str());
+
+    // Transition to Player Selection
+    simulateButtonPress(game, ButtonAction::FARKLE);
+
+    // 2. Initial selection state (Geewee selected)
     TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 
-    // 2. Navigate to "Coach"
+    // 3. Navigate to "Coach"
     simulateButtonPress(game, ButtonAction::UP_1000); // Sammy
     simulateButtonPress(game, ButtonAction::UP_1000); // Coach
 
-    // 3. Add Coach
+    // 4. Add Coach
     simulateButtonPress(game, ButtonAction::BANK);
     TEST_ASSERT_EQUAL_INT(1, game.state.players.size());
     TEST_ASSERT_EQUAL_STRING("Coach", game.state.players[0].name.c_str());
 
-    // 4. Add "Alex"
+    // 5. Add "Alex"
     // After adding Coach (index 2), Sheshe is now at index 2.
     // Alex is at index 3. So one UP_1000 is needed.
     simulateButtonPress(game, ButtonAction::UP_1000); // Alex
@@ -41,7 +48,7 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     TEST_ASSERT_EQUAL_INT(2, game.state.players.size());
     TEST_ASSERT_EQUAL_STRING("Alex", game.state.players[1].name.c_str());
 
-    // 5. Start Game
+    // 6. Start Game
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Should be in WaitingPhase, showing first player (Coach)

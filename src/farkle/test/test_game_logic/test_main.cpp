@@ -1,4 +1,5 @@
 #include <unity.h>
+#include "small_tests/test_TargetScoreSelectionPhase.h"
 #include "small_tests/test_PlayerSelectionPhase.h"
 #include "small_tests/test_WaitingPhase.h"
 #include "small_tests/test_FarklingPhase.h"
@@ -17,6 +18,7 @@ void tearDown(void) {
 }
 
 void test_runner() {
+    run_target_score_selection_phase_tests();
     run_player_selection_phase_tests();
     run_waiting_phase_tests();
     run_farkling_phase_tests();

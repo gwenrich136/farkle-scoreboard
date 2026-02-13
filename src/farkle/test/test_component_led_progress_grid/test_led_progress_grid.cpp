@@ -146,6 +146,26 @@ void test_LedProgressGrid_MaxPlayers(void) {
     TEST_ASSERT_TRUE(grid->isMaxPlayersReached());
 }
 
+void test_LedProgressGrid_SetTargetScore(void) {
+    mockNeoPixelShowCount = 0;
+    grid->addPlayer();
+    std::vector<int> scores = {1000};
+
+    // Default target is 10000. 1000/10000 = 0.1 ratio -> 0.8 pixels (1 pixel total brightness)
+    grid->update(scores, 0, 0);
+    int showCount1 = mockNeoPixelShowCount;
+    TEST_ASSERT_EQUAL(1, showCount1);
+
+    // Set target to 1000. 1000/1000 = 1.0 ratio -> 8 pixels full brightness
+    grid->setTargetScore(1000);
+    grid->update(scores, 0, 0);
+
+    // Changing target score doesn't automatically trigger show(),
+    // but the next update() should see it and if it results in different pixels, it shows.
+    // In this case, ratio changed from 0.1 to 1.0, so pixels definitely change.
+    TEST_ASSERT_EQUAL(showCount1 + 1, mockNeoPixelShowCount);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_LedProgressGrid_InitialState);
@@ -155,5 +175,6 @@ int main(void) {
     RUN_TEST(test_LedProgressGrid_Pregame_Blink_Optimization);
     RUN_TEST(test_LedProgressGrid_Update_Basic);
     RUN_TEST(test_LedProgressGrid_InsufficientScores);
+    RUN_TEST(test_LedProgressGrid_SetTargetScore);
     return UNITY_END();
 }
