@@ -22,7 +22,7 @@ void test_TurnLifecycle_FullSetupAndTurn() {
 
     // 1. Target Score Selection
     TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
-    TEST_ASSERT_EQUAL_STRING("10000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
 
     // Transition to Player Selection
     simulateButtonPress(game, ButtonAction::FARKLE);

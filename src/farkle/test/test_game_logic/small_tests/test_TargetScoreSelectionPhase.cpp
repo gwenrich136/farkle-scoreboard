@@ -12,7 +12,7 @@ void test_TargetScoreSelection_InitialState() {
 
     // Should start in TargetScoreSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
-    TEST_ASSERT_EQUAL_STRING("10000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
 }
 
@@ -24,12 +24,12 @@ void test_TargetScoreSelection_Adjustment() {
     // Increment
     simulateButtonPress(game, ButtonAction::UP_1000);
     TEST_ASSERT_EQUAL_INT(11000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("11000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("11,000", game.oled.captured_item.c_str());
 
     // Decrement
     simulateButtonPress(game, ButtonAction::DOWN_50);
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("10000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
 }
 
 // Verifies that the target score is clamped between 1,000 and 20,000.
@@ -42,7 +42,7 @@ void test_TargetScoreSelection_Clamping() {
         simulateButtonPress(game, ButtonAction::DOWN_50);
     }
     TEST_ASSERT_EQUAL_INT(1000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("1000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("1,000", game.oled.captured_item.c_str());
 
     // Try to go below
     simulateButtonPress(game, ButtonAction::DOWN_50);
@@ -53,7 +53,7 @@ void test_TargetScoreSelection_Clamping() {
         simulateButtonPress(game, ButtonAction::UP_1000);
     }
     TEST_ASSERT_EQUAL_INT(20000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("20000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("20,000", game.oled.captured_item.c_str());
 
     // Try to go above
     simulateButtonPress(game, ButtonAction::UP_1000);

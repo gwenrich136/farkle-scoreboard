@@ -29,7 +29,8 @@ void TargetScoreSelectionPhase::updateProgressGrid(const GameState& state, const
 }
 
 void TargetScoreSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    char scoreStr[12];
-    snprintf(scoreStr, sizeof(scoreStr), "%d", state.targetScore);
+    char scoreStr[16];
+    // Format with thousand separator (clamped 1,000 to 20,000)
+    snprintf(scoreStr, sizeof(scoreStr), "%d,%03d", state.targetScore / 1000, state.targetScore % 1000);
     displays.oled.printSelectionScreen("Target Score", scoreStr);
 }
