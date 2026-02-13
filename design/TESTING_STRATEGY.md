@@ -134,6 +134,11 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_TurnLifecycle_RoundRobin`**: Verifies that the game correctly cycles through the dynamic list of players created during setup.
     *   **`test_TurnLifecycle_ClearButton`**: Verifies that the clear button resets the `atRiskScore` to 0.
 
+*   **`test_tie_breaking.cpp`**
+    *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins.
+    *   **`test_TieBreaking_Case2`**: Verifies that if multiple players reach the same score (above target), the first one who reached it in the rotation wins.
+    *   **`test_TieBreaking_Case3`**: Edge case verifying that "first" is calculated relative to the player who triggered the final round, even if the trigger happens late in the roster.
+
 *   **`test_conditional_at_risk_display.cpp`**
     *   **`test_DisplayLogic_PlayerSelection_DisplaysOff`**: Verifies that during the selection phase, `ScoreDisplay` segments and `FarkleWarningLights` are explicitly cleared (except `COMPETITION_SCORE` which shows the target score).
     *   **`test_DisplayLogic_WaitingPhase_ShowsZero`**: Verifies that in `WaitingPhase`, an `atRiskScore` of 0 is displayed as "0" on the `ScoreDisplay`.

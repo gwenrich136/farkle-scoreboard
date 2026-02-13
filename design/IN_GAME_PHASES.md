@@ -35,7 +35,7 @@ This category handles user input for scoring, provides feedback through animatio
     1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
     2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
     3.  **Finalize Turn:** Once a button is pressed:
-        a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
+        a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;` and record the current player's index in `state.firstToReachTargetIndex`.
         b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
         c. `return game.getPhase<WaitingPhase>();`.
 
