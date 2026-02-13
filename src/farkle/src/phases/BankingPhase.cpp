@@ -36,6 +36,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
             // Check for Final Round Trigger
             if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
                 state.finalRoundTriggered = true;
+                state.firstToReachTargetIndex = state.currentPlayerIndex;
             }
 
             // Advance turn and transition
