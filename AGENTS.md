@@ -8,6 +8,7 @@ This document serves as the **SINGLE SOURCE OF TRUTH** for any AI agent, coding 
 *   **Live Documentation:**
     *   If code changes, the corresponding design doc in `design/` **must** change.
     *   If a test case is added, it must be reflected in `design/TESTING_STRATEGY.md`.
+    *   **Rule:** Always update the testing strategy in `design/TESTING_STRATEGY.md` when adding new test cases to the codebase.
     *   **Rule:** No code file exists without being mentioned/explained in a design doc.
 *   **Safety:** Always explain critical shell commands before running them.
 

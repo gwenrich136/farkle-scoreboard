@@ -106,10 +106,24 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 }
 
+// Verifies that the Competition Score display blinks during the final round in PenaltyFarklingPhase.
+void test_PenaltyFarklingPhase_FinalRoundBlinking() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.finalRoundTriggered = true;
+    game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+}
+
 void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_AnimationMath);
     RUN_TEST(test_PenaltyFarklingPhase_BlinkParameter);
     RUN_TEST(test_PenaltyFarklingPhase_ZeroCeilingSafety);
     RUN_TEST(test_PenaltyFarklingPhase_InputSpamming);
     RUN_TEST(test_PenaltyFarklingPhase_ManualAdvance);
+    RUN_TEST(test_PenaltyFarklingPhase_FinalRoundBlinking);
 }

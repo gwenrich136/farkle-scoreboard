@@ -80,12 +80,14 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_WaitingPhase.cpp`**
     *   **`test_WaitingPhase_ScoreAccumulation`:** Verifies that the `atRiskScore` correctly accumulates when score buttons are pressed.
+    *   **`test_WaitingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_WaitingPhase_ScoreCorrection`:** Verifies that the `atRiskScore` is cleared when the `CLEAR` button is pressed.
     *   **`test_WaitingPhase_TransitionToBanking`:** Verifies that the game transitions to the `BankingPhase` when the `BANK` button is pressed.
     *   **`test_WaitingPhase_TransitionToFarkling`:** Verifies that the game transitions to the `FarklingPhase` when the `FARKLE` button is pressed.
 
 *   **`test_BankingPhase.cpp`**
     *   **`test_BankingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from `atRiskScore` to the player's score.
+    *   **`test_BankingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_BankingPhase_ZeroFloorSafety`:** Verifies that `atRiskScore` does not go negative when the points to be moved in one loop are greater than the remaining `atRiskScore`.
     *   **`test_BankingPhase_InputSpamming`:** Verifies that button presses are ignored while the banking animation is in progress.
     *   **`test_BankingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the banking animation is complete.
@@ -94,6 +96,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_FarklingPhase.cpp`**
     *   **`test_FarklingPhase_AnimationMath`:** Verifies that the `atRiskScore` drains to 0 but does NOT add to player score.
+    *   **`test_FarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_FarklingPhase_ZeroFloorSafety`:** Verifies that `atRiskScore` does not go negative.
     *   **`test_FarklingPhase_InputSpamming`:** Verifies that button presses are ignored while the farkling animation is in progress.
     *   **`test_FarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
@@ -101,6 +104,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_PenaltyFarklingPhase.cpp`**
     *   **`test_PenaltyFarklingPhase_Stage1_ThePain`:** Verifies that for the first 3 seconds, the `atRiskScore` flashes/blinks, the `FarkleWarningLights` alternate, and **no points are moved**.
+    *   **`test_PenaltyFarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_PenaltyFarklingPhase_Stage2_TheDrain`:** Verifies that after the initial delay, points begin to move (inverse banking) while lights continue to alternate.
     *   **`test_PenaltyFarklingPhase_Stage3_TheWait`:** Verifies that once the score is 0, the animation stops, lights turn OFF, and the game waits for a manual advance button.
     *   **`test_PenaltyFarklingPhase_ZeroCeilingSafety`:** Verifies that `atRiskScore` does not go above 0.
@@ -144,6 +148,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 *   **`test_full_game.cpp`**
     *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
+    *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
 
 
 ## 5. Implementation Steps
