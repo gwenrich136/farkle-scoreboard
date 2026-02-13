@@ -12,8 +12,15 @@ This document outlines the desired user experience and general gameplay flow for
 
 The game begins by guiding players through setup and configuration.
 
-### 1.1 Player Selection
+### 1.1 Target Score Selection
+-   **Initial State:** The scoreboard asks "Target Score?". The default selection is 10,000.
+-   **Navigation:** Players use `Up/Down` buttons to increment or decrement the goal in steps of 1,000. The range is clamped between 1,000 and 20,000.
+-   **Visual Feedback:** The `ScoreDisplay` segment for the "Competition Score" updates in real-time to show the currently selected target.
+-   **Confirmation:** Pressing either `BANK` (Green) or `FARKLE` (Red) confirms the target score and transitions to the "Player Selection" screen.
+
+### 1.2 Player Selection
 -   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names.
+-   **Goal Persistence:** The "Competition Score" segment remains lit with the chosen target score throughout the selection process.
 -   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy with their assigned color.
 -   **Selecting a Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player from the available list, and the system remains in the "Player Selection" state, ready for the next player.
 -   **Player Limit**: Once the maximum number of players is reached (currently 8), the system stops showing a "pending" player and the ability to add more is disabled.
@@ -125,4 +132,4 @@ After the winner celebration, the device enters a continuous post-game loop.
 
 ### 4.3 Reset Game
 -   **Confirmation:** Selecting "Play Again" or triggering a reset (e.g., via `CLEAR` from a specific context) leads to a "Reset Game?" confirmation screen.
--   **Action:** Confirming the reset wipes all game history and returns the device to the initial "Player Selection" state.
+-   **Action:** Confirming the reset wipes all game history and returns the device to the initial "Target Score Selection" state.
