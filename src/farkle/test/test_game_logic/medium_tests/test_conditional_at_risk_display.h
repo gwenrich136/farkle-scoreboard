@@ -5,6 +5,8 @@ void test_DisplayLogic_WaitingPhase_ShowsZero();
 void test_DisplayLogic_BankingPhase_ClearsZero();
 void test_DisplayLogic_FarklingPhase_ClearsZero();
 void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero();
+void test_CompetitionScore_NoBlink_NormalRound();
+void test_CompetitionScore_Blinks_FinalRound();
 
 void run_display_logic_tests();
 

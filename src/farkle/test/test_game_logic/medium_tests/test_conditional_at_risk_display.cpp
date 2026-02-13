@@ -91,6 +91,26 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
+void test_CompetitionScore_NoBlink_NormalRound() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    game.state.finalRoundTriggered = false;
+    game.loop();
+
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+}
+
+void test_CompetitionScore_Blinks_FinalRound() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    game.state.finalRoundTriggered = true;
+    game.loop();
+
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+}
+
 void test_DisplayLogic_FarklingPhase_ClearsZero() {
     Game game;
     setupGameWithPlayers(game, 4);
@@ -116,4 +136,6 @@ void run_display_logic_tests() {
     RUN_TEST(test_DisplayLogic_BankingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_FarklingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero);
+    RUN_TEST(test_CompetitionScore_NoBlink_NormalRound);
+    RUN_TEST(test_CompetitionScore_Blinks_FinalRound);
 }
