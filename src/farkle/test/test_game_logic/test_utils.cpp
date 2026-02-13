@@ -9,6 +9,10 @@ void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_
 
 void setupGameWithPlayers(Game& game, int numPlayers) {
     game.setup();
+
+    // 1. Transition from TargetScoreSelectionPhase to PlayerSelectionPhase
+    simulateButtonPress(game, ButtonAction::FARKLE);
+
     // Names from the pool to be consistent
     const char* names[] = {"Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"};
     for (int i = 0; i < numPlayers; ++i) {
@@ -18,7 +22,7 @@ void setupGameWithPlayers(Game& game, int numPlayers) {
         // but setupGameWithPlayers is meant to bypass selection.
         game.addPlayer(names[i]);
     }
-    // Transition to WaitingPhase
+    // 2. Transition from PlayerSelectionPhase to WaitingPhase
     simulateButtonPress(game, ButtonAction::FARKLE);
 }
 

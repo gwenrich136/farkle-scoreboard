@@ -46,7 +46,7 @@ void Game::setup() {
     resetGame();
 
     // 3. Set Initial State
-    currentPhase = &phasePool.playerSelection;
+    currentPhase = &phasePool.targetScoreSelection;
     currentPhase->onEnter(state);
     
     lastUpdateTime = millis();
@@ -94,4 +94,10 @@ void Game::resetGame() {
     scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
     scoreDisplay.clear(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
     scoreDisplay.clear(ScoreDisplay::DisplayType::COMPETITION_SCORE);
+}
+
+void Game::setTargetScore(int target) {
+    state.targetScore = target;
+    grid.setTargetScore(target);
+    scoreDisplay.print_number(target, ScoreDisplay::DisplayType::COMPETITION_SCORE);
 }

@@ -15,10 +15,12 @@ public:
     int player_count;
     bool was_cleared;
     bool was_reset;
+    int captured_targetScore;
 
 
     LedProgressGrid(uint8_t pin);
     void begin();
+    void setTargetScore(int target);
     int addPlayer();
     bool isMaxPlayersReached();
     void reset();

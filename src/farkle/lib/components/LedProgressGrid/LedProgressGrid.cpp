@@ -18,6 +18,12 @@ void LedProgressGrid::begin() {
   reset(); // Call reset to initialize all state and clear display
 }
 
+void LedProgressGrid::setTargetScore(int target) {
+    _targetScore = target;
+    _maxScore = target;
+    _lastState.isDirty = true;
+}
+
 void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
@@ -157,6 +163,20 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
 
   _isBlinkOn = millis() % (2 * BLINK_HALF_PERIOD) > BLINK_HALF_PERIOD;
 
+  // 1. Calculate new max score
+  int highestScore = 0;
+  for (int i = 0; i < _playerCount; ++i) {
+    int potentialScore = scores[i];
+    if (i == currentPlayerIndex) {
+        potentialScore += atRiskScore;
+    }
+    if (potentialScore > highestScore) {
+      highestScore = potentialScore;
+    }
+  }
+  _maxScore = max(_targetScore, highestScore);
+
+  // 2. Prepare state for refresh check
   State currentState;
   currentState.mode = DisplayMode::IN_GAME;
 
@@ -173,28 +193,11 @@ void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIn
   currentState.atRiskScore = atRiskScore;
   currentState.isBlinkOn = _isBlinkOn;
   currentState.playerCount = _playerCount;
+  currentState.maxScore = _maxScore;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {
     return;
-  }
-
-  // 2. Update max score
-  int highestScore = 0;
-  for (int i = 0; i < _playerCount; ++i) {
-    int potentialScore = scores[i];
-    if (i == currentPlayerIndex) {
-        potentialScore += atRiskScore;
-    }
-    if (potentialScore > highestScore) {
-      highestScore = potentialScore;
-    }
-  }
-  
-  if (highestScore > _maxScore) {
-    // As per design: "lowest multiple of 2000 greater than the highest score, with a minimum of _targetScore"
-    int newMax = ( (highestScore / 2000) + 1) * 2000;
-    _maxScore = max(_targetScore, newMax);
   }
 
   _pixels.clear();
@@ -229,6 +232,7 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
   currentState.isPlayerPending = isPlayerPending;
   currentState.isBlinkOn = _isBlinkOn;
   currentState.playerCount = _playerCount;
+  currentState.maxScore = _maxScore;
   currentState.isDirty = false;
 
   if (!shouldRefresh(currentState)) {

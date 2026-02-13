@@ -11,10 +11,11 @@ void test_DisplayLogic_PlayerSelection_DisplaysOff() {
     // Loop once to trigger display()
     game.loop();
 
-    // Verify all score segments are cleared
+    // Verify all score segments are cleared (except competition which shows target score)
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
-    TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+    TEST_ASSERT_FALSE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+    TEST_ASSERT_EQUAL_INT(10000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 
     // Verify farkle lights are off
     TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_state);

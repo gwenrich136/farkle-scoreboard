@@ -7,6 +7,7 @@
 #include "GamePhase.h"
 #include <type_traits>
 
+#include "phases/TargetScoreSelectionPhase.h"
 #include "phases/PlayerSelectionPhase.h"
 #include "phases/WaitingPhase.h"
 #include "phases/BankingPhase.h"
@@ -30,6 +31,7 @@ public:
     // Templated helper to get a pointer to a specific phase from the pool
     template<typename T>
     T* getPhase() {
+        if (std::is_same<T, TargetScoreSelectionPhase>::value) return (T*)&phasePool.targetScoreSelection;
         if (std::is_same<T, PlayerSelectionPhase>::value) return (T*)&phasePool.playerSelection;
         if (std::is_same<T, WaitingPhase>::value) return (T*)&phasePool.waiting;
         if (std::is_same<T, BankingPhase>::value) return (T*)&phasePool.banking;
@@ -42,6 +44,7 @@ public:
     void addPlayer(const std::string& name);
     bool canAddPlayer();
     void resetGame();
+    void setTargetScore(int target);
 
 #ifdef UNIT_TEST
 public:
@@ -49,6 +52,7 @@ public:
 private:
 #endif
     struct PhasePool {
+        TargetScoreSelectionPhase targetScoreSelection;
         PlayerSelectionPhase playerSelection;
         WaitingPhase waiting;
         BankingPhase banking;

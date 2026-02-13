@@ -94,6 +94,19 @@ void test_BankingPhase_LightsOffDuringAnimation() {
     TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_state);
 }
 
+// Verifies that the Competition Score display blinks during the final round in BankingPhase.
+void test_BankingPhase_FinalRoundBlinking() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.finalRoundTriggered = true;
+    game.currentPhase = game.getPhase<BankingPhase>();
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
+}
+
 void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_AnimationMath);
     RUN_TEST(test_BankingPhase_ZeroFloorSafety);
@@ -101,4 +114,5 @@ void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_ManualAdvance);
     RUN_TEST(test_BankingPhase_FarkleResetOnEnter);
     RUN_TEST(test_BankingPhase_LightsOffDuringAnimation);
+    RUN_TEST(test_BankingPhase_FinalRoundBlinking);
 }

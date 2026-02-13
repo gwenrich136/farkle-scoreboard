@@ -23,6 +23,14 @@ The diagram below uses **Mermaid.js**. You can render this using the [Mermaid Li
 
 *(Note: Feeding 5V regulated power into the Arduino 5V pin is safe if your power supply is a high-quality, regulated 5V source.)*
 
+### **Capacitor Stabilization Strategy (Issue #80)**
+
+To alleviate display corruption caused by "dirty power" (noise from high-current components like the LED Grid), the following capacitors are required:
+
+1.  **Main Bulk Reservoir**: Install a large **1000µF (10V or 16V) Electrolytic Capacitor** across the main power rails (near where the PSU input enters). This acts as a reservoir to buffer the large current spikes from the NeoPixel grid.
+2.  **Local Decoupling**: Install a **0.1µF Ceramic Capacitor** as close as possible to the VCC and GND pins of the **TextDisplay (OLED)**. This filters out high-frequency noise that can interfere with the I2C signal.
+3.  **Arduino Decoupling**: Similarly, place a **0.1µF Ceramic Capacitor** near the Arduino's 5V and GND pins if using the common power rail.
+
 ### **Connecting a USB Power Bank**
 
 Since your power source is a USB-C Power Bank, you need a way to get the power out of the cable and onto your wires.

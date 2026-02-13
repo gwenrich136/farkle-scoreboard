@@ -8,9 +8,11 @@
 void test_PlayerSelection_InitialState() {
     Game game;
     game.setup();
-    game.loop();
 
-    // Should start in PlayerSelectionPhase
+    // Transition to PlayerSelectionPhase
+    simulateButtonPress(game, ButtonAction::FARKLE);
+
+    // Should be in PlayerSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
     TEST_ASSERT_EQUAL_INT(0, game.state.players.size());
@@ -20,6 +22,7 @@ void test_PlayerSelection_InitialState() {
 void test_PlayerSelection_Cycling() {
     Game game;
     game.setup();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Next name
     simulateButtonPress(game, ButtonAction::UP_1000);
@@ -42,6 +45,7 @@ void test_PlayerSelection_Cycling() {
 void test_PlayerSelection_AddPlayer() {
     Game game;
     game.setup();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Navigate to Sammy (index 1)
     simulateButtonPress(game, ButtonAction::UP_1000);
@@ -60,6 +64,7 @@ void test_PlayerSelection_AddPlayer() {
 void test_PlayerSelection_Filtering() {
     Game game;
     game.setup();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Add Geewee (index 0)
     simulateButtonPress(game, ButtonAction::BANK);
@@ -99,6 +104,7 @@ void test_PlayerSelection_TransitionValidation() {
 void test_PlayerSelection_MaxPlayers() {
     Game game;
     game.setup();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Add 8 players
     for (int i = 0; i < 8; ++i) {
@@ -118,6 +124,7 @@ void test_PlayerSelection_MaxPlayers() {
 void test_PlayerSelection_AddLastPlayerWraps() {
     Game game;
     game.setup();
+    simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Pool size is 9. Add first 8 players one by one, but always selecting the LAST one.
     // names: 0, 1, 2, 3, 4, 5, 6, 7, 8

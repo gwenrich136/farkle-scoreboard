@@ -28,6 +28,7 @@ public:
     bool isBlinkOn = false;
     bool isPlayerPending = false;
     int playerCount = 0;
+    int maxScore = 0;
     bool isDirty = true;
 
     bool operator==(const State& other) const {
@@ -37,7 +38,8 @@ public:
           atRiskScore != other.atRiskScore ||
           isBlinkOn != other.isBlinkOn ||
           isPlayerPending != other.isPlayerPending ||
-          playerCount != other.playerCount) {
+          playerCount != other.playerCount ||
+          maxScore != other.maxScore) {
         return false;
       }
       for (int i = 0; i < playerCount; ++i) {
@@ -52,12 +54,14 @@ public:
 
   LedProgressGrid(uint8_t pin);
   void begin();
+  void setTargetScore(int target);
   int addPlayer();
   bool isMaxPlayersReached();
   void reset();
   void clear();
   void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
   void displayPlayersPregame(bool isPlayerPending);
+  int getMaxScore() const { return _maxScore; }
 
 private:
   Adafruit_NeoPixel _pixels;

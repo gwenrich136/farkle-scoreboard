@@ -105,11 +105,12 @@ The following files will be created or modified to implement the Game State Mach
             *   `virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) = 0;`
             *   `virtual void display(const GameState& state, const Displays& displays) = 0;`
         *   `class PreGamePhase : public GamePhase` will be an intermediate class.
-            *   It will provide a concrete, shared implementation of the `display()` method that ensures `ScoreDisplay` and `FarkleWarningLights` are explicitly cleared/OFF by default.
+            *   It will provide a concrete, shared implementation of the `display()` method that ensures `ScoreDisplay` (at-risk and current score) and `FarkleWarningLights` are explicitly cleared/OFF.
+            *   It will ensure the `COMPETITION_SCORE` segment of the `ScoreDisplay` always shows `state.targetScore` for persistent goal feedback.
             *   It will provide virtual hooks for `updateProgressGrid()` and `updateTextDisplay()`, allowing subclasses to focus solely on their specific UI elements.
         *   `class InGamePhase : public GamePhase` will be an intermediate class.
             *   It will provide a concrete, shared implementation of the `display()` method, which calls multiple virtual hooks (`updateScoreDisplays()`, `updateProgressGrid()`, etc.).
-            *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+            *   `updateScoreDisplays()` is further decomposed into sub-hooks for the three displays: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`. The `updateCompetitionScoreDisplay` hook will pass the `finalRoundTriggered` flag to the `ScoreDisplay` to enable blinking during the final round.
             *   It will provide a protected helper method `void endTurn(GameState& state);` which will increment the `currentPlayerIndex`.
             *   It will maintain `m_scores` vector and `m_lastScoresVersion` to optimize progress grid updates.
 
@@ -117,14 +118,15 @@ The following files will be created or modified to implement the Game State Mach
 *   **`src/farkle/include/Game.h`** & **`src/farkle/src/Game.cpp`**
     *   **Why:** Implements the main `Game` engine class, which acts as a pure state machine manager and context for the phases.
     *   **Implementation Details:**
-        *   The header will define the `PhasePool` as a private struct containing one instance of each concrete phase, including the new `PlayerSelectionPhase`.
+        *   The header will define the `PhasePool` as a private struct containing one instance of each concrete phase, including `TargetScoreSelectionPhase` and `PlayerSelectionPhase`.
         *   The class will own the `PhasePool`, the `GameState` object, `GamePhase* currentPhase`, and all hardware component classes.
         *   It will provide a public templated method for phases to acquire pointers to other phases: `template<typename T> T* getPhase();`.
         *   **Context Methods**:
+            *   `void setTargetScore(int target)`: Coordinated update that syncs `GameState`, `LedProgressGrid`, and `ScoreDisplay`.
             *   `void addPlayer(const std::string& name)`: Coordinated update that adds a player to `GameState` and calls `grid.addPlayer()` to assign a color.
             *   `bool canAddPlayer()`: Helper to query the hardware (`grid.isMaxPlayersReached()`).
             *   `void resetGame()`: Resets the `GameState` and hardware components to a clean state.
-        *   `Game::setup()` will initialize hardware, call `resetGame()`, and set the initial state: `currentPhase = &phasePool.playerSelection;`.
+        *   `Game::setup()` will initialize hardware, call `resetGame()`, and set the initial state: `currentPhase = &phasePool.targetScoreSelection;`.
         *   `Game::loop()` will be a pure state machine engine, containing no game-specific logic:
             1.  Calculate `deltaTime`.
             2.  Read input from the `ControlPad`.
@@ -137,6 +139,7 @@ The following files will be created or modified to implement the Game State Mach
 Detailed implementation plans for each phase are organized by category:
 
 *   **[Pre-Game Phases](PRE_GAME_PHASES.md)**
+    *   `TargetScoreSelectionPhase`
     *   `PlayerSelectionPhase`
 *   **[In-Game Phases](IN_GAME_PHASES.md)**
     *   `WaitingPhase`
