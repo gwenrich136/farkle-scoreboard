@@ -30,9 +30,9 @@ void PostGamePhase_V1::display(const GameState& state, const Displays& displays)
     displays.oled.print(m_winnerMsg.c_str());
 
     // Update scores on the 7-segments one last time
-    displays.scoreDisplay.print_number(0, 0); // At risk is 0
-    displays.scoreDisplay.print_number(state.players[m_winnerIdx].score, 1); // Winner's score
-    displays.scoreDisplay.print_number(m_highestScore, 2); // High score
+    displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    displays.scoreDisplay.print_number(state.players[m_winnerIdx].score, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE); // Winner's score
+    displays.scoreDisplay.print_number(m_highestScore, ScoreDisplay::DisplayType::COMPETITION_SCORE); // High score
 
     // Update the grid with final scores
     displays.grid.update(m_scores, m_winnerIdx, 0);

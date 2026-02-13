@@ -10,7 +10,7 @@
 // and subtracts from the player's score, after the 3-second pause.
 void test_PenaltyFarklingPhase_AnimationMath() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
     game.state.atRiskScore = -1000;
@@ -40,21 +40,22 @@ void test_PenaltyFarklingPhase_AnimationMath() {
 // Verifies that the blink parameter is correctly passed to the ScoreDisplay during THE_PAIN.
 void test_PenaltyFarklingPhase_BlinkParameter() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
+    game.state.players[0].score = 1000; // Ensure atRiskScore is non-zero
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
 
     simulateNoAction(game, 100); // Still in THE_PAIN
-    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[0]);
+    TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 
     simulateNoAction(game, 3000); // Now in THE_DRAIN or AFTERMATH
-    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[0]);
+    TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
 // Verifies that atRiskScore does not go above 0 (Zero Ceiling).
 void test_PenaltyFarklingPhase_ZeroCeilingSafety() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
     game.state.atRiskScore = -50;
@@ -72,7 +73,7 @@ void test_PenaltyFarklingPhase_ZeroCeilingSafety() {
 // Verifies that button presses are ignored while the animation is in progress.
 void test_PenaltyFarklingPhase_InputSpamming() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
     game.state.atRiskScore = -500;
@@ -87,7 +88,7 @@ void test_PenaltyFarklingPhase_InputSpamming() {
 // Verifies that a button press transitions to the WaitingPhase after the animation is complete.
 void test_PenaltyFarklingPhase_ManualAdvance() {
     Game game;
-    game.setup();
+    setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
     game.state.atRiskScore = -100;

@@ -10,16 +10,35 @@ void InGamePhase::display(const GameState& state, const Displays& displays) {
 }
 
 void InGamePhase::updateScoreDisplays(const GameState& state, const Displays& displays) {
+    updateAtRiskScoreDisplay(state, displays);
+    updateCurrentPlayerScoreDisplay(state, displays);
+    updateCompetitionScoreDisplay(state, displays);
+}
+
+void InGamePhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
+    if (state.atRiskScore == 0) {
+        displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    } else {
+        displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    }
+}
+
+void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays) {
+    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+}
+
+void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {
     int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(state.atRiskScore, 0);
-    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, 1);
-    displays.scoreDisplay.print_number(leadingScore, 2);
+    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE);
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    m_scores.clear();
-    for (const auto& player : state.players) {
-        m_scores.push_back(player.score);
+    if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
+        m_scores.clear();
+        for (const auto& player : state.players) {
+            m_scores.push_back(player.score);
+        }
+        m_lastScoresVersion = state.scoresVersion;
     }
     displays.grid.update(m_scores, state.currentPlayerIndex, state.atRiskScore);
 }
@@ -29,18 +48,18 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    // For V1, we just show the current player's name.
+    // Basic turn indicator for now
     displays.oled.print(state.players[state.currentPlayerIndex].name.c_str());
 }
 
 int InGamePhase::calculateLeadingScore(const GameState& state) {
-    int leadingScore = 0;
+    int maxScore = 0;
     for (const auto& player : state.players) {
-        if (player.score > leadingScore) {
-            leadingScore = player.score;
+        if (player.score > maxScore) {
+            maxScore = player.score;
         }
     }
-    return leadingScore;
+    return maxScore;
 }
 
 void InGamePhase::endTurn(GameState& state) {

@@ -107,21 +107,36 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PenaltyFarklingPhase_InputSpamming`:** Verifies that button presses are ignored during both the "Pain" and "Drain" stages.
     *   **`test_PenaltyFarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
 
+*   **`test_PlayerSelectionPhase.cpp`**
+    *   **`test_PlayerSelection_InitialState`**: Verifies that the phase starts with the first name in the pool and an empty player list.
+    *   **`test_PlayerSelection_Cycling`**: Verifies that `UP_1000` and `DOWN_50` navigate the filtered name list correctly, including wrapping behavior.
+    *   **`test_PlayerSelection_AddPlayer`**: Verifies that pressing **BANK** (Green) adds the selected name to the `GameState`, assigns a color in the `LedProgressGrid`, and removes the name from the selection list.
+    *   **`test_PlayerSelection_MaxPlayers`**: Verifies that the phase respects the hardware limit by disabling player addition once the `LedProgressGrid` is full (8 players).
+    *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
+    *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
+
 ### 4.2 MEDIUM Tests (Integration Tests)
 **Focus:** Handoffs. Verification of state persistence across phase transitions.
 **Location:** `test/test_game_logic/medium_tests/`
 
 *   **`test_turn_lifecycle.cpp`**
-    *   **`test_TurnLifecycle_StandardTurn`:** Verifies that a standard turn correctly banks the score and advances to the next player.
-    *   **`test_TurnLifecycle_RoundRobin`:** Verifies that the game correctly cycles through all players.
-    *   **`test_TurnLifecycle_ClearButton`:** Verifies that the clear button resets the `atRiskScore` to 0.
+    *   **`test_TurnLifecycle_FullSetupAndTurn`**: Enhanced to start in `PlayerSelectionPhase`, add specific players, and verify that those specific players (and their color assignments) are the ones active during the `WaitingPhase`.
+    *   **`test_TurnLifecycle_RoundRobin`**: Verifies that the game correctly cycles through the dynamic list of players created during setup.
+    *   **`test_TurnLifecycle_ClearButton`**: Verifies that the clear button resets the `atRiskScore` to 0.
+
+*   **`test_conditional_at_risk_display.cpp`**
+    *   **`test_DisplayLogic_PlayerSelection_DisplaysOff`**: Verifies that during the selection phase, `ScoreDisplay` segments and `FarkleWarningLights` are explicitly cleared.
+    *   **`test_DisplayLogic_WaitingPhase_ShowsZero`**: Verifies that in `WaitingPhase`, an `atRiskScore` of 0 is displayed as "0" on the `ScoreDisplay`.
+    *   **`test_DisplayLogic_BankingPhase_ClearsZero`:** Verifies that in `BankingPhase`, an `atRiskScore` of 0 results in the display being cleared.
+    *   **`test_DisplayLogic_FarklingPhase_ClearsZero`:** Verifies that in `FarklingPhase`, an `atRiskScore` of 0 results in the display being cleared.
+    *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
 **Location:** `test/test_game_logic/large_tests/`
 
 *   **`test_full_game.cpp`**
-    *   **`test_FullGame_StandardGame`:** Simulates a full game where players take turns scoring until one player reaches the target score, triggering the final round.
+    *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
 
 
@@ -160,3 +175,8 @@ pio test -e component_tests
 ### 6.5 Example Test Cases: `ScoreDisplay`
 *   **`test_ScoreDisplay_Correctness_Overflow`**: Verifies that numbers greater than 99,999 are capped and displayed as "99999".
 *   **`test_ScoreDisplay_Blinking_Intensity`**: Verifies that when `blink` is enabled, calling `print_number` (which should be called every frame) results in the intensity toggling between `SCORE_BLINK_LOW` (2) and `SCORE_BLINK_HIGH` (12) as time advances.
+
+### 6.6 Example Test Cases: `ControlPad`
+*   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
+*   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
+*   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.

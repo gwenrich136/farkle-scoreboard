@@ -99,18 +99,21 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 
 ### API Design
 -   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
--   **`void print_number(int number, int deviceIndex, bool blink = false)`**: Displays an integer `number` on the specified `deviceIndex` (0, 1, or 2).
+-   **`void addDisplay(DisplayType type, int deviceIndex)`**: Maps a logical `DisplayType` to a physical `deviceIndex`.
+-   **`void print_number(int number, DisplayType type, bool blink = false)`**: Displays an integer `number` on the display mapped to the given `DisplayType`.
     -   The number will be right-aligned on the 5-digit display.
     -   If `blink` is `true`, the display's intensity will alternate between LOW (2) and HIGH (12) periodically.
+-   **`void clear(DisplayType type)`**: Clears all digits on the display mapped to the given `DisplayType`.
 
 ### Key Logic & Behavior
--   **Three Dedicated Displays:** The component provides three independent 5-digit displays, intended for:
-    1.  `current_at_risk_score`
-    2.  `current_player_banked_score`
-    3.  `leading_score`
+-   **Three Dedicated Displays:** The component provides three independent 5-digit displays, logically identified by the `DisplayType` enum:
+    -   `AT_RISK_SCORE`
+    -   `CURRENT_PLAYER_SCORE`
+    -   `COMPETITION_SCORE`
 -   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
 -   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
 -   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
+- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only calls `LedControl` methods (`setIntensity`, `clearDisplay`, `setChar`) if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
 
 ---
 
@@ -122,6 +125,7 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
 ### API Design
 
 #### Static Text Display Modes
+-   **`void print(const char* message)`**: Displays a single message centered on the screen.
 -   **`void displayTitle(const char* title)`**: Displays a single line of `title` text, centered horizontally and vertically, using a default large font.
 -   **`void displayTitleWithSubtitle(const char* title, const char* subtitle)`**: Displays a main `title` centered towards the top, with a smaller `subtitle` centered towards the bottom.
 -   **`void displayTitleWithSubtitles(const char* title, const char* leftSubtitle, const char* rightSubtitle)`**: Displays a main `title` centered towards the top, with two smaller subtitles at the bottom: one left-aligned (`leftSubtitle`) and one right-aligned (`rightSubtitle`).
@@ -131,10 +135,10 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
 -   **`void updateScrollingMessage()`**: To be called repeatedly in the main loop to animate a vertical (Star Wars-style) scroll of the message. (Currently a **TODO** for future implementation).
 
 #### Interactive UI Modes
--   **`void displaySelector(const std::vector<const char*>& items, int selectedIndex)`**: Renders an interactive selection screen, such as for choosing a player name from a list.
-    -   Displays `items[selectedIndex]` large and centered.
-    -   Draws "carrot-like" up/down arrows above and below the selected item to indicate scrollability.
-    -   The main game loop is responsible for updating `selectedIndex` based on user input.
+-   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem)`**: Renders an interactive selection screen.
+    -   Displays `selectionTitle` centered near the top using a smaller font.
+    -   Displays `selectionItem` centered below using a larger font.
+    -   Draws up/down arrows above and below the `selectionItem` to indicate that the value can be changed.
 
 -   **`void displayCharacterInput(const char* currentName, int activeIndex)`**: Renders an interactive screen for character-by-character name input.
     -   The character at `currentName[activeIndex]` is displayed large and centered, with "carrot-like" up/down arrows above and below it (to change the character).
@@ -143,6 +147,9 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
     -   Player names have a maximum length (e.g., 12 characters), but the display can handle names that temporarily extend beyond the screen width, which will scroll into view as `activeIndex` changes.
 
 ### Key Logic & Behavior
--   **Dynamic Centering:** All text display functions will dynamically calculate positioning using `U8g2lib` font metrics, ensuring proper alignment regardless of font or message length.
--   **Separation of Concerns:** For interactive modes, the `TextDisplay` is responsible solely for rendering. The game's main loop handles input and manages the state (`selectedIndex`, `currentName`, `activeIndex`).
--   **I2C Communication:** Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
+-   **Multi-Page Rendering**: The SH1106 display uses a page-buffered approach. The `do...while` loops in the drawing methods ensure that the entire screen is rendered correctly by running all drawing commands for each vertical "page" of the display.
+-   **Deterministic Layout**: To prevent visual jitter or "shimmering" on the I2C OLED, all coordinates (x, y) are pre-calculated once per frame **before** entering the `do...while` page loop. This ensures that every page of the buffer is rendered with identical, stable coordinates.
+-   **Vertical Alignment**: The component uses `setFontPosTop()` and fixed font height constants (e.g., `TEXT_DISPLAY_MAIN_HEIGHT`) to ensure that vertical positioning is absolute and independent of character-specific metrics (like descenders in 'y' or 'g'). This prevents text from "jumping" when the content changes.
+-   **State Caching**: The component caches the last rendered content and current mode using `std::string` comparison to prevent unnecessary screen refreshes, optimizing I2C bus usage.
+-   **I2C Communication**: Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
+-   **Visual Styling**: Uses specific fonts for titles and main text to ensure hierarchy and readability.

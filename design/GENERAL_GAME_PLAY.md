@@ -13,10 +13,10 @@ This document outlines the desired user experience and general gameplay flow for
 The game begins by guiding players through setup and configuration.
 
 ### 1.1 Player Selection
--   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names and an option to "Add New Player."
--   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy.
--   **Selecting an Existing Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player, and the system remains in the "Player Selection" state, ready for the next player.
--   **Adding a New Player:** Selecting the "Add New Player" option (by pressing `BANK`) transitions the device to the "Player Creation" screen.
+-   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names.
+-   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy with their assigned color.
+-   **Selecting a Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player from the available list, and the system remains in the "Player Selection" state, ready for the next player.
+-   **Player Limit**: Once the maximum number of players is reached (currently 8), the system stops showing a "pending" player and the ability to add more is disabled.
 
 ### 1.2 Player Creation
 -   **Purpose:** Allows users to input a new player name character by character.
@@ -45,6 +45,7 @@ The game begins by guiding players through setup and configuration.
         -   `RIGHT`: +500 points
         -   `UP`: +1000 points
     -   The `atRisk` score is displayed on a `ScoreDisplay` segment and as a blinking section on the `LedProgressGrid`.
+    -   **Visual Feedback Rule:** If the `atRiskScore` is 0, it is only displayed as "0" on the `ScoreDisplay` during the `WaitingPhase`. In all other phases (such as during animations in the `BankingPhase` or `FarklingPhase`), an `atRiskScore` of 0 is treated as an empty display. This helps visually distinguish between an active turn and the transition between turns.
     -   **Correction:** Pressing `CLEAR` resets the `atRisk` score to 0 for the current roll, allowing the player to re-enter their score.
 
 ### 2.2 Score Animations

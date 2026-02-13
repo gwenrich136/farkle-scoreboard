@@ -36,14 +36,12 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
                 int pointsToSubtract = (int)scoreMoveAccumulator;
 
                 if (pointsToSubtract > 0) {
-                    Player& currentPlayer = state.players[state.currentPlayerIndex];
-
                     // Ensure we don't subtract more than what's left in atRiskScore (a negative value)
                     if (pointsToSubtract > -state.atRiskScore) {
                         pointsToSubtract = -state.atRiskScore;
                     }
 
-                    currentPlayer.score -= pointsToSubtract;
+                    state.addPlayerScore(state.currentPlayerIndex, -pointsToSubtract);
                     state.atRiskScore += pointsToSubtract;
                     scoreMoveAccumulator -= (float)pointsToSubtract;
                 }
@@ -67,15 +65,15 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
     return this;
 }
 
-void PenaltyFarklingPhase::updateScoreDisplays(const GameState& state, const Displays& displays) {
-    int leadingScore = calculateLeadingScore(state);
-
+void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
     // Use the blink parameter provided by the updated ScoreDisplay library
     bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
 
-    displays.scoreDisplay.print_number(state.atRiskScore, 0, shouldBlink);
-    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, 1);
-    displays.scoreDisplay.print_number(leadingScore, 2);
+    if (state.atRiskScore == 0) {
+        displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    } else {
+        displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
+    }
 }
 
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {

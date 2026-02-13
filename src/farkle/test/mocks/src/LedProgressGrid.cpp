@@ -9,7 +9,14 @@ void LedProgressGrid::begin() {
 }
 
 int LedProgressGrid::addPlayer() {
+    if (isMaxPlayersReached()) {
+        return -1;
+    }
     return player_count++;
+}
+
+bool LedProgressGrid::isMaxPlayersReached() {
+    return player_count >= MAX_PLAYERS;
 }
 
 void LedProgressGrid::reset() {

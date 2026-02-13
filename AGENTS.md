@@ -35,6 +35,7 @@ When writing code:
 ### Workflow
 1.  **Read Design:** Understand *exactly* what you are building.
 2.  **No Magic Numbers:** Avoid hardcoded values. Define constants or macros with descriptive names (e.g., `BLINK_HALF_PERIOD`).
+    *   **Optimization Note:** Prefer Macros (`#define`) over const variables for constants to save memory on Arduino.
 3.  **Small Methods & De-duplication:** Prefer small, single-responsibility methods. Actively refactor detected code duplication into helper methods.
 4.  **Test First (Native):** Write a test in `src/farkle/test/` that fails.
 5.  **Implement:** Write the minimal code to pass the test.
