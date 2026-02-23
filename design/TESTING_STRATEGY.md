@@ -207,3 +207,4 @@ pio test -e component_tests
 *   **`test_Update_SetsCorrectColorsAndBrightness`**: Verifies that the component correctly sets NeoPixel colors and brightness based on player status (Active/Idle) and farkle count (0: White/Off, 1: Yellow, 2+: Red).
 *   **`test_MultiLedMapping`**: Verifies that the component uses the shared `PlayerLayout` to map a single player to multiple LEDs when fewer than 8 players are present.
 *   **`test_BlinkLogic`**: Verifies that the active player's LEDs blink (toggle On/Off) based on the `isBlinking` parameter, while idle players remain solid.
+*   **`test_Alternate_SmoothTransition`**: Verifies that the warning light smoothly transitions between Red and Yellow over a 1000ms cycle during the catastrophic penalty phase.

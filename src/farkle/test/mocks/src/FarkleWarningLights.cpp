@@ -25,7 +25,8 @@ void FarkleWarningLights::update(const int* farkleCounts, int playerCount, int c
     captured_isBlinking = isBlinking;
 }
 
-void FarkleWarningLights::alternate(int currentPlayerIndex) {
+void FarkleWarningLights::alternate(int currentPlayerIndex, int playerCount) {
     // Empty mock implementation, maybe capture something if needed
     captured_currentPlayerIndex = currentPlayerIndex;
+    captured_playerCount = playerCount;
 }

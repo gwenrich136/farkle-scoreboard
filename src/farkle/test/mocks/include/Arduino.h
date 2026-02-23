@@ -36,6 +36,7 @@ void resetMockPins();
 
 long random(long max);
 long random(long min, long max);
+long map(long x, long in_min, long in_max, long out_min, long out_max);
 
 template<typename T>
 T max(T a, T b) {

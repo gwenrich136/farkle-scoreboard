@@ -15,7 +15,7 @@ public:
     void begin();
     void farkle_state(int state);
     void update(const int* farkleCounts, int playerCount, int currentPlayerIndex, bool isBlinking);
-    void alternate(int currentPlayerIndex);
+    void alternate(int currentPlayerIndex, int playerCount);
 };
 
 #endif // MOCK_FARKLE_WARNING_LIGHTS_H

@@ -18,7 +18,7 @@ class FarkleWarningLights
     void farkle_state(int state);
 
     // Updated alternate signature
-    void alternate(int currentPlayerIndex);
+    void alternate(int currentPlayerIndex, int playerCount);
 
   private:
     Adafruit_NeoPixel _pixels;

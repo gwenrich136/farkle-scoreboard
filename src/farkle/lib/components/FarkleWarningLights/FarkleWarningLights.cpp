@@ -104,6 +104,36 @@ void FarkleWarningLights::setPlayerPixels(int startRow, int numRows, uint32_t co
     }
 }
 
-void FarkleWarningLights::alternate(int currentPlayerIndex) {
-    // Deprecated, no-op or handled by update
+void FarkleWarningLights::alternate(int currentPlayerIndex, int playerCount) {
+    // Determine cycle time (1000ms loop)
+    unsigned long time = millis() % 1000;
+
+    uint16_t hue = 0; // Red
+
+    if (time < 400) {
+        // Red
+        hue = 0;
+    } else if (time < 500) {
+        // Transition Red -> Yellow (0 -> 10922)
+        hue = map(time, 400, 500, 0, 10922);
+    } else if (time < 900) {
+        // Yellow
+        hue = 10922;
+    } else {
+        // Transition Yellow -> Red (10922 -> 0)
+        hue = map(time, 900, 1000, 10922, 0);
+    }
+
+    uint32_t color = _pixels.ColorHSV(hue, 255, 255);
+
+    // Light up current player
+    PlayerRows rows = PlayerLayout::getMapping(playerCount, currentPlayerIndex);
+
+    // Clear all first to ensure clean state
+    _pixels.clear();
+    setPlayerPixels(rows.startRow, rows.numRows, color);
+    _pixels.show();
+
+    // Invalidate state so next regular update refreshes correctly
+    _lastState.isDirty = true;
 }
