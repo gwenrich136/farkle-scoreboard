@@ -160,10 +160,64 @@ void test_BlinkLogic(void) {
     TEST_ASSERT_EQUAL_HEX32(0x000000FF, mockNeoPixelState[0]);
 }
 
+void test_Alternate_SmoothTransition(void) {
+    // 4 Players, P0 is current
+    int playerCount = 4;
+    int currentPlayerIndex = 0;
+
+    // Align to start of a second
+    unsigned long current = millis();
+    unsigned long offset = 1000 - (current % 1000);
+    advance_millis(offset);
+    // Now millis() % 1000 == 0
+
+    // T=0ms: Red Phase (0-400ms)
+    lights->alternate(currentPlayerIndex, playerCount);
+    // Expect Red (Hue 0, Sat 255, Val 255) -> 0x0000FFFF
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[1]);
+
+    // T=399ms: Still Red
+    advance_millis(399);
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+
+    // T=450ms: Mid-Transition Red->Yellow (400-500ms)
+    // map(450, 400, 500, 0, 10922) -> 5461
+    // Color: 0x1555FFFF
+    advance_millis(51); // 399 + 51 = 450
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
+
+    // T=500ms: Yellow Phase (500-900ms)
+    // Hue 10922 -> 0x2AAAFFFF
+    advance_millis(50); // 450 + 50 = 500
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
+
+    // T=899ms: Still Yellow
+    advance_millis(399); // 500 + 399 = 899
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
+
+    // T=950ms: Mid-Transition Yellow->Red (900-1000ms)
+    // map(950, 900, 1000, 10922, 0) -> 5461
+    // Color: 0x1555FFFF
+    advance_millis(51); // 899 + 51 = 950
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
+
+    // T=1000ms: Back to Red
+    advance_millis(50); // 950 + 50 = 1000 (0 mod 1000)
+    lights->alternate(currentPlayerIndex, playerCount);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_Update_SetsCorrectColorsAndBrightness);
     RUN_TEST(test_MultiLedMapping);
     RUN_TEST(test_BlinkLogic);
+    RUN_TEST(test_Alternate_SmoothTransition);
     return UNITY_END();
 }
