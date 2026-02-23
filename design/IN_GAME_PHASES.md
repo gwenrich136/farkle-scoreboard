@@ -65,7 +65,9 @@ This category handles user input for scoring, provides feedback through animatio
         *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
     3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
 
-*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplays()`). The `updateScoreDisplays()` hook is further broken down into `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks:
+    *   `updateWarningLights()`: Collects the `farkle_count` for all players and the `currentPlayerIndex`. It passes this data to the `FarkleWarningLights` component to update the entire 8-LED Status Strip (current player flashing, others dim/solid).
+    *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
 
 ### Score Display Behavior
 - **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.
