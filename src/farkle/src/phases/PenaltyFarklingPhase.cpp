@@ -79,7 +79,7 @@ void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, cons
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {
     // Lights alternate during THE_PAIN and THE_DRAIN stages
     if (currentStage == PenaltyStage::THE_PAIN || currentStage == PenaltyStage::THE_DRAIN) {
-        displays.farkleLights.alternate();
+        displays.farkleLights.alternate(state.currentPlayerIndex);
     } else {
         // Inherit behavior for THE_AFTERMATH (turns them off as count is 0)
         InGamePhase::updateWarningLights(state, displays);

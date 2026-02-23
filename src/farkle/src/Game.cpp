@@ -5,7 +5,7 @@ Game::Game() :
     controlPad(),
     scoreDisplay(12, 11, 10), // dataPin, clkPin, csPin
     grid(A0),                // NeoPixel Data Pin
-    farkleLights(A1, A2),    // Yellow, Red pins
+    farkleLights(A1),        // Status Strip NeoPixel Pin
     oled(),
     currentPhase(nullptr),
     lastUpdateTime(0)

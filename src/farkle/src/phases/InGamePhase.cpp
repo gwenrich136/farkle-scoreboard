@@ -1,6 +1,7 @@
 #include "GamePhase.h"
 #include "GameState.h"
 #include <vector>
+#include <Arduino.h>
 
 void InGamePhase::display(const GameState& state, const Displays& displays) {
     updateScoreDisplays(state, displays);
@@ -44,7 +45,18 @@ void InGamePhase::updateProgressGrid(const GameState& state, const Displays& dis
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {
-    displays.farkleLights.farkle_state(state.players[state.currentPlayerIndex].farkle_count);
+    int farkleCounts[MAX_PLAYERS];
+    int count = 0;
+    for (const auto& player : state.players) {
+        if (count < MAX_PLAYERS) {
+            farkleCounts[count++] = player.farkle_count;
+        }
+    }
+
+    // Sync with LedProgressGrid blink logic (500ms half period)
+    bool isBlinkOn = (millis() % 1000) > 500;
+
+    displays.farkleLights.update(farkleCounts, count, state.currentPlayerIndex, isBlinkOn);
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {

@@ -145,6 +145,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_DisplayLogic_BankingPhase_ClearsZero`:** Verifies that in `BankingPhase`, an `atRiskScore` of 0 results in the display being cleared.
     *   **`test_DisplayLogic_FarklingPhase_ClearsZero`:** Verifies that in `FarklingPhase`, an `atRiskScore` of 0 results in the display being cleared.
     *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
+    *   **`test_DisplayLogic_InGamePhase_PassesAllFarkleCounts`:** Verifies that the game logic correctly passes all players' farkle counts (not just the current player's) to the `FarkleWarningLights` component, enabling system-wide status display.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
@@ -201,3 +202,8 @@ pio test -e component_tests
 *   **`test_LedProgressGrid_MaxScore_Exact`**: Verifies that `_maxScore` scales exactly to the highest score (if above target) rather than jumping by fixed increments.
 *   **`test_LedProgressGrid_MaxScore_IncludesAtRisk`**: Verifies that the dynamic grid maximum correctly incorporates the current player's at-risk points.
 *   **`test_LedProgressGrid_MaxScore_Shrinking`**: Verifies that the grid bounds can shrink back to the target score if a leading player farkles or a turn ends without banking.
+
+### 6.8 Example Test Cases: `FarkleWarningLights`
+*   **`test_Update_SetsCorrectColorsAndBrightness`**: Verifies that the component correctly sets NeoPixel colors and brightness based on player status (Active/Idle) and farkle count (0: White/Off, 1: Yellow, 2+: Red).
+*   **`test_MultiLedMapping`**: Verifies that the component uses the shared `PlayerLayout` to map a single player to multiple LEDs when fewer than 8 players are present.
+*   **`test_BlinkLogic`**: Verifies that the active player's LEDs blink (toggle On/Off) based on the `isBlinking` parameter, while idle players remain solid.
