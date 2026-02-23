@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#include <vector> // Required for std::vector
 
 #define MAX_PLAYERS 8
 
@@ -59,7 +58,7 @@ public:
   bool isMaxPlayersReached();
   void reset();
   void clear();
-  void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
+  void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
   void displayPlayersPregame(bool isPlayerPending);
   int getMaxScore() const { return _maxScore; }
 
@@ -67,7 +66,7 @@ private:
   Adafruit_NeoPixel _pixels;
 
   int _playerCount;
-  std::vector<uint16_t> _playerHues;
+  uint16_t _playerHues[MAX_PLAYERS];
   int _maxScore;
   int _targetScore;
   bool _isBlinkOn;

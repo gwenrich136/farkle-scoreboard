@@ -39,5 +39,5 @@ void PostGamePhase_V1::display(const GameState& state, const Displays& displays)
     displays.scoreDisplay.print_number(m_highestScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, true); // High score (flashes for celebration)
 
     // Update the grid with final scores
-    displays.grid.update(m_scores, m_winnerIdx, 0);
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), m_winnerIdx, 0);
 }
