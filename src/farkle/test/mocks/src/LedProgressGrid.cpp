@@ -32,8 +32,11 @@ void LedProgressGrid::clear() {
     was_cleared = true;
 }
 
-void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore) {
-    captured_scores = scores;
+void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore) {
+    captured_scores.clear();
+    for (int i = 0; i < playerCount; ++i) {
+        captured_scores.push_back(scores[i]);
+    }
     captured_currentPlayerIndex = currentPlayerIndex;
     captured_atRiskScore = atRiskScore;
 }
