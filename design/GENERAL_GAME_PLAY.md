@@ -1,4 +1,4 @@
-> **Scope:** Defines the complete user experience and gameplay flow, from pre-game setup to post-game results, from a player's perspective.
+> **Scope:** Defines the complete user experience and gameplay flow, from pre-game setup to post-game replays, from a player's perspective.
 > **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If code changes, this document MUST be updated.
 
 # General Gameplay and User Experience Design for Farkle Scoreboard
@@ -115,8 +115,9 @@ The game begins by guiding players through setup and configuration.
 
 After the winner celebration, the device enters a continuous post-game loop.
 
-### 4.1 Game Data Upload
--   **Data Upload (Background/Interactive):** The scoreboard attempts to connect via Bluetooth or WiFi to a paired phone.
+### 4.1 Game Replay & Upload (Parallel)
+-   **Visual Replay:** The `LedProgressGrid` continuously replays the game's progress, showing how each player's score advanced throughout the session.
+-   **Data Upload (Background/Interactive):** Simultaneously, the scoreboard attempts to connect via Bluetooth or WiFi to a paired phone.
     -   The `TextDisplay` provides status updates (e.g., "CONNECTING...", "UPLOADING...").
     -   If the upload is successful, the `TextDisplay` indicates this.
     -   If the connection or upload fails, the `TextDisplay` presents a menu of options.
@@ -127,6 +128,7 @@ After the winner celebration, the device enters a continuous post-game loop.
     1.  "Retry Upload": Re-attempts the data upload.
     2.  "Play Again": Leads to a "Reset Game?" confirmation.
 -   **Navigation:** Users navigate this menu using `Up/Down` and select options with `BANK`.
+-   **`LedProgressGrid` Behavior:** The `LedProgressGrid` continues its game replay animation independently while the user interacts with the `TextDisplay` menu.
 
 ### 4.3 Reset Game
 -   **Confirmation:** Selecting "Play Again" or triggering a reset (e.g., via `CLEAR` from a specific context) leads to a "Reset Game?" confirmation screen.
