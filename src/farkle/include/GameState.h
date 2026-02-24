@@ -9,7 +9,6 @@ struct Player {
     std::string name;
     int score;
     int farkle_count;
-    std::vector<int> score_history;
 
     Player(const std::string& n) : name(n), score(0), farkle_count(0) {}
 };

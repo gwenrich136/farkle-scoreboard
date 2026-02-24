@@ -5,7 +5,7 @@
 
 ## 1. Problem Statement
 
-The Farkle Scoreboard requires a formal system to manage the flow of the game. As the game's complexity grows with different user interactions (pre-game setup, in-game scoring, animations, post-game replays), an ad-hoc approach using simple `if/else` blocks or flags in the main loop will become unmanageable, bug-prone, and difficult to extend.
+The Farkle Scoreboard requires a formal system to manage the flow of the game. As the game's complexity grows with different user interactions (pre-game setup, in-game scoring, animations, and post-game results), an ad-hoc approach using simple `if/else` blocks or flags in the main loop will become unmanageable, bug-prone, and difficult to extend.
 
 This document specifies a robust and scalable state machine architecture that provides a clear structure for game logic, ensures state transitions are handled safely, and allows for new features and game phases to be added in a clean, modular way.
 
@@ -88,7 +88,7 @@ The following files will be created or modified to implement the Game State Mach
 *   **`src/farkle/include/GameState.h`**
     *   **Why:** Defines the core data structures, keeping data separate from logic.
     *   **Implementation Details:**
-        *   `struct Player`: Will contain `std::string name;`, `int score;`, `int farkle_count;`, and `std::vector<int> score_history;`.
+        *   `struct Player`: Will contain `std::string name;`, `int score;`, and `int farkle_count;`.
         *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`, `uint32_t scoresVersion`.
         *   `void reset()`: Resets all flags, clears the player list, and increments `scoresVersion`.
         *   `void updatePlayerScore(int playerIndex, int newScore)`: Helper to update score and increment `scoresVersion`.
