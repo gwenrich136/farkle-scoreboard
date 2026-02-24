@@ -12,7 +12,7 @@ class FarkleWarningLights
   public:
     FarkleWarningLights(int pin);
     void begin();
-    void update(const int* farkleCounts, int playerCount, int currentPlayerIndex, bool isBlinking);
+    void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking);
 
     // For compatibility with existing calls (e.g. resetGame)
     void farkle_state(int state);
@@ -26,14 +26,14 @@ class FarkleWarningLights
     struct State {
         int farkleCounts[MAX_PLAYERS] = {0};
         int playerCount = 0;
-        int currentPlayerIndex = -1;
+        int blinkingPlayerIndex = -1;
         bool isBlinking = false;
         bool isDirty = true;
 
         bool operator==(const State& other) const {
             if (isDirty || other.isDirty ||
                 playerCount != other.playerCount ||
-                currentPlayerIndex != other.currentPlayerIndex ||
+                blinkingPlayerIndex != other.blinkingPlayerIndex ||
                 isBlinking != other.isBlinking) {
                 return false;
             }
