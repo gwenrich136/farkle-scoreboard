@@ -22,13 +22,13 @@ void FarkleWarningLights::farkle_state(int state) {
     }
 }
 
-void FarkleWarningLights::update(const int* farkleCounts, int playerCount, int currentPlayerIndex, bool isBlinking) {
+void FarkleWarningLights::update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking) {
     if (playerCount > MAX_PLAYERS) playerCount = MAX_PLAYERS;
 
     // Check if state changed
     State newState;
     newState.playerCount = playerCount;
-    newState.currentPlayerIndex = currentPlayerIndex;
+    newState.blinkingPlayerIndex = blinkingPlayerIndex;
     newState.isBlinking = isBlinking;
     newState.isDirty = false;
     for (int i = 0; i < playerCount; ++i) {
@@ -48,42 +48,43 @@ void FarkleWarningLights::update(const int* farkleCounts, int playerCount, int c
         PlayerRows rows = PlayerLayout::getMapping(playerCount, i);
 
         int farkles = farkleCounts[i];
-        bool isActive = (i == currentPlayerIndex);
+        bool isActive = (i == blinkingPlayerIndex);
 
         uint32_t color = 0;
 
+        // Brightness for all active LEDs is now 50% (128)
+        uint8_t brightness = 128;
+
         if (isActive) {
-            // Active Player
-            // 0 Farkles: White (Full, Blink)
-            // 1 Farkle: Yellow (Full? No, requirement says "Active Player: Full Brightness")
-            // 2+ Farkles: Red (Full)
+            // Active Player (Blinking Turn Indicator)
+            // 0 Farkles: White
+            // 1 Farkle: Yellow
+            // 2+ Farkles: Red
 
             if (isBlinking) { // Blink ON phase
                 if (farkles == 0) {
-                    color = _pixels.ColorHSV(0, 0, 255); // White Full
+                    color = _pixels.ColorHSV(0, 0, brightness); // White
                 } else if (farkles == 1) {
-                    // Yellow Full (Hue ~10922)
-                    color = _pixels.ColorHSV(10922, 255, 255);
-                } else { // 2+
-                    // Red Full (Hue 0)
-                    color = _pixels.ColorHSV(0, 255, 255);
+                    color = _pixels.ColorHSV(10922, 255, brightness); // Yellow
+                } else {
+                    color = _pixels.ColorHSV(0, 255, brightness); // Red
                 }
             } else {
                 // Blink OFF phase -> OFF
                 color = 0;
             }
         } else {
-            // Idle Player
+            // Idle Player (Solid)
             // 0 Farkles: OFF
-            // 1 Farkle: Yellow (Dim 50)
-            // 2+ Farkles: Red (Dim 50)
+            // 1 Farkle: Yellow
+            // 2+ Farkles: Red
 
             if (farkles == 0) {
                 color = 0;
             } else if (farkles == 1) {
-                color = _pixels.ColorHSV(10922, 255, 50);
+                color = _pixels.ColorHSV(10922, 255, brightness); // Yellow
             } else {
-                color = _pixels.ColorHSV(0, 255, 50);
+                color = _pixels.ColorHSV(0, 255, brightness); // Red
             }
         }
 
@@ -124,7 +125,8 @@ void FarkleWarningLights::alternate(int currentPlayerIndex, int playerCount) {
         hue = map(time, 900, 1000, 10922, 0);
     }
 
-    uint32_t color = _pixels.ColorHSV(hue, 255, 255);
+    // Use 50% brightness (128)
+    uint32_t color = _pixels.ColorHSV(hue, 255, 128);
 
     // Light up current player
     PlayerRows rows = PlayerLayout::getMapping(playerCount, currentPlayerIndex);

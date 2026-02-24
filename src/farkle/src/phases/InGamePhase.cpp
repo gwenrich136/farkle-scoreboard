@@ -56,7 +56,9 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
     // Sync with LedProgressGrid blink logic (500ms half period)
     bool isBlinkOn = (millis() % 1000) > 500;
 
-    displays.farkleLights.update(farkleCounts, count, state.currentPlayerIndex, isBlinkOn);
+    // Default behavior for InGamePhase is NO blinking (solid lights)
+    // Subclasses like WaitingPhase can override this to pass the current player index
+    displays.farkleLights.update(farkleCounts, count, -1, isBlinkOn);
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {

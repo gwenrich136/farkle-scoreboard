@@ -33,19 +33,20 @@ The `FarkleWarningLights` component provides a system-wide visual map of every p
 
 ### API Design
 -   **`FarkleWarningLights(int pin)`**: Constructor. Initializes the component for an 8-LED strip (NeoPixel) on the specified digital pin.
--   **`void update(const int* farkleCounts, int playerCount, int currentPlayerIndex, bool isBlinking)`**: Updates the entire strip.
+-   **`void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking)`**: Updates the entire strip.
     -   `farkleCounts`: An array of the current farkle count for every player in the game.
     -   `playerCount`: Total number of active players.
-    -   `currentPlayerIndex`: The index of the player whose turn it currently is.
-    -   `isBlinking`: A flag (synced with the 500ms global timer) that toggles the active player's LED.
+    -   `blinkingPlayerIndex`: The index of the player who should receive the blinking "turn indicator" treatment. Pass `-1` if no player should blink (e.g., during banking or farkling animations).
+    -   `isBlinking`: A flag (synced with the 500ms global timer) that toggles the blinking player's LED.
 -   **`void alternate(int currentPlayerIndex)`**: Triggers the alternating Yellow/Red "Pain" animation for the specified player (used during `PenaltyFarklingPhase`).
 
 ### Key Logic & Behavior
 -   **Visual Hierarchy**:
-    -   **Current Player (Active/Flashing)**: The LED for the current player's row flashes at **Full Brightness** (255).
-    -   **Other Players (Idle/Solid)**: LEDs for other players are **Solid** and at **Half Brightness** (e.g., 50). This allows the current turn to be instantly identifiable while still showing others' status.
+    -   **Blinking Player (Active/Flashing)**: If `blinkingPlayerIndex` is valid, that player's LED flashes at **50% Brightness** (128).
+    -   **Other Players (Idle/Solid)**: LEDs for other players are **Solid** and at **50% Brightness** (128).
+    -   **Global Brightness**: All active LEDs use 50% brightness (128) to avoid being overpowering. The blinking action alone is sufficient to draw attention.
 -   **Color Logic**:
-    -   **0 Farkles**: **White** (Active player only; Idle players are **OFF**).
+    -   **0 Farkles**: **White** (Blinking player only; Idle/Solid players are **OFF**).
     -   **1 Farkle**: **Yellow** (Warning).
     -   **2+ Farkles**: **Red** (Danger).
 -   **Hardware Optimization**: The component tracks the previous state and only calls `pixels.show()` when a value, current player, or blink state has changed.
