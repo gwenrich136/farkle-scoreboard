@@ -25,7 +25,7 @@ public:
     bool isMaxPlayersReached();
     void reset();
     void clear();
-    void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore);
+    void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
     void displayPlayersPregame(bool isPlayerPending);
 };
 

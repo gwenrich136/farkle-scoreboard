@@ -1,4 +1,5 @@
 #include "LedProgressGrid.h"
+#include <cstring>
 
 #define GRID_LENGTH 8
 #define GOLDEN_RATIO_CONJUGATE 0.61803398875f
@@ -10,6 +11,7 @@ LedProgressGrid::LedProgressGrid(uint8_t pin)
     _targetScore(10000),
     _hasProspectiveFirstHue(false)
 {
+    memset(_playerHues, 0, sizeof(_playerHues));
     _lastState.isDirty = true;
 }
 
@@ -79,7 +81,7 @@ int LedProgressGrid::addPlayer() {
     }
 
     uint16_t newHue = getPlayerHue(_playerCount);
-    _playerHues.push_back(newHue);
+    _playerHues[_playerCount] = newHue;
     
     int playerIndex = _playerCount;
     _playerCount++;
@@ -102,7 +104,6 @@ void LedProgressGrid::clear() {
 
 void LedProgressGrid::reset() {
   _playerCount = 0;
-  _playerHues.clear();
   _hasProspectiveFirstHue = false;
 
   _maxScore = _targetScore;
@@ -134,19 +135,19 @@ bool LedProgressGrid::shouldRefresh(const State& newState) {
 }
 
 uint16_t LedProgressGrid::getPlayerHue(int playerIdx) {
-    if (playerIdx < (int)_playerHues.size()) {
+    if (playerIdx < _playerCount) {
         return _playerHues[playerIdx];
     }
 
     // Pending player logic
-    if (_playerHues.empty()) {
+    if (_playerCount == 0) {
         if (!_hasProspectiveFirstHue) {
             _prospectiveFirstHue = random(0, 65536);
             _hasProspectiveFirstHue = true;
         }
         return _prospectiveFirstHue;
     } else {
-        return (uint16_t)(_playerHues.back() + (GOLDEN_RATIO_CONJUGATE * 65536)) % 65536;
+        return (uint16_t)(_playerHues[_playerCount - 1] + (GOLDEN_RATIO_CONJUGATE * 65536)) % 65536;
     }
 }
 
@@ -156,8 +157,8 @@ void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float rati
     }
 }
 
-void LedProgressGrid::update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore) {
-  if (scores.size() < (size_t)_playerCount) {
+void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore) {
+  if (playerCount < _playerCount) {
     return;
   }
 

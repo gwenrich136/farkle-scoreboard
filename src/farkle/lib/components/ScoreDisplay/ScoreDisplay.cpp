@@ -66,6 +66,9 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
   if (numberToDisplay > 99999) {
     numberToDisplay = 99999;
   }
+  if (numberToDisplay < -9999) {
+    numberToDisplay = -9999;
+  }
 
   int targetIntensity = blink ?
     ((millis() / 500) % 2 == 0 ? SCORE_BLINK_LOW : SCORE_BLINK_HIGH) :
@@ -106,7 +109,10 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
       _lc.setChar(deviceIndex, i, ' ', false);
     }
     for (int i = 0; i < len; ++i){
-      _lc.setChar(deviceIndex, i + emptySlots, digits[len - 1 - i], false);
+      int targetIndex = i + emptySlots;
+      if (targetIndex >= 0 && targetIndex < NUM_DIGITS_PER_DISPLAY) {
+        _lc.setChar(deviceIndex, targetIndex, digits[len - 1 - i], false);
+      }
     }
   }
 

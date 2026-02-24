@@ -229,6 +229,41 @@ void test_ScoreDisplay_Security_InvalidType(void) {
     TEST_ASSERT_TRUE(true);
 }
 
+/**
+ * test_ScoreDisplay_Security_NegativeOverflow
+ *
+ * Verifies that negative numbers with more than 5 characters (e.g. -12345)
+ * do not cause out-of-bounds array access and are clamped to a displayable minimum (-9999).
+ */
+void test_ScoreDisplay_Security_NegativeOverflow(void) {
+    // -12345 has 6 characters including sign.
+    // If not clamped, len=6. emptySlots = 5 - 6 = -1.
+    // Loop 2: i=0 -> index = 0 + (-1) = -1. OOB access!
+
+    // We use AT_RISK_SCORE (device 0)
+    display->print_number(-12345, ScoreDisplay::DisplayType::AT_RISK_SCORE);
+
+    bool hasNegativeIndex = false;
+    for (auto const& [digit, val] : mockLedState[0]) {
+        // MAX7219 supports 0-7. ScoreDisplay uses 0-4.
+        // LedControl mock initializes 0-7 to ' '.
+        // We only care about negative indices which indicate the specific vulnerability.
+        if (digit < 0) {
+            hasNegativeIndex = true;
+        }
+    }
+
+    TEST_ASSERT_FALSE_MESSAGE(hasNegativeIndex, "Out of bounds access detected! ScoreDisplay wrote to invalid digit index.");
+
+    // Verify correct clamping to -9999
+    // Expected: "-9999"
+    TEST_ASSERT_EQUAL_CHAR('-', mockLedState[0][0]);
+    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][1]);
+    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][2]);
+    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][3]);
+    TEST_ASSERT_EQUAL_CHAR('9', mockLedState[0][4]);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_ScoreDisplay_Correctness_Zero);
@@ -240,5 +275,6 @@ int main(void) {
     RUN_TEST(test_ScoreDisplay_HardwareInteractionOptimization);
     RUN_TEST(test_ScoreDisplay_Performance);
     RUN_TEST(test_ScoreDisplay_Security_InvalidType);
+    RUN_TEST(test_ScoreDisplay_Security_NegativeOverflow);
     return UNITY_END();
 }

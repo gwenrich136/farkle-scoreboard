@@ -40,7 +40,7 @@ void InGamePhase::updateProgressGrid(const GameState& state, const Displays& dis
         }
         m_lastScoresVersion = state.scoresVersion;
     }
-    displays.grid.update(m_scores, state.currentPlayerIndex, state.atRiskScore);
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore);
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {
