@@ -12,6 +12,25 @@ extern int mockNeoPixelShowCount;
 
 FarkleWarningLights* lights;
 
+// Color Constants for Testing (Format: 0xHHSSVVVV - specific to mock implementation logic)
+// White: h=0, s=0, v=128
+const uint32_t COLOR_WHITE_DIM = 0x00000080;
+// Yellow (Hue ~10922): h=10922(0x2AAA), s=255, v=128
+const uint32_t COLOR_YELLOW_DIM = 0x2AAAFF80;
+// Red: h=0, s=255, v=128
+const uint32_t COLOR_RED_DIM = 0x0000FF80;
+// Off
+const uint32_t COLOR_OFF = 0x00000000;
+
+// Full Brightness Colors (for Alternate/Pain mode)
+// Red Full: h=0, s=255, v=255
+const uint32_t COLOR_RED_FULL = 0x0000FFFF;
+// Yellow Full: h=10922(0x2AAA), s=255, v=255
+const uint32_t COLOR_YELLOW_FULL = 0x2AAAFFFF;
+// Mid-Transition (Red->Yellow): h=5461(0x1555), s=255, v=255
+const uint32_t COLOR_TRANSITION_MID_FULL = 0x1555FFFF;
+
+
 void setUp(void) {
     mockNeoPixelState.clear();
     mockNeoPixelShowCount = 0;
@@ -38,26 +57,20 @@ void test_Update_SetsCorrectColorsAndBrightness(void) {
     lights->update(farkleCounts, playerCount, blinkingPlayerIndex, isBlinking);
 
     // P0: Indices 0, 1. Active. 0 Farkles -> White. Brightness 128.
-    // Expect: h=0, s=0, v=128. -> 0x00000080
-    TEST_ASSERT_EQUAL_HEX32(0x00000080, mockNeoPixelState[0]);
-    TEST_ASSERT_EQUAL_HEX32(0x00000080, mockNeoPixelState[1]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_WHITE_DIM, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_WHITE_DIM, mockNeoPixelState[1]);
 
     // P1: Indices 2, 3. Idle. 1 Farkle -> Yellow. Brightness 128.
-    // Yellow Hue is 10922.
-    // Expect: h=10922, s=255, v=128. -> 0x2AAAFF80
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFF80, mockNeoPixelState[2]);
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFF80, mockNeoPixelState[3]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_YELLOW_DIM, mockNeoPixelState[2]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_YELLOW_DIM, mockNeoPixelState[3]);
 
     // P2: Indices 4, 5. Idle. 2 Farkles -> Red. Brightness 128.
-    // Red Hue is 0.
-    // Expect: h=0, s=255, v=128. -> 0x0000FF80
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[4]);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[5]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_DIM, mockNeoPixelState[4]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_DIM, mockNeoPixelState[5]);
 
     // P3: Indices 6, 7. Idle. 0 Farkles -> Off.
-    // Off -> 0
-    TEST_ASSERT_EQUAL_HEX32(0x00000000, mockNeoPixelState[6]);
-    TEST_ASSERT_EQUAL_HEX32(0x00000000, mockNeoPixelState[7]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[6]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[7]);
 }
 
 void test_Update_NoBlinkingPlayer_AllSolid(void) {
@@ -70,17 +83,17 @@ void test_Update_NoBlinkingPlayer_AllSolid(void) {
     lights->update(farkleCounts, playerCount, blinkingPlayerIndex, isBlinking);
 
     // P0: Idle. 0 Farkles -> Off. (Was White when active)
-    TEST_ASSERT_EQUAL_HEX32(0x00000000, mockNeoPixelState[0]);
-    TEST_ASSERT_EQUAL_HEX32(0x00000000, mockNeoPixelState[1]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[1]);
 
     // P1: Idle. 1 Farkle -> Yellow (128).
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFF80, mockNeoPixelState[2]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_YELLOW_DIM, mockNeoPixelState[2]);
 
     // P2: Idle. 2 Farkles -> Red (128).
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[4]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_DIM, mockNeoPixelState[4]);
 
     // P3: Idle. 0 Farkles -> Off.
-    TEST_ASSERT_EQUAL_HEX32(0x00000000, mockNeoPixelState[6]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[6]);
 }
 
 void test_BlinkLogic(void) {
@@ -92,14 +105,14 @@ void test_BlinkLogic(void) {
     lights->update(farkleCounts, playerCount, blinkingPlayerIndex, isBlinking);
 
     // P0: Active, 0 Farkles. Blink OFF phase -> Color 0 (OFF).
-    TEST_ASSERT_EQUAL_HEX32(0, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_OFF, mockNeoPixelState[0]);
 
     // Enable Blink
     isBlinking = true;
     lights->update(farkleCounts, playerCount, blinkingPlayerIndex, isBlinking);
 
     // P0: Active, 0 Farkles. Blink ON phase -> White 128.
-    TEST_ASSERT_EQUAL_HEX32(0x00000080, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_WHITE_DIM, mockNeoPixelState[0]);
 }
 
 void test_Alternate_SmoothTransition(void) {
@@ -115,44 +128,42 @@ void test_Alternate_SmoothTransition(void) {
 
     // T=0ms: Red Phase (0-400ms)
     lights->alternate(currentPlayerIndex, playerCount);
-    // Expect Red (Hue 0, Sat 255, Val 255) -> 0x0000FFFF
-    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[1]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_FULL, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_FULL, mockNeoPixelState[1]);
 
     // T=399ms: Still Red
     advance_millis(399);
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_FULL, mockNeoPixelState[0]);
 
     // T=450ms: Mid-Transition Red->Yellow (400-500ms)
     // map(450, 400, 500, 0, 10922) -> 5461
-    // Color: h=5461, s=255, v=255 -> 0x1555FFFF
+    // Color: h=5461, s=255, v=255
     advance_millis(51); // 399 + 51 = 450
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_TRANSITION_MID_FULL, mockNeoPixelState[0]);
 
     // T=500ms: Yellow Phase (500-900ms)
-    // Hue 10922 -> 0x2AAAFFFF
+    // Hue 10922
     advance_millis(50); // 450 + 50 = 500
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_YELLOW_FULL, mockNeoPixelState[0]);
 
     // T=899ms: Still Yellow
     advance_millis(399); // 500 + 399 = 899
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_YELLOW_FULL, mockNeoPixelState[0]);
 
     // T=950ms: Mid-Transition Yellow->Red (900-1000ms)
     // map(950, 900, 1000, 10922, 0) -> 5461
-    // Color: 0x1555FFFF
     advance_millis(51); // 899 + 51 = 950
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_TRANSITION_MID_FULL, mockNeoPixelState[0]);
 
     // T=1000ms: Back to Red
     advance_millis(50); // 950 + 50 = 1000 (0 mod 1000)
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(COLOR_RED_FULL, mockNeoPixelState[0]);
 }
 
 int main(void) {
