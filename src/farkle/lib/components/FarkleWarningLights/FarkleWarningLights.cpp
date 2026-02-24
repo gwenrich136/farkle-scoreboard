@@ -125,8 +125,8 @@ void FarkleWarningLights::alternate(int currentPlayerIndex, int playerCount) {
         hue = map(time, 900, 1000, 10922, 0);
     }
 
-    // Use 50% brightness (128)
-    uint32_t color = _pixels.ColorHSV(hue, 255, 128);
+    // Use Full brightness (255) for the "Pain" animation
+    uint32_t color = _pixels.ColorHSV(hue, 255, 255);
 
     // Light up current player
     PlayerRows rows = PlayerLayout::getMapping(playerCount, currentPlayerIndex);

@@ -115,44 +115,44 @@ void test_Alternate_SmoothTransition(void) {
 
     // T=0ms: Red Phase (0-400ms)
     lights->alternate(currentPlayerIndex, playerCount);
-    // Expect Red (Hue 0, Sat 255, Val 128) -> 0x0000FF80
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[0]);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[1]);
+    // Expect Red (Hue 0, Sat 255, Val 255) -> 0x0000FFFF
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[1]);
 
     // T=399ms: Still Red
     advance_millis(399);
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
 
     // T=450ms: Mid-Transition Red->Yellow (400-500ms)
     // map(450, 400, 500, 0, 10922) -> 5461
-    // Color: h=5461, s=255, v=128 -> 0x1555FF80
+    // Color: h=5461, s=255, v=255 -> 0x1555FFFF
     advance_millis(51); // 399 + 51 = 450
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x1555FF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
 
     // T=500ms: Yellow Phase (500-900ms)
-    // Hue 10922 -> 0x2AAAFF80
+    // Hue 10922 -> 0x2AAAFFFF
     advance_millis(50); // 450 + 50 = 500
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
 
     // T=899ms: Still Yellow
     advance_millis(399); // 500 + 399 = 899
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x2AAAFF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x2AAAFFFF, mockNeoPixelState[0]);
 
     // T=950ms: Mid-Transition Yellow->Red (900-1000ms)
     // map(950, 900, 1000, 10922, 0) -> 5461
-    // Color: 0x1555FF80
+    // Color: 0x1555FFFF
     advance_millis(51); // 899 + 51 = 950
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x1555FF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x1555FFFF, mockNeoPixelState[0]);
 
     // T=1000ms: Back to Red
     advance_millis(50); // 950 + 50 = 1000 (0 mod 1000)
     lights->alternate(currentPlayerIndex, playerCount);
-    TEST_ASSERT_EQUAL_HEX32(0x0000FF80, mockNeoPixelState[0]);
+    TEST_ASSERT_EQUAL_HEX32(0x0000FFFF, mockNeoPixelState[0]);
 }
 
 int main(void) {

@@ -44,7 +44,8 @@ The `FarkleWarningLights` component provides a system-wide visual map of every p
 -   **Visual Hierarchy**:
     -   **Blinking Player (Active/Flashing)**: If `blinkingPlayerIndex` is valid, that player's LED flashes at **50% Brightness** (128).
     -   **Other Players (Idle/Solid)**: LEDs for other players are **Solid** and at **50% Brightness** (128).
-    -   **Global Brightness**: All active LEDs use 50% brightness (128) to avoid being overpowering. The blinking action alone is sufficient to draw attention.
+    -   **Pain Animation (Alternate)**: When `alternate()` is called (e.g., during `PenaltyFarklingPhase`), the LEDs operate at **Full Brightness** (255) to maximize the "alarm" effect.
+    -   **Global Brightness**: Generally, active LEDs use 50% brightness (128) to avoid being overpowering, with the exception of the "Pain" animation.
 -   **Color Logic**:
     -   **0 Farkles**: **White** (Blinking player only; Idle/Solid players are **OFF**).
     -   **1 Farkle**: **Yellow** (Warning).
