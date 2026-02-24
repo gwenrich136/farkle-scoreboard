@@ -88,7 +88,7 @@ The following files will be created or modified to implement the Game State Mach
 *   **`src/farkle/include/GameState.h`**
     *   **Why:** Defines the core data structures, keeping data separate from logic.
     *   **Implementation Details:**
-        *   `struct Player`: Will contain `std::string name;`, `int score;`, `int farkle_count;`, and `std::vector<int> score_history;`.
+        *   `struct Player`: Will contain `std::string name;`, `int score;`, and `int farkle_count;`.
         *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`, `uint32_t scoresVersion`.
         *   `void reset()`: Resets all flags, clears the player list, and increments `scoresVersion`.
         *   `void updatePlayerScore(int playerIndex, int newScore)`: Helper to update score and increment `scoresVersion`.
