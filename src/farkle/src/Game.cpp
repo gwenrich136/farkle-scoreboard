@@ -33,7 +33,6 @@ void Game::setup() {
     
     Serial.println("GAME: Hardware init done. Configuring controls...");
     // ControlPad is self-configuring in constructor for hybrid input model.
-    // No manual button mapping required.
 
     // 2. Reset Game to clean state
     resetGame();

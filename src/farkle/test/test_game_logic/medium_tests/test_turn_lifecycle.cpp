@@ -60,8 +60,11 @@ void test_TurnLifecycle_FullSetupAndTurn() {
 void test_TurnLifecycle_StandardTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
-    simulateScore(game, 1000); // was UP_1000
-    simulateScore(game, 500);  // was RIGHT_500
+
+    // Simulate scoring 1500 (3 x 500)
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     
     // Start banking
     simulateButtonPress(game, ButtonAction::BANK);
@@ -83,7 +86,8 @@ void test_TurnLifecycle_RoundRobin() {
     setupGameWithPlayers(game, 4);
 
     for (int i = 0; i < 4; i++) {
-        simulateScore(game, 1000); // was UP_1000
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
         
         // Start banking
         simulateButtonPress(game, ButtonAction::BANK);
@@ -102,8 +106,8 @@ void test_TurnLifecycle_RoundRobin() {
 void test_TurnLifecycle_ClearButton() {
     Game game;
     setupGameWithPlayers(game, 4);
-    simulateScore(game, 1000); // was UP_1000
-    simulateScore(game, 500);  // was RIGHT_500
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::CLEAR);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);

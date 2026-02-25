@@ -7,12 +7,12 @@ ControlPad* controlPad;
 
 void setUp(void) {
     resetMockPins();
-    // Set ADC to a value that maps to NONE (>= 700) so it doesn't interfere with digital/encoder tests
-    setMockAnalogPin(ADC_PIN, 1000);
+    // Set Analog Input to a value that maps to NONE (>= 700) so it doesn't interfere with digital/encoder tests
+    setMockAnalogPin(ANALOG_INPUT_PIN, 1000);
     controlPad = new ControlPad();
-    // Stabilize the ADC at 1000 (NONE)
-    controlPad->read(); // Initial read sets _lastAdcValue
-    advance_millis(ADC_STABILITY_THRESHOLD_MS + 10);
+    // Stabilize the Analog Input at 1000 (NONE)
+    controlPad->read(); // Initial read sets _lastAnalogValue
+    advance_millis(ANALOG_STABILITY_THRESHOLD_MS + 10);
     controlPad->read(); // Should be stable NONE
 }
 
@@ -20,11 +20,11 @@ void tearDown(void) {
     delete controlPad;
 }
 
-void test_adc_stability_check(void) {
+void test_analog_stability_check(void) {
     // 0 (CLEAR), 93 (+50), 328 (+100), 512 (+500)
 
-    // 1. Set ADC to 93 (+50)
-    setMockAnalogPin(ADC_PIN, 93);
+    // 1. Set Analog Input to 93 (+50)
+    setMockAnalogPin(ANALOG_INPUT_PIN, 93);
 
     // 2. Read immediately -> Should be NONE (unstable)
     // Previous value was 1000. New is 93. Change detected.
@@ -41,8 +41,8 @@ void test_adc_stability_check(void) {
     input = controlPad->read();
     TEST_ASSERT_EQUAL(ButtonAction::PLUS_50, input.action);
 
-    // 5. Change ADC to 328 (+100)
-    setMockAnalogPin(ADC_PIN, 328);
+    // 5. Change Analog Input to 328 (+100)
+    setMockAnalogPin(ANALOG_INPUT_PIN, 328);
 
     // 6. Read immediately -> Should be NONE (unstable)
     input = controlPad->read();
@@ -114,7 +114,7 @@ void test_no_auto_repeat(void) {
 }
 
 void test_encoder_accumulation(void) {
-    // ADC should be NONE (1000) from setUp
+    // Analog Input should be NONE (1000) from setUp
 
     // Simulate multiple CW ticks
     // Tick 1
@@ -142,7 +142,7 @@ void test_encoder_accumulation(void) {
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
-    RUN_TEST(test_adc_stability_check);
+    RUN_TEST(test_analog_stability_check);
     RUN_TEST(test_input_priority);
     RUN_TEST(test_no_auto_repeat);
     RUN_TEST(test_encoder_accumulation);

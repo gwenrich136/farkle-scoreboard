@@ -6,7 +6,7 @@
 
 void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_time_millis = 10);
 void simulateRotation(Game& game, int delta, unsigned long advance_time_millis = 10);
-void simulateScore(Game& game, int points);
+// Removed simulateScore
 void simulateNoAction(Game& game, unsigned long advance_time_millis = 10);
 void waitForScoreAnimation(Game& game);
 void setupGameWithPlayers(Game& game, int numPlayers);

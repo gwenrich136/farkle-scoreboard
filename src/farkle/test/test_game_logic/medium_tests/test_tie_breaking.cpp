@@ -18,7 +18,10 @@ void test_TieBreaking_Case1() {
     game.setTargetScore(3000);
 
     // Player 1 scores 3000
-    simulateScore(game, 3000);
+    // simulateScore(3000) replaced with button presses
+    // 6 * 500 = 3000
+    for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
+
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK); // Confirm banking
@@ -33,7 +36,8 @@ void test_TieBreaking_Case1() {
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // Player 3's turn
 
     // Player 3 scores 3000
-    simulateScore(game, 3000);
+    for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
+
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK); // Confirm banking
@@ -65,19 +69,19 @@ void test_TieBreaking_Case2() {
     game.setTargetScore(3000);
 
     // Player 1 scores 3000
-    simulateScore(game, 3000);
+    for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 2 scores 4000
-    simulateScore(game, 4000);
+    for(int i=0; i<8; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 3 scores 4000
-    simulateScore(game, 4000);
+    for(int i=0; i<8; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -107,13 +111,14 @@ void test_TieBreaking_Case3() {
     game.setTargetScore(3000);
 
     // Player 1 scores 1000
-    simulateScore(game, 1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 2 scores 3000 (Triggers)
-    simulateScore(game, 3000);
+    for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -122,7 +127,7 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // P3's turn
 
     // Player 3 scores 3000
-    simulateScore(game, 3000);
+    for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -130,7 +135,7 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex); // P1's extra turn
 
     // Player 1 scores 2000 more (Total 3000)
-    simulateScore(game, 2000);
+    for(int i=0; i<4; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);

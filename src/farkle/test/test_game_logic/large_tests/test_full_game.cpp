@@ -15,7 +15,10 @@ void test_FullGame_StandardGame() {
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
-        simulateScore(game, 1500); // was UP_1000 + RIGHT_500
+        // simulateScore(1500) replaced with button presses
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
         
         // Start banking
         simulateButtonPress(game, ButtonAction::BANK);
@@ -76,7 +79,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     setupGameWithPlayers(game, 4);
 
     // --- Player 0 scores 500 points ---
-    simulateScore(game, 500); // was RIGHT_500
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
@@ -98,13 +101,6 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
     // --- Run the penalty animation ---
-    // Wait logic needs to simulate steps
-    // waitForScoreAnimation calls simulateNoAction which calls loop() which calls update.
-    // So it should work if waitForScoreAnimation uses loop().
-    // wait logic: while(game.state.atRiskScore != 0) simulateNoAction(game);
-    // Penalty starts with atRiskScore < 0 (e.g. -1000).
-    // It animates to 0.
-    // So the loop condition `atRiskScore != 0` works.
     waitForScoreAnimation(game);
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
@@ -130,7 +126,7 @@ void test_FullGame_FinalRoundBlinking() {
     TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 
     // Player 0 scores enough to cross the target score
-    simulateScore(game, 500); // was RIGHT_500. 9500 + 500 = 10000
+    simulateButtonPress(game, ButtonAction::PLUS_500); // 9500 + 500 = 10000
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
 

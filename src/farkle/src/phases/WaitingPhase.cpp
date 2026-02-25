@@ -18,15 +18,7 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
         return game.getPhase<PostGamePhase_V1>();
     }
 
-    // 2. Handle Rotation (Fine-grained adjustment)
-    if (input.action == ButtonAction::NONE && input.rotationDelta != 0) {
-        state.atRiskScore += input.rotationDelta * 50;
-        if (state.atRiskScore < 0) state.atRiskScore = 0;
-        // Clamp to max? GameState.h defines MAX_SCORE 99999.
-        if (state.atRiskScore > MAX_SCORE) state.atRiskScore = MAX_SCORE;
-    }
-
-    // 3. Handle Scoring Inputs (Discrete Buttons)
+    // 2. Handle Scoring Inputs (Discrete Buttons)
     switch (input.action) {
         case ButtonAction::PLUS_500:
             state.atRiskScore += 500;
@@ -52,9 +44,6 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
                 if (state.players.empty()) break;
                 // Transition logic for Farkle
                 // If farkle_count >= 2 (already), entering here makes it 3 (Catastrophic).
-                // Or does it increment on enter?
-                // FarklingPhase increments count on enter if score > 0.
-                // PenaltyFarklingPhase handles the penalty.
                 Player& currentPlayer = state.players[state.currentPlayerIndex];
                 return (currentPlayer.farkle_count >= 2) ? (GamePhase*)game.getPhase<PenaltyFarklingPhase>() : (GamePhase*)game.getPhase<FarklingPhase>();
             }
@@ -64,9 +53,8 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
             break;
     }
 
-    // Clamp again just in case button inputs exceeded bounds
+    // Safety floor
     if (state.atRiskScore < 0) state.atRiskScore = 0;
-    if (state.atRiskScore > MAX_SCORE) state.atRiskScore = MAX_SCORE;
 
     return this;
 }

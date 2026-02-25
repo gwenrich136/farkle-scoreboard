@@ -1,11 +1,11 @@
 #include "ControlPad.h"
 #include <stdlib.h> // for abs
 
-// Singleton instance for ISR
+// Singleton instance for Interrupt Service Routine
 static ControlPad* instance = nullptr;
 
-// ISR handler wrapper
-static void encoderISR() {
+// Interrupt handler wrapper
+static void encoderInterruptHandler() {
   if (instance) {
     instance->handleInterrupt();
   }
@@ -13,12 +13,17 @@ static void encoderISR() {
 
 ControlPad::ControlPad() {
   instance = this;
+  initializeHardware();
+}
+
+void ControlPad::initializeHardware() {
+  // Initialize state
   _lastAction = ButtonAction::NONE;
   _encoderDelta = 0;
 
-  _lastAdcValue = -1;
-  _adcStableStartTime = 0;
-  _currentAdcAction = ButtonAction::NONE;
+  _lastAnalogValue = -1;
+  _analogStableStartTime = 0;
+  _currentAnalogAction = ButtonAction::NONE;
 
   for (int i = 0; i < 20; i++) {
       _lastDebounceTime[i] = 0;
@@ -31,11 +36,11 @@ ControlPad::ControlPad() {
   pinMode(FARKLE_PIN, INPUT_PULLUP);
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
-  pinMode(ADC_PIN, INPUT);
+  pinMode(ANALOG_INPUT_PIN, INPUT);
 
   // Attach Interrupts
-  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderISR, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), encoderISR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderInterruptHandler, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), encoderInterruptHandler, CHANGE);
 }
 
 void ControlPad::handleInterrupt() {
@@ -59,7 +64,7 @@ void ControlPad::handleInterrupt() {
   lastB = newB;
 }
 
-ButtonAction ControlPad::mapAdcToAction(int val) {
+ButtonAction ControlPad::mapAnalogValueToAction(int val) {
     // 0 (CLEAR), 93 (+50), 328 (+100), 512 (+500)
     if (val < 46) return ButtonAction::CLEAR;
     if (val < 210) return ButtonAction::PLUS_50;
@@ -68,25 +73,25 @@ ButtonAction ControlPad::mapAdcToAction(int val) {
     return ButtonAction::NONE;
 }
 
-ButtonAction ControlPad::checkAdc() {
-    int val = analogRead(ADC_PIN);
+ButtonAction ControlPad::checkAnalogInput() {
+    int val = analogRead(ANALOG_INPUT_PIN);
 
     // Stability check (tolerance +/- 5)
-    if (abs(val - _lastAdcValue) > 5) {
-        _lastAdcValue = val;
-        _adcStableStartTime = millis();
+    if (abs(val - _lastAnalogValue) > 5) {
+        _lastAnalogValue = val;
+        _analogStableStartTime = millis();
         return ButtonAction::NONE; // Unstable
     }
 
     // Stable
-    if (millis() - _adcStableStartTime > ADC_STABILITY_THRESHOLD_MS) {
-        return mapAdcToAction(val);
+    if (millis() - _analogStableStartTime > ANALOG_STABILITY_THRESHOLD_MS) {
+        return mapAnalogValueToAction(val);
     }
 
     return ButtonAction::NONE;
 }
 
-ButtonAction ControlPad::checkDigital() {
+ButtonAction ControlPad::checkDigitalInput() {
     // Check BANK and FARKLE
     int pins[] = {BANK_PIN, FARKLE_PIN};
     ButtonAction actions[] = {ButtonAction::BANK, ButtonAction::FARKLE};
@@ -120,7 +125,7 @@ GameInput ControlPad::read() {
     input.rotationDelta = 0;
 
     // 1. Check Digital Priority
-    ButtonAction digitalAction = checkDigital();
+    ButtonAction digitalAction = checkDigitalInput();
     if (digitalAction != ButtonAction::NONE) {
         input.action = digitalAction;
 
@@ -139,10 +144,10 @@ GameInput ControlPad::read() {
         return input;
     }
 
-    // 2. Check ADC
-    ButtonAction adcAction = checkAdc();
-    if (adcAction != ButtonAction::NONE) {
-        input.action = adcAction;
+    // 2. Check Analog Input
+    ButtonAction analogAction = checkAnalogInput();
+    if (analogAction != ButtonAction::NONE) {
+        input.action = analogAction;
 
         // Suppress rotation
         noInterrupts();

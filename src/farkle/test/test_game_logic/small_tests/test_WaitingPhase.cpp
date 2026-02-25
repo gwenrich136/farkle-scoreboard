@@ -14,13 +14,16 @@ void test_WaitingPhase_ScoreAccumulation() {
     // Ensure atRiskScore is initially 0
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
-    // Simulate pressing PLUS_500 and PLUS_100 and Rotation (2 clicks = 100)
+    // Simulate pressing PLUS_500 and PLUS_100 (Total 600)
     simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::PLUS_100);
-    simulateRotation(game, 2); // 2 * 50 = 100
 
-    // Verify atRiskScore is 700
-    TEST_ASSERT_EQUAL_INT(700, game.state.atRiskScore);
+    // Removed rotation test as per request "Waiting phase can entirely ignore scrolling, please update tests as well to not allow this"
+    // So we verify that rotation does NOTHING
+    simulateRotation(game, 2); // 2 clicks
+
+    // Verify atRiskScore is 600 (not 700)
+    TEST_ASSERT_EQUAL_INT(600, game.state.atRiskScore);
 }
 
 // Verifies that the atRiskScore is cleared when the CLEAR button is pressed.
