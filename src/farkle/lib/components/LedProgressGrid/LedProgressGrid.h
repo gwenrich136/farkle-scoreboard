@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#include "PlayerLayout.h"
 
 #define MAX_PLAYERS 8
 
@@ -12,11 +13,6 @@ public:
     NONE,
     IN_GAME,
     PRE_GAME
-  };
-
-  struct PlayerRows {
-    int startRow;
-    int numRows;
   };
 
   struct State {
@@ -79,7 +75,6 @@ private:
   int get_pixel_index(int row, int col);
   int getRemainderBrightness(float remainder, int fullBrightness);
 
-  PlayerRows getRowMapping(int totalPlayers, int playerIdx);
   bool shouldRefresh(const State& newState);
   void renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness);
   uint16_t getPlayerHue(int playerIdx);

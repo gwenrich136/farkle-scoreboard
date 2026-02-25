@@ -93,8 +93,8 @@ graph TD
     D10\_12\["Pins D10-D12 (MAX7219)"\]  
     A4\_A5\["SDA/SCL (LCD)"\]  
     A0\["Pin A0 (NeoPixel Data)"\]  
-    A1\["Pin A1 (Yellow LED)"\]  
-    A2\["Pin A2 (Red LED)"\]  
+    A1\["Pin A1 (Status Strip)"\]  
+    A2\["Pin A2 (Available)"\]  
     end
 
     subgraph Components  
@@ -103,7 +103,7 @@ graph TD
     LCD\["I2C LCD Screen"\]  
     SPK\[Speaker \+ Slide Switch\]  
     BTNS\["7x Push Buttons"\]  
-    LEDS\["Farkle Tracker (Yellow/Red)"\]  
+    STRIP\["8-LED Status Strip"\]  
     end
 
     %% USB Connection  
@@ -116,23 +116,22 @@ graph TD
     SWITCH \--\> NEO  
     SWITCH \--\> MAX  
     SWITCH \--\> LCD  
-    SWITCH \--\> LEDS  
-    GND\_BUS \--\> A\_GND  
-    GND\_BUS \--\> NEO  
-    GND\_BUS \--\> MAX  
-    GND\_BUS \--\> LCD  
-    GND\_BUS \--\> SPK  
-    GND\_BUS \--\> BTNS  
-    GND\_BUS \--\> LEDS
-
-    %% Signals  
-    A0 \--\> NEO  
-    D10\_12 \--\> MAX  
-    D9 \--\> SPK  
-    D2\_8 \--\> BTNS  
-    A4\_A5 \--\> LCD  
-    A1 \--\> LEDS  
-    A2 \--\> LEDS
+        SWITCH \--\> STRIP  
+        GND\_BUS \--\> A\_GND  
+        GND\_BUS \--\> NEO  
+        GND\_BUS \--\> MAX  
+        GND\_BUS \--\> LCD  
+        GND\_BUS \--\> SPK  
+        GND\_BUS \--\> BTNS  
+        GND\_BUS \--\> STRIP  
+    
+        %% Signals  
+        A0 \--\> NEO  
+        D10\_12 \--\> MAX  
+        D9 \--\> SPK  
+        D2\_8 \--\> BTNS  
+        A4\_A5 \--\> LCD  
+        A1 \--\> STRIP  
 
 ## **Detailed Pin Map**
 
@@ -154,14 +153,11 @@ graph TD
 | :---- | :---- | :---- |
 | **A0** | DIN / Data In | You can treat A0 as a digital pin (Pin 14\) |
 
-### **3\. Farkle Tracker LEDs (New)**
+### **3. Status Indicator Strip (v2 - Step 1)**
 
-*Standard LEDs. Use a 220Ω or 330Ω resistor in series with each LED to prevent burning them out.*
-
-| Arduino Pin | Color | Logic |
+| Arduino Pin | Component | Logic |
 | :---- | :---- | :---- |
-| **A1** | **Yellow LED** | 1 Farkle (Warning) |
-| **A2** | **Red LED** | 2 Farkles (Danger) |
+| **A1** | **8-LED NeoPixel Strip** | Turn pointers & Farkle warnings |
 
 ### **4\. Inputs (7 Buttons)**
 
@@ -202,9 +198,8 @@ Since you are using the Uno R4 WiFi, you can take advantage of the ArduinoLEDMat
 ```
 // Buttons  
 const int btnPins\[\] \= {2, 3, 4, 5, 6, 7, 8};  
-// Tracker LEDs  
-const int YELLOW\_LED \= A1;  
-const int RED\_LED \= A2;
+// Status Indicator Strip
+const int STATUS\_STRIP\_PIN \= A1;
 
 void setup() {  
   // Initialize Buttons  
@@ -212,15 +207,11 @@ void setup() {
     pinMode(btnPins\[i\], INPUT\_PULLUP);  
   }
 
-  // Initialize Tracker LEDs  
-  pinMode(YELLOW\_LED, OUTPUT);  
-  pinMode(RED\_LED, OUTPUT);  
-    
-  // ... Initialize WiFi, LCD, etc ...  
+  // ... Initialize Status Strip (NeoPixel), WiFi, LCD, etc ...  
 }
 
 void loop() {  
   // Example Logic  
-  // if (farkleCount \== 1\) { digitalWrite(YELLOW\_LED, HIGH); }  
+  // Update status strip based on game state
 }  
 ```

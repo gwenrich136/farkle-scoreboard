@@ -112,19 +112,6 @@ void LedProgressGrid::reset() {
   clear();
 }
 
-LedProgressGrid::PlayerRows LedProgressGrid::getRowMapping(int totalPlayers, int playerIdx) {
-    int startRow = 0;
-    int numRows = 0;
-    switch (totalPlayers) {
-      case 1: startRow = 2; numRows = 4; break;
-      case 2: startRow = (playerIdx == 0) ? 0 : 5; numRows = 3; break;
-      case 3: startRow = (playerIdx == 0) ? 0 : (playerIdx == 1 ? 3 : 6); numRows = 2; break;
-      case 4: startRow = playerIdx * 2; numRows = 2; break;
-      default: startRow = playerIdx; numRows = 1; break;
-    }
-    return {startRow, numRows};
-}
-
 bool LedProgressGrid::shouldRefresh(const State& newState) {
     if (newState != _lastState) {
         _lastState = newState;
@@ -204,7 +191,7 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
   _pixels.clear();
 
   for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
-    PlayerRows rows = getRowMapping(_playerCount, playerIdx);
+    PlayerRows rows = PlayerLayout::getMapping(_playerCount, playerIdx);
     
     int scoreToDraw = scores[playerIdx];
     bool showingRisk = (playerIdx == currentPlayerIndex && atRiskScore > 0 && _isBlinkOn);
@@ -246,14 +233,14 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
 
   // Draw existing players
   for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
-      PlayerRows rows = getRowMapping(effectivePlayerCount, playerIdx);
+      PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, playerIdx);
       renderPlayerRows(rows, _playerHues[playerIdx], 1.0f, 128);
   }
 
   // Draw pending player
   if (isPlayerPending && _isBlinkOn) {
       int pendingIdx = _playerCount;
-      PlayerRows rows = getRowMapping(effectivePlayerCount, pendingIdx);
+      PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, pendingIdx);
       uint16_t hue = getPlayerHue(pendingIdx);
       renderPlayerRows(rows, hue, 1.0f, 128);
   }

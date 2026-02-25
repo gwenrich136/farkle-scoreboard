@@ -2,19 +2,54 @@
 #define FarkleWarningLights_h
 
 #include "Arduino.h"
+#include <Adafruit_NeoPixel.h>
+#include "PlayerLayout.h"
 
-#define ALTERNATE_INTERVAL 250 // ms
+#define MAX_PLAYERS 8
 
 class FarkleWarningLights
 {
   public:
-    FarkleWarningLights(int yellowPin, int redPin);
+    FarkleWarningLights(int pin);
     void begin();
+    void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking);
+
+    // For compatibility with existing calls (e.g. resetGame)
     void farkle_state(int state);
-    void alternate();
+
+    // Updated alternate signature
+    void alternate(int currentPlayerIndex, int playerCount);
+
   private:
-    int _yellowPin;
-    int _redPin;
+    Adafruit_NeoPixel _pixels;
+
+    struct State {
+        int farkleCounts[MAX_PLAYERS] = {0};
+        int playerCount = 0;
+        int blinkingPlayerIndex = -1;
+        bool isBlinking = false;
+        bool isDirty = true;
+
+        bool operator==(const State& other) const {
+            if (isDirty || other.isDirty ||
+                playerCount != other.playerCount ||
+                blinkingPlayerIndex != other.blinkingPlayerIndex ||
+                isBlinking != other.isBlinking) {
+                return false;
+            }
+            for (int i = 0; i < playerCount; ++i) {
+                if (farkleCounts[i] != other.farkleCounts[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        bool operator!=(const State& other) const { return !(*this == other); }
+    };
+
+    State _lastState;
+
+    void setPlayerPixels(int startRow, int numRows, uint32_t color);
 };
 
 #endif

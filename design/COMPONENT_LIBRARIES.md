@@ -29,20 +29,29 @@ The `ControlPad` component is responsible for managing physical button inputs, t
 ## 2. FarkleWarningLights
 
 ### Purpose
-The `FarkleWarningLights` component provides a simple visual indication of a player's "farkle" count during a turn using two LEDs (one yellow, one red).
+The `FarkleWarningLights` component provides a system-wide visual map of every player's "farkle" status using an 8-LED NeoPixel strip. It serves both as a "turn pointer" and a danger indicator.
 
 ### API Design
--   **`FarkleWarningLights(int yellowPin, int redPin)`**: Constructor. Initializes the component with the Arduino pins connected to the yellow and red LEDs, configuring them as outputs.
--   **`void farkle_state(int state)`**: Sets the state of the warning lights based on the integer `state`.
-    -   `state = 0`: Both LEDs are off.
-    -   `state = 1`: The yellow LED is on, red is off.
-    -   `state = 2` (or greater): Both the yellow and red LEDs are on.
--   **`void alternate()`**: Manages an alternating flashing state for the yellow and red LEDs. This method is non-blocking and must be called repeatedly in a loop (e.g., `update()`) to function correctly. When called, it checks if it's time to toggle the lights based on an internal timer.
+-   **`FarkleWarningLights(int pin)`**: Constructor. Initializes the component for an 8-LED strip (NeoPixel) on the specified digital pin.
+-   **`void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking)`**: Updates the entire strip.
+    -   `farkleCounts`: An array of the current farkle count for every player in the game.
+    -   `playerCount`: Total number of active players.
+    -   `blinkingPlayerIndex`: The index of the player who should receive the blinking "turn indicator" treatment. Pass `-1` if no player should blink (e.g., during banking or farkling animations).
+    -   `isBlinking`: A flag (synced with the 500ms global timer) that toggles the blinking player's LED.
+-   **`void alternate(int currentPlayerIndex)`**: Triggers the alternating Yellow/Red "Pain" animation for the specified player (used during `PenaltyFarklingPhase`).
 
 ### Key Logic & Behavior
--   **Direct State Mapping:** The integer input directly maps to the visual output, simplifying usage in the main game logic.
--   **Max Farkle Count:** The game logic will ensure the `state` passed to `farkle_state()` will never exceed 2, as a third farkle resets the counter to zero.
--   **Alternating State for Catastrophic Farkle:** The `alternate()` method provides the specific visual effect required for the "catastrophic farkle" event. It uses `millis()` for non-blocking timing, allowing the rest of the game loop to run without interruption while the lights flash.
+-   **Visual Hierarchy**:
+    -   **Blinking Player (Active/Flashing)**: If `blinkingPlayerIndex` is valid, that player's LED flashes at **50% Brightness** (128).
+    -   **Other Players (Idle/Solid)**: LEDs for other players are **Solid** and at **50% Brightness** (128).
+    -   **Pain Animation (Alternate)**: When `alternate()` is called (e.g., during `PenaltyFarklingPhase`), the LEDs operate at **Full Brightness** (255) to maximize the "alarm" effect.
+    -   **Global Brightness**: Generally, active LEDs use 50% brightness (128) to avoid being overpowering, with the exception of the "Pain" animation.
+-   **Color Logic**:
+    -   **0 Farkles**: **White** (Blinking player only; Idle/Solid players are **OFF**).
+    -   **1 Farkle**: **Yellow** (Warning).
+    -   **2+ Farkles**: **Red** (Danger).
+-   **Hardware Optimization**: The component tracks the previous state and only calls `pixels.show()` when a value, current player, or blink state has changed.
+-   **Safety**: The strip is automatically cleared during `reset()`.
 
 ---
 

@@ -11,6 +11,7 @@ public:
 
 protected:
     virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) override;
+    virtual void updateWarningLights(const GameState& state, const Displays& displays) override;
 };
 
 #endif
