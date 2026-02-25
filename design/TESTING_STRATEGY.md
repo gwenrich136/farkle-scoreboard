@@ -125,6 +125,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
 
+*   **`test_multi_press.cpp`** (Test Utilities Verification)
+    *   **`test_simulate_button_press_count`**: Verifies that `simulateButtonPress` correctly interprets the optional `count` parameter to trigger multiple button presses in sequence, ensuring the test utility functions as intended.
+
 ### 4.2 MEDIUM Tests (Integration Tests)
 **Focus:** Handoffs. Verification of state persistence across phase transitions.
 **Location:** `test/test_game_logic/medium_tests/`
