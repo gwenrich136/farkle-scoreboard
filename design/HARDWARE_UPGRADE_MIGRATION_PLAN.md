@@ -46,7 +46,7 @@ A **Latching Switch** provides instant toggling between "Banked Score" and "Tota
 | **D12** | **SPI CIPO/MISO** | Shared SPI Data | **Active (V1)** |
 | **D13** | **SPI SCK** | Shared SPI Clock | **Active (V1)** |
 | **A0** | **LedProgressGrid** | NeoPixel Data (8x8) | **Active (V1)** |
-| **A1** | **Status Strip** | NeoPixel Data (8-LED) | Pending |
+| **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
 | **A2** | **Button 6 (CLEAR)** | Reset Input | **Active (V1)** |
 | **A3** | **Latching Switch** | **"Total Score" Toggle** | Pending |
 | **A4** | **I2C SDA** | OLED Data | **Active (V1)** |
@@ -57,7 +57,7 @@ A **Latching Switch** provides instant toggling between "Banked Score" and "Tota
 ## 3. Migration Steps (The "Safe Point" Approach)
 
 ### **Phase 1: Visual Feedback Overhaul**
-**Step 1: The Status Strip (A1)**
+**Step 1: The Status Strip (A1) [DONE]**
 *   **Hardware:** Unwire 2 LEDs. Connect 8-LED Status Strip to **A1**.
 *   **Software:** 
     *   Overhaul `FarkleWarningLights` to manage an `Adafruit_NeoPixel` object.

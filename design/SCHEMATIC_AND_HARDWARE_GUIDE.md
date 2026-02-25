@@ -132,7 +132,7 @@ graph TD
         D2\_8 \--\> BTNS  
         A4\_A5 \--\> LCD  
         A1 \--\> STRIP  
-        A2 \--\> STRIP
+
 ## **Detailed Pin Map**
 
 ### **1\. Displays (MAX7219 Daisy Chain)**
