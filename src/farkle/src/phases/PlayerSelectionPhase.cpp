@@ -1,6 +1,7 @@
 #include "phases/PlayerSelectionPhase.h"
 #include "Game.h"
 #include <algorithm>
+#include "GameConstants.h"
 
 const std::vector<std::string> PlayerSelectionPhase::s_namePool = {
     "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"
@@ -53,13 +54,15 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
 }
 
 void PlayerSelectionPhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    displays.grid.displayPlayersPregame(!displays.grid.isMaxPlayersReached());
+    bool isRosterFull = state.players.size() >= MAX_PLAYERS;
+    displays.grid.displayPlayersPregame(!isRosterFull);
 }
 
 void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
     // In the current configuration (pool=9, max=8), the list will never be empty before the roster is full.
     // However, we merge the conditions here as requested to simplify the logic.
-    if (displays.grid.isMaxPlayersReached() || m_availableNames.empty()) {
+    bool isRosterFull = state.players.size() >= MAX_PLAYERS;
+    if (isRosterFull || m_availableNames.empty()) {
         displays.oled.print("ROSTER FULL");
     } else {
         displays.oled.printSelectionScreen("Add Player", m_availableNames[m_selectionIndex].c_str());

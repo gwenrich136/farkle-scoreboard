@@ -1,11 +1,7 @@
 #include "phases/WaitingPhase.h"
 #include "Game.h"
 #include <Arduino.h>
-
-// Ensure MAX_PLAYERS is available if not already defined (it is in FarkleWarningLights.h)
-#ifndef MAX_PLAYERS
-#define MAX_PLAYERS 8
-#endif
+#include "GameConstants.h"
 
 void WaitingPhase::onEnter(GameState& state) {
     // No specific local state to reset for WaitingPhase
