@@ -32,8 +32,7 @@ void test_WaitingPhase_ScoreCorrection() {
     setupGameWithPlayers(game, 4);
 
     // Add some score
-    simulateButtonPress(game, ButtonAction::PLUS_500);
-    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500, 2);
     TEST_ASSERT_EQUAL_INT(1000, game.state.atRiskScore);
 
     // Simulate pressing CLEAR
