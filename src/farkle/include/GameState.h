@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdint>
 
+#define MAX_SCORE 99999
+
 struct Player {
     std::string name;
     int score;

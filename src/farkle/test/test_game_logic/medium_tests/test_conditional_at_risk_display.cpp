@@ -139,7 +139,7 @@ void test_DisplayLogic_BankingPhase_NoBlinking() {
     setupGameWithPlayers(game, 4);
 
     // Add score so we can bank
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 1000);
 
     // Enter BankingPhase
     simulateButtonPress(game, ButtonAction::BANK);

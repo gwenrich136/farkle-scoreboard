@@ -1,132 +1,150 @@
 #include <unity.h>
 #include "ControlPad.h"
 #include "Arduino.h"
-#include "ButtonActions.h"
+#include "Input.h"
 
 ControlPad* controlPad;
 
 void setUp(void) {
-    controlPad = new ControlPad();
     resetMockPins();
+    // Set ADC to a value that maps to NONE (>= 700) so it doesn't interfere with digital/encoder tests
+    setMockAnalogPin(ADC_PIN, 1000);
+    controlPad = new ControlPad();
+    // Stabilize the ADC at 1000 (NONE)
+    controlPad->read(); // Initial read sets _lastAdcValue
+    advance_millis(ADC_STABILITY_THRESHOLD_MS + 10);
+    controlPad->read(); // Should be stable NONE
 }
 
 void tearDown(void) {
     delete controlPad;
 }
 
-void test_add_valid_button(void) {
-    int pin = 2;
-    ButtonAction action = ButtonAction::BANK;
+void test_adc_stability_check(void) {
+    // 0 (CLEAR), 93 (+50), 328 (+100), 512 (+500)
 
-    controlPad->addButton(pin, action);
+    // 1. Set ADC to 93 (+50)
+    setMockAnalogPin(ADC_PIN, 93);
 
-    // Verify pinMode was called with INPUT_PULLUP
-    TEST_ASSERT_EQUAL_INT(INPUT_PULLUP, getMockPinMode(pin));
+    // 2. Read immediately -> Should be NONE (unstable)
+    // Previous value was 1000. New is 93. Change detected.
+    GameInput input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, input.action);
+
+    // 3. Advance time by 49ms -> Still NONE
+    advance_millis(49);
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, input.action);
+
+    // 4. Advance time by 2ms (total 51ms) -> Should be PLUS_50
+    advance_millis(2);
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::PLUS_50, input.action);
+
+    // 5. Change ADC to 328 (+100)
+    setMockAnalogPin(ADC_PIN, 328);
+
+    // 6. Read immediately -> Should be NONE (unstable)
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, input.action);
+
+    // 7. Advance 51ms -> PLUS_100
+    advance_millis(51);
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::PLUS_100, input.action);
 }
 
-void test_add_invalid_pin_negative(void) {
-    int pin = -1;
-    ButtonAction action = ButtonAction::BANK;
+void test_input_priority(void) {
+    // BANK_PIN (6) active (LOW)
+    setMockPinState(BANK_PIN, LOW);
 
-    controlPad->addButton(pin, action);
+    // Trigger debounce logic
+    controlPad->read();
 
-    // Verify pinMode was NOT called for this pin
-    TEST_ASSERT_EQUAL_INT(-1, getMockPinMode(pin));
-}
+    // Also trigger encoder interrupts to generate delta
+    // Simulating a CW tick
+    setMockPinState(ENCODER_PIN_A, LOW);
+    triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, LOW);
+    triggerInterrupt(ENCODER_PIN_B);
+    setMockPinState(ENCODER_PIN_A, HIGH);
+    triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, HIGH);
+    triggerInterrupt(ENCODER_PIN_B);
 
-void test_add_invalid_pin_too_large(void) {
-    int pin = 17; // MAX_PINS is 17, so 17 is OOB (0-16 are valid if MAX_PINS was size, but code says MAX_PINS is 17 and array is size 17, so indices 0..16)
-    // Wait, let me check ControlPad.h
-    // #define MAX_PINS 17
-    // ButtonAction _buttonMap[MAX_PINS];
-    // So indices 0 to 16 are valid. 17 is OOB.
-
-    ButtonAction action = ButtonAction::BANK;
-
-    controlPad->addButton(pin, action);
-
-    // Verify pinMode was NOT called for this pin
-    TEST_ASSERT_EQUAL_INT(-1, getMockPinMode(pin));
-}
-
-void test_read_valid_button(void) {
-    int pin = 5;
-    ButtonAction action = ButtonAction::CLEAR;
-
-    controlPad->addButton(pin, action);
-
-    // Simulate button press (LOW)
-    setMockPinState(pin, LOW);
-    controlPad->read(); // Start debounce
+    // Advance time for debounce of digital pin
     advance_millis(DEBOUNCE_DELAY + 1);
 
-    TEST_ASSERT_EQUAL(action, controlPad->read());
+    GameInput input = controlPad->read();
+
+    // Priority: BANK
+    TEST_ASSERT_EQUAL(ButtonAction::BANK, input.action);
+    // Rotation suppressed (should be 0 because BANK took priority)
+    TEST_ASSERT_EQUAL(0, input.rotationDelta);
 }
 
-void test_add_none_action_fails(void) {
-    int pin = 2;
-    // Attempt to add a button with NONE action
-    controlPad->addButton(pin, ButtonAction::NONE);
-
-    // Verify pinMode was not called (remains default -1)
-    TEST_ASSERT_EQUAL(-1, getMockPinMode(pin));
-
-    // Press the button
-    setMockPinState(pin, LOW);
-
-    // Should read NONE because it was not added
-    TEST_ASSERT_EQUAL(ButtonAction::NONE, controlPad->read());
-}
-
-void test_add_duplicate_pin_fails(void) {
-    int pin = 3;
-    controlPad->addButton(pin, ButtonAction::BANK);
-
-    // Verify first add worked
-    TEST_ASSERT_EQUAL(INPUT_PULLUP, getMockPinMode(pin));
-
-    // Attempt to overwrite with CLEAR
-    controlPad->addButton(pin, ButtonAction::CLEAR);
-
-    // Press the button
-    setMockPinState(pin, LOW);
-    controlPad->read(); // Start debounce
+void test_no_auto_repeat(void) {
+    // Press BANK
+    setMockPinState(BANK_PIN, LOW);
+    // Debounce
+    controlPad->read();
     advance_millis(DEBOUNCE_DELAY + 1);
 
-    // Should still return BANK (first action)
-    TEST_ASSERT_EQUAL(ButtonAction::BANK, controlPad->read());
+    // First read: BANK
+    GameInput input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::BANK, input.action);
+
+    // Second read: NONE (still held)
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::NONE, input.action);
+
+    // Release
+    setMockPinState(BANK_PIN, HIGH);
+    // Debounce release
+    controlPad->read();
+    advance_millis(DEBOUNCE_DELAY + 1);
+    controlPad->read(); // Process release state
+
+    // Press again
+    setMockPinState(BANK_PIN, LOW);
+    controlPad->read();
+    advance_millis(DEBOUNCE_DELAY + 1);
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(ButtonAction::BANK, input.action);
 }
 
-void test_read_with_bouncing(void) {
-    int pin = 5;
-    ButtonAction action = ButtonAction::CLEAR;
-    controlPad->addButton(pin, action);
+void test_encoder_accumulation(void) {
+    // ADC should be NONE (1000) from setUp
 
-    // 1. Initial press (LOW)
-    setMockPinState(pin, LOW);
-    controlPad->read(); // Trigger debounce timer
-    advance_millis(DEBOUNCE_DELAY + 1);
-    TEST_ASSERT_EQUAL(action, controlPad->read());
+    // Simulate multiple CW ticks
+    // Tick 1
+    setMockPinState(ENCODER_PIN_A, LOW); triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, LOW); triggerInterrupt(ENCODER_PIN_B);
+    setMockPinState(ENCODER_PIN_A, HIGH); triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, HIGH); triggerInterrupt(ENCODER_PIN_B);
 
-    // 2. Bounce to HIGH (released) briefly
-    setMockPinState(pin, HIGH);
-    controlPad->read(); // Should still be debounced as LOW
-    TEST_ASSERT_EQUAL(ButtonAction::NONE, controlPad->read()); // NONE because pressedAction (action) == _lastAction (action)
+    // Tick 2
+    setMockPinState(ENCODER_PIN_A, LOW); triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, LOW); triggerInterrupt(ENCODER_PIN_B);
+    setMockPinState(ENCODER_PIN_A, HIGH); triggerInterrupt(ENCODER_PIN_A);
+    setMockPinState(ENCODER_PIN_B, HIGH); triggerInterrupt(ENCODER_PIN_B);
 
-    // 3. Bounce back to LOW (pressed)
-    setMockPinState(pin, LOW);
-    // Should still return NONE because it never stabilized at HIGH
-    TEST_ASSERT_EQUAL(ButtonAction::NONE, controlPad->read());
+    GameInput input = controlPad->read();
+
+    // Should have accumulated delta (e.g. 2 or -2 depending on direction logic)
+    // We just check it's not 0 and magnitude > 0
+    TEST_ASSERT_NOT_EQUAL(0, input.rotationDelta);
+
+    // Reset check
+    input = controlPad->read();
+    TEST_ASSERT_EQUAL(0, input.rotationDelta);
 }
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
-    RUN_TEST(test_add_valid_button);
-    RUN_TEST(test_add_invalid_pin_negative);
-    RUN_TEST(test_add_invalid_pin_too_large);
-    RUN_TEST(test_read_valid_button);
-    RUN_TEST(test_add_none_action_fails);
-    RUN_TEST(test_add_duplicate_pin_fails);
-    RUN_TEST(test_read_with_bouncing);
+    RUN_TEST(test_adc_stability_check);
+    RUN_TEST(test_input_priority);
+    RUN_TEST(test_no_auto_repeat);
+    RUN_TEST(test_encoder_accumulation);
     return UNITY_END();
 }

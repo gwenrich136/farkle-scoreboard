@@ -6,14 +6,16 @@ void TargetScoreSelectionPhase::onEnter(GameState& state) {
     // Default is usually 10,000, which is set in GameState constructor or reset.
 }
 
-GamePhase* TargetScoreSelectionPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
-    if (action == ButtonAction::UP_1000) {
-        state.targetScore += 1000;
-    } else if (action == ButtonAction::DOWN_50) {
-        state.targetScore -= 1000;
-    } else if (action == ButtonAction::BANK || action == ButtonAction::FARKLE) {
+GamePhase* TargetScoreSelectionPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
+    if (input.action == ButtonAction::BANK || input.action == ButtonAction::FARKLE) {
         game.setTargetScore(state.targetScore);
         return game.getPhase<PlayerSelectionPhase>();
+    }
+
+    // Input Priority: Only process rotation if no digital action occurred
+    // (Although ControlPad already suppresses rotation if action != NONE, explicit check is safer/cleaner)
+    if (input.action == ButtonAction::NONE && input.rotationDelta != 0) {
+        state.targetScore += input.rotationDelta * 1000;
     }
 
     // Clamp between 1,000 and 20,000

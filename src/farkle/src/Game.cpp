@@ -32,15 +32,8 @@ void Game::setup() {
     farkleLights.begin();
     
     Serial.println("GAME: Hardware init done. Configuring controls...");
-    // Configure ControlPad buttons as per SCHEMATIC_AND_HARDWARE_GUIDE.md
-    // Note: D3=RIGHT_500 and D2=UP_1000 mapping is intentional.
-    controlPad.addButton(4, DOWN_50);
-    controlPad.addButton(5, LEFT_100);
-    controlPad.addButton(3, RIGHT_500);
-    controlPad.addButton(2, UP_1000);
-    controlPad.addButton(6, BANK);
-    controlPad.addButton(7, CLEAR);
-    controlPad.addButton(8, FARKLE);
+    // ControlPad is self-configuring in constructor for hybrid input model.
+    // No manual button mapping required.
 
     // 2. Reset Game to clean state
     resetGame();
@@ -59,13 +52,13 @@ void Game::loop() {
     lastUpdateTime = currentTime;
 
     // 2. Read Input
-    ButtonAction action = controlPad.read();
+    GameInput input = controlPad.read();
 
     // 3. Construct Displays struct
     Displays displays(scoreDisplay, grid, farkleLights, oled);
 
     // 4. Update Current Phase
-    GamePhase* nextPhase = currentPhase->update(*this, state, action, deltaTime);
+    GamePhase* nextPhase = currentPhase->update(*this, state, input, deltaTime);
 
     // 5. Handle Transitions
     if (nextPhase != currentPhase) {

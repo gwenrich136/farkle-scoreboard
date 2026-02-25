@@ -45,7 +45,7 @@ void test_BankingPhase_InputSpamming() {
 
     simulateButtonPress(game, ButtonAction::BANK);
     simulateButtonPress(game, ButtonAction::CLEAR);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 }

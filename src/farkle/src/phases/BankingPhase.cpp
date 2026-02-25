@@ -9,7 +9,7 @@ void BankingPhase::onEnter(GameState& state) {
     state.players[state.currentPlayerIndex].farkle_count = 0;
 }
 
-GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     // 1. Perform Animation
     if (state.atRiskScore > 0) {
         scoreMoveAccumulator += (SCORE_ANIMATION_SPEED * deltaTime);
@@ -32,7 +32,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
         state.atRiskScore = 0; // Clean up any fractional remainder
 
         // Wait for user dismissal (any button press)
-        if (action != ButtonAction::NONE) {
+        if (input.action != ButtonAction::NONE) {
             // Check for Final Round Trigger
             if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
                 state.finalRoundTriggered = true;

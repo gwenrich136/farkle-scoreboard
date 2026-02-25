@@ -18,9 +18,7 @@ void test_TieBreaking_Case1() {
     game.setTargetScore(3000);
 
     // Player 1 scores 3000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 3000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK); // Confirm banking
@@ -35,9 +33,7 @@ void test_TieBreaking_Case1() {
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // Player 3's turn
 
     // Player 3 scores 3000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 3000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK); // Confirm banking
@@ -52,8 +48,6 @@ void test_TieBreaking_Case1() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 
     // Verify Player 1 wins
-    // We can check the oled captured_title or a internal state of the phase
-    // Since PostGamePhase_V1 caches the winner, let's check the OLED output
     TEST_ASSERT_EQUAL_STRING("Geewee WINS!", game.oled.captured_message.c_str());
 }
 
@@ -71,27 +65,19 @@ void test_TieBreaking_Case2() {
     game.setTargetScore(3000);
 
     // Player 1 scores 3000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 3000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 2 scores 4000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 4000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 3 scores 4000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 4000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -121,15 +107,13 @@ void test_TieBreaking_Case3() {
     game.setTargetScore(3000);
 
     // Player 1 scores 1000
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 1000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
 
     // Player 2 scores 3000 (Triggers)
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 3000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -138,9 +122,7 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // P3's turn
 
     // Player 3 scores 3000
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 3000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
@@ -148,8 +130,7 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex); // P1's extra turn
 
     // Player 1 scores 2000 more (Total 3000)
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateScore(game, 2000);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);

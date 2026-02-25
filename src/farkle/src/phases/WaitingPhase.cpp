@@ -11,30 +11,50 @@ void WaitingPhase::onEnter(GameState& state) {
     // No specific local state to reset for WaitingPhase
 }
 
-GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     // 1. Check for Game End
     // If the final round was triggered and it's now back to a player who has reached the target score, the game ends.
     if (state.finalRoundTriggered && state.players.size() > 0 && state.players[state.currentPlayerIndex].score >= state.targetScore) {
         return game.getPhase<PostGamePhase_V1>();
     }
 
-    // 2. Handle Scoring Inputs
-    switch (action) {
-        case UP_1000:  state.atRiskScore += 1000; break;
-        case RIGHT_500: state.atRiskScore += 500;  break;
-        case LEFT_100:  state.atRiskScore += 100;  break;
-        case DOWN_50:   state.atRiskScore += 50;   break;
-        case CLEAR:     state.atRiskScore = 0;     break;
+    // 2. Handle Rotation (Fine-grained adjustment)
+    if (input.action == ButtonAction::NONE && input.rotationDelta != 0) {
+        state.atRiskScore += input.rotationDelta * 50;
+        if (state.atRiskScore < 0) state.atRiskScore = 0;
+        // Clamp to max? GameState.h defines MAX_SCORE 99999.
+        if (state.atRiskScore > MAX_SCORE) state.atRiskScore = MAX_SCORE;
+    }
+
+    // 3. Handle Scoring Inputs (Discrete Buttons)
+    switch (input.action) {
+        case ButtonAction::PLUS_500:
+            state.atRiskScore += 500;
+            break;
+        case ButtonAction::PLUS_100:
+            state.atRiskScore += 100;
+            break;
+        case ButtonAction::PLUS_50:
+            state.atRiskScore += 50;
+            break;
+        case ButtonAction::CLEAR:
+            state.atRiskScore = 0;
+            break;
         
-        case BANK:
+        case ButtonAction::BANK:
             if (state.atRiskScore > 0) {
                 return game.getPhase<BankingPhase>();
             }
             break;
             
-        case FARKLE:
+        case ButtonAction::FARKLE:
             {
                 if (state.players.empty()) break;
+                // Transition logic for Farkle
+                // If farkle_count >= 2 (already), entering here makes it 3 (Catastrophic).
+                // Or does it increment on enter?
+                // FarklingPhase increments count on enter if score > 0.
+                // PenaltyFarklingPhase handles the penalty.
                 Player& currentPlayer = state.players[state.currentPlayerIndex];
                 return (currentPlayer.farkle_count >= 2) ? (GamePhase*)game.getPhase<PenaltyFarklingPhase>() : (GamePhase*)game.getPhase<FarklingPhase>();
             }
@@ -43,6 +63,10 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, ButtonAction actio
         default:
             break;
     }
+
+    // Clamp again just in case button inputs exceeded bounds
+    if (state.atRiskScore < 0) state.atRiskScore = 0;
+    if (state.atRiskScore > MAX_SCORE) state.atRiskScore = MAX_SCORE;
 
     return this;
 }

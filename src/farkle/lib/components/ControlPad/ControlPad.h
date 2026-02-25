@@ -2,27 +2,46 @@
 #define ControlPad_h
 
 #include <Arduino.h>
-#include "ButtonActions.h"
+#include "Input.h"
 
-#define MAX_PINS 17 // Max pin number + 1 to support up to pin 16
-#define DEBOUNCE_DELAY 50 // ms
+// Constants for pins and timing
+#define ADC_PIN A2
+#define ENCODER_PIN_A 2
+#define ENCODER_PIN_B 3
+#define BANK_PIN 6
+#define FARKLE_PIN 8
+
+#define ADC_STABILITY_THRESHOLD_MS 50
+#define DEBOUNCE_DELAY 50
 
 class ControlPad {
 public:
   ControlPad();
-  void addButton(int pin, ButtonAction buttonAction);
-  ButtonAction read();
+
+  GameInput read();
+
+  // Changed to non-static to access instance members
+  void handleInterrupt();
 
 private:
-  ButtonAction _buttonMap[MAX_PINS];
   ButtonAction _lastAction;
-  int _activePins[MAX_PINS];
-  int _activePinCount;
 
-  // Debouncing state
-  unsigned long _lastDebounceTime[MAX_PINS];
-  int _lastButtonState[MAX_PINS];
-  int _buttonState[MAX_PINS];
+  // Encoder state
+  volatile int _encoderDelta;
+
+  // ADC state
+  int _lastAdcValue;
+  unsigned long _adcStableStartTime;
+  ButtonAction _currentAdcAction;
+
+  // Digital state
+  unsigned long _lastDebounceTime[20]; // Simple array for debouncing digital pins (using pin number as index)
+  int _buttonState[20];
+  int _lastButtonState[20];
+
+  ButtonAction checkAdc();
+  ButtonAction checkDigital();
+  ButtonAction mapAdcToAction(int val); // Making this private helper method? Or global static helper?
 };
 
 #endif
