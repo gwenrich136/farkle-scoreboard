@@ -18,7 +18,6 @@ void test_TieBreaking_Case1() {
     game.setTargetScore(3000);
 
     // Player 1 scores 3000
-    // simulateScore(3000) replaced with button presses
     // 6 * 500 = 3000
     for(int i=0; i<6; ++i) simulateButtonPress(game, ButtonAction::PLUS_500);
 

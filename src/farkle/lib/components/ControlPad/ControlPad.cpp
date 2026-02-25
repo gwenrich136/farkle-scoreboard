@@ -125,10 +125,15 @@ GameInput ControlPad::read() {
     input.rotationDelta = 0;
 
     // 1. Check Digital Priority
-    ButtonAction digitalAction = checkDigitalInput();
-    if (digitalAction != ButtonAction::NONE) {
-        input.action = digitalAction;
+    input.action = checkDigitalInput();
 
+    // 2. Check Analog Input (if no digital action)
+    if (input.action == ButtonAction::NONE) {
+        input.action = checkAnalogInput();
+    }
+
+    // 3. Process Action or Rotation
+    if (input.action != ButtonAction::NONE) {
         // Suppress rotation and reset delta
         noInterrupts();
         _encoderDelta = 0;
@@ -141,38 +146,14 @@ GameInput ControlPad::read() {
         } else {
             _lastAction = input.action;
         }
-        return input;
-    }
-
-    // 2. Check Analog Input
-    ButtonAction analogAction = checkAnalogInput();
-    if (analogAction != ButtonAction::NONE) {
-        input.action = analogAction;
-
-        // Suppress rotation
+    } else {
+        // No action, process rotation
         noInterrupts();
+        input.rotationDelta = _encoderDelta;
         _encoderDelta = 0;
         interrupts();
-        input.rotationDelta = 0;
 
-        if (_lastAction == input.action) {
-            input.action = ButtonAction::NONE;
-        } else {
-            _lastAction = input.action;
-        }
-        return input;
-    }
-
-    // 3. Encoder
-    // If no action, return rotation
-    noInterrupts();
-    input.rotationDelta = _encoderDelta;
-    _encoderDelta = 0;
-    interrupts();
-
-    // If just rotation, action is NONE.
-    // Reset last action if button released (meaning no action detected this frame)
-    if (input.action == ButtonAction::NONE) {
+        // Reset last action if button released (meaning no action detected this frame)
         _lastAction = ButtonAction::NONE;
     }
 

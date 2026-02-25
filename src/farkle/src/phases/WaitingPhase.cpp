@@ -18,7 +18,6 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
         return game.getPhase<PostGamePhase_V1>();
     }
 
-    // 2. Handle Scoring Inputs (Discrete Buttons)
     switch (input.action) {
         case ButtonAction::PLUS_500:
             state.atRiskScore += 500;
@@ -52,9 +51,6 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
         default:
             break;
     }
-
-    // Safety floor
-    if (state.atRiskScore < 0) state.atRiskScore = 0;
 
     return this;
 }
