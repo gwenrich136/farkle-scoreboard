@@ -15,9 +15,7 @@ void test_FullGame_StandardGame() {
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
-        simulateButtonPress(game, ButtonAction::PLUS_500);
-        simulateButtonPress(game, ButtonAction::PLUS_500);
-        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500, 3);
         
         // Start banking
         simulateButtonPress(game, ButtonAction::BANK);

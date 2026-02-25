@@ -107,9 +107,7 @@ void test_PlayerSelection_MaxPlayers() {
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Add 8 players
-    for (int i = 0; i < 8; ++i) {
-        simulateButtonPress(game, ButtonAction::BANK);
-    }
+    simulateButtonPress(game, ButtonAction::BANK, 8);
 
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
     TEST_ASSERT_TRUE(game.grid.isMaxPlayersReached());
