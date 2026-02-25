@@ -12,7 +12,7 @@ void FarklingPhase::onEnter(GameState& state) {
     }
 }
 
-GamePhase* FarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* FarklingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     // 1. Perform Animation
     if (state.atRiskScore > 0) {
         scoreMoveAccumulator += (FARKLE_DRAIN_SPEED * deltaTime);
@@ -32,7 +32,7 @@ GamePhase* FarklingPhase::update(Game& game, GameState& state, ButtonAction acti
         state.atRiskScore = 0;
 
         // Wait for user dismissal
-        if (action != ButtonAction::NONE) {
+        if (input.action != ButtonAction::NONE) {
             this->endTurn(state);
             return game.getPhase<WaitingPhase>();
         }

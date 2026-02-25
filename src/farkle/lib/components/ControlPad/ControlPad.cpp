@@ -1,77 +1,161 @@
 #include "ControlPad.h"
-#include "ButtonActions.h"
+#include <stdlib.h> // for abs
 
-ControlPad::ControlPad() : _lastAction(ButtonAction::NONE), _activePinCount(0) {
-  // Initialize all pins to NONE
-  for (int i = 0; i < MAX_PINS; i++) {
-    _buttonMap[i] = ButtonAction::NONE;
-    _lastDebounceTime[i] = 0;
-    _lastButtonState[i] = HIGH; // Pull-up means default state is HIGH
-    _buttonState[i] = HIGH;
+// Singleton instance for Interrupt Service Routine
+static ControlPad* instance = nullptr;
+
+// Interrupt handler wrapper
+static void encoderInterruptHandler() {
+  if (instance) {
+    instance->handleInterrupt();
   }
 }
 
-void ControlPad::addButton(int pin, ButtonAction buttonAction) {
-  if (pin < 0 || pin >= MAX_PINS) {
-    return;
-  }
-
-  if (buttonAction == ButtonAction::NONE) {
-    Serial.println("Error: Cannot map button to NONE");
-    return;
-  }
-
-  if (_buttonMap[pin] != ButtonAction::NONE) {
-    Serial.println("Error: Pin already mapped");
-    return;
-  }
-
-  _buttonMap[pin] = buttonAction;
-  _activePins[_activePinCount++] = pin;
-  _lastDebounceTime[pin] = 0;
-  _lastButtonState[pin] = HIGH;
-  _buttonState[pin] = HIGH;
-  pinMode(pin, INPUT_PULLUP); // Configure pin as input with pull-up resistor
+ControlPad::ControlPad() {
+  instance = this;
+  initializeHardware();
 }
 
-ButtonAction ControlPad::read() {
-  int pressedCount = 0;
-  ButtonAction pressedAction = ButtonAction::NONE;
+void ControlPad::initializeHardware() {
+  // Initialize state
+  _lastAction = ButtonAction::NONE;
+  _encoderDelta = 0;
 
-  unsigned long now = millis();
+  _lastAnalogValue = -1;
+  _analogStableStartTime = 0;
+  _currentAnalogAction = ButtonAction::NONE;
 
-  for (int i = 0; i < _activePinCount; i++) {
-    int pin = _activePins[i];
+  for (int i = 0; i < 20; i++) {
+      _lastDebounceTime[i] = 0;
+      _buttonState[i] = HIGH;
+      _lastButtonState[i] = HIGH;
+  }
 
-    int reading = digitalRead(pin);
+  // Setup Pins
+  pinMode(BANK_PIN, INPUT_PULLUP);
+  pinMode(FARKLE_PIN, INPUT_PULLUP);
+  pinMode(ENCODER_PIN_A, INPUT_PULLUP);
+  pinMode(ENCODER_PIN_B, INPUT_PULLUP);
+  pinMode(ANALOG_INPUT_PIN, INPUT);
 
-    if (reading != _lastButtonState[pin]) {
-      _lastDebounceTime[pin] = now;
-    }
+  // Attach Interrupts
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderInterruptHandler, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), encoderInterruptHandler, CHANGE);
+}
 
-    if ((now - _lastDebounceTime[pin]) > DEBOUNCE_DELAY) {
-      if (reading != _buttonState[pin]) {
-        _buttonState[pin] = reading;
+void ControlPad::handleInterrupt() {
+  static int lastA = HIGH;
+  static int lastB = HIGH;
+
+  int newA = digitalRead(ENCODER_PIN_A);
+  int newB = digitalRead(ENCODER_PIN_B);
+
+  if (newA != lastA || newB != lastB) {
+      if (newA != lastA) {
+          if (newA == newB) _encoderDelta--;
+          else _encoderDelta++;
+      } else {
+          if (newA != newB) _encoderDelta--;
+          else _encoderDelta++;
       }
-    }
-
-    _lastButtonState[pin] = reading;
-
-    // Use the debounced state
-    if (_buttonState[pin] == LOW) { // Button is pressed (LOW due to INPUT_PULLUP)
-      pressedCount++;
-      pressedAction = _buttonMap[pin];
-    }
   }
 
-  if (pressedCount > 1) {
+  lastA = newA;
+  lastB = newB;
+}
+
+ButtonAction ControlPad::mapAnalogValueToAction(int val) {
+    // 0 (CLEAR), 93 (+50), 328 (+100), 512 (+500)
+    if (val < 46) return ButtonAction::CLEAR;
+    if (val < 210) return ButtonAction::PLUS_50;
+    if (val < 420) return ButtonAction::PLUS_100;
+    if (val < 700) return ButtonAction::PLUS_500;
     return ButtonAction::NONE;
-  }
-  if (pressedAction == _lastAction) {
-    // To ensure holding a button counts as one press
-    return ButtonAction::NONE; 
-  }
-  
-  _lastAction = pressedAction;
-  return pressedAction;
+}
+
+ButtonAction ControlPad::checkAnalogInput() {
+    int val = analogRead(ANALOG_INPUT_PIN);
+
+    // Stability check (tolerance +/- 5)
+    if (abs(val - _lastAnalogValue) > 5) {
+        _lastAnalogValue = val;
+        _analogStableStartTime = millis();
+        return ButtonAction::NONE; // Unstable
+    }
+
+    // Stable
+    if (millis() - _analogStableStartTime > ANALOG_STABILITY_THRESHOLD_MS) {
+        return mapAnalogValueToAction(val);
+    }
+
+    return ButtonAction::NONE;
+}
+
+ButtonAction ControlPad::checkDigitalInput() {
+    // Check BANK and FARKLE
+    int pins[] = {BANK_PIN, FARKLE_PIN};
+    ButtonAction actions[] = {ButtonAction::BANK, ButtonAction::FARKLE};
+
+    for (int i = 0; i < 2; i++) {
+        int pin = pins[i];
+        int reading = digitalRead(pin);
+
+        if (reading != _lastButtonState[pin]) {
+            _lastDebounceTime[pin] = millis();
+        }
+
+        if ((millis() - _lastDebounceTime[pin]) > DEBOUNCE_DELAY) {
+            if (reading != _buttonState[pin]) {
+                _buttonState[pin] = reading;
+            }
+        }
+
+        _lastButtonState[pin] = reading;
+
+        if (_buttonState[pin] == LOW) {
+            return actions[i];
+        }
+    }
+    return ButtonAction::NONE;
+}
+
+GameInput ControlPad::read() {
+    GameInput input;
+    input.action = ButtonAction::NONE;
+    input.rotationDelta = 0;
+
+    // 1. Check Digital Priority
+    input.action = checkDigitalInput();
+
+    // 2. Check Analog Input (if no digital action)
+    if (input.action == ButtonAction::NONE) {
+        input.action = checkAnalogInput();
+    }
+
+    // 3. Process Action or Rotation
+    if (input.action != ButtonAction::NONE) {
+        // Suppress rotation and reset delta
+        noInterrupts();
+        _encoderDelta = 0;
+        interrupts();
+        input.rotationDelta = 0;
+
+        // Auto-repeat filtering
+        if (_lastAction == input.action) {
+            input.action = ButtonAction::NONE;
+        } else {
+            _lastAction = input.action;
+        }
+    } else {
+        // No action, process rotation
+        noInterrupts();
+        input.rotationDelta = _encoderDelta;
+        _encoderDelta = 0;
+        interrupts();
+
+        // Reset last action if button released (meaning no action detected this frame)
+        _lastAction = ButtonAction::NONE;
+    }
+
+    return input;
 }

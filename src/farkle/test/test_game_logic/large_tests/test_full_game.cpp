@@ -5,6 +5,9 @@
 #include <unity.h>
 #include "Arduino.h"
 
+// Forward declaration of helper
+void advance_to_player_zero(Game& game);
+
 // Simulates a full game where players take turns scoring until one player reaches the target score, triggering the final round.
 void test_FullGame_StandardGame() {
     Game game;
@@ -12,8 +15,9 @@ void test_FullGame_StandardGame() {
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
-        simulateButtonPress(game, ButtonAction::UP_1000);
-        simulateButtonPress(game, ButtonAction::RIGHT_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
         
         // Start banking
         simulateButtonPress(game, ButtonAction::BANK);
@@ -59,8 +63,11 @@ void test_FullGame_TripleFarkle() {
 
     // --- Run the penalty animation ---
     // Needs to cover 3000ms PAIN + 1000ms DRAIN
+    GameInput noInput;
+    noInput.action = ButtonAction::NONE;
+    noInput.rotationDelta = 0;
     for (int i = 0; i < 450; ++i) {
-        game.currentPhase->update(game, game.state, ButtonAction::NONE, 10);
+        game.currentPhase->update(game, game.state, noInput, 10);
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score); // Final score is correct
@@ -71,7 +78,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     setupGameWithPlayers(game, 4);
 
     // --- Player 0 scores 500 points ---
-    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
@@ -118,7 +125,7 @@ void test_FullGame_FinalRoundBlinking() {
     TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 
     // Player 0 scores enough to cross the target score
-    simulateButtonPress(game, ButtonAction::RIGHT_500); // 9500 + 500 = 10000
+    simulateButtonPress(game, ButtonAction::PLUS_500); // 9500 + 500 = 10000
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
 

@@ -7,6 +7,12 @@ void simulateButtonPress(Game& game, ButtonAction action, unsigned long advance_
     game.loop();
 }
 
+void simulateRotation(Game& game, int delta, unsigned long advance_time_millis) {
+    game.controlPad.rotate(delta);
+    advance_millis(advance_time_millis);
+    game.loop();
+}
+
 void setupGameWithPlayers(Game& game, int numPlayers) {
     game.setup();
 
@@ -16,10 +22,6 @@ void setupGameWithPlayers(Game& game, int numPlayers) {
     // Names from the pool to be consistent
     const char* names[] = {"Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"};
     for (int i = 0; i < numPlayers; ++i) {
-        // Find the index in available names. Since we are adding from start, it's just i.
-        // Actually, PlayerSelectionPhase filters them.
-        // We can just simulate the BANK button if we want to be realistic,
-        // but setupGameWithPlayers is meant to bypass selection.
         game.addPlayer(names[i]);
     }
     // 2. Transition from PlayerSelectionPhase to WaitingPhase

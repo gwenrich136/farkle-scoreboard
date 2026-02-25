@@ -16,18 +16,18 @@ void test_TargetScoreSelection_InitialState() {
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
 }
 
-// Verifies that UP_1000 and DOWN_50 increment and decrement the target score correctly.
+// Verifies that rotation increments and decrements the target score correctly.
 void test_TargetScoreSelection_Adjustment() {
     Game game;
     game.setup();
 
-    // Increment
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    // Increment (1 click = 1000)
+    simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_INT(11000, game.state.targetScore);
     TEST_ASSERT_EQUAL_STRING("11,000", game.oled.captured_item.c_str());
 
-    // Decrement
-    simulateButtonPress(game, ButtonAction::DOWN_50);
+    // Decrement (1 click = 1000)
+    simulateRotation(game, -1);
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
     TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
 }
@@ -38,25 +38,30 @@ void test_TargetScoreSelection_Clamping() {
     game.setup();
 
     // Test Lower Bound
-    for (int i = 0; i < 15; ++i) {
-        simulateButtonPress(game, ButtonAction::DOWN_50);
+    // Start at 10,000. Go down 15,000 (15 clicks).
+    // Wait, 15 clicks * 1000 = 15000. 10000 - 15000 = -5000 -> clamped to 1000?
+    // Let's do 9 clicks to get to 1000.
+    for (int i = 0; i < 9; ++i) {
+        simulateRotation(game, -1);
     }
     TEST_ASSERT_EQUAL_INT(1000, game.state.targetScore);
     TEST_ASSERT_EQUAL_STRING("1,000", game.oled.captured_item.c_str());
 
     // Try to go below
-    simulateButtonPress(game, ButtonAction::DOWN_50);
+    simulateRotation(game, -1);
     TEST_ASSERT_EQUAL_INT(1000, game.state.targetScore);
 
     // Test Upper Bound
+    // Start at 1000. Go up 19 clicks -> 20000.
     for (int i = 0; i < 25; ++i) {
-        simulateButtonPress(game, ButtonAction::UP_1000);
+        simulateRotation(game, 1);
     }
+    // Should be clamped at 20000
     TEST_ASSERT_EQUAL_INT(20000, game.state.targetScore);
     TEST_ASSERT_EQUAL_STRING("20,000", game.oled.captured_item.c_str());
 
     // Try to go above
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_INT(20000, game.state.targetScore);
 }
 
@@ -67,7 +72,7 @@ void test_TargetScoreSelection_Transition() {
 
     // Change score to 5000
     for (int i = 0; i < 5; ++i) {
-        simulateButtonPress(game, ButtonAction::DOWN_50);
+        simulateRotation(game, -1);
     }
     TEST_ASSERT_EQUAL_INT(5000, game.state.targetScore);
 

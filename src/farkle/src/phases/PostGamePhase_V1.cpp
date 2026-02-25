@@ -1,4 +1,5 @@
 #include "phases/PostGamePhase_V1.h"
+#include "Game.h"
 
 void PostGamePhase_V1::onEnter(GameState& state) {
     // Determine winner and cache display data
@@ -24,7 +25,7 @@ void PostGamePhase_V1::onEnter(GameState& state) {
     }
 }
 
-GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     // Frozen state: ignore all input
     return this;
 }

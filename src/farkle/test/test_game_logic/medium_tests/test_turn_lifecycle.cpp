@@ -32,8 +32,8 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 
     // 3. Navigate to "Coach"
-    simulateButtonPress(game, ButtonAction::UP_1000); // Sammy
-    simulateButtonPress(game, ButtonAction::UP_1000); // Coach
+    simulateRotation(game, 1); // Sammy
+    simulateRotation(game, 1); // Coach
 
     // 4. Add Coach
     simulateButtonPress(game, ButtonAction::BANK);
@@ -42,8 +42,8 @@ void test_TurnLifecycle_FullSetupAndTurn() {
 
     // 5. Add "Alex"
     // After adding Coach (index 2), Sheshe is now at index 2.
-    // Alex is at index 3. So one UP_1000 is needed.
-    simulateButtonPress(game, ButtonAction::UP_1000); // Alex
+    // Alex is at index 3. So one Rotation is needed.
+    simulateRotation(game, 1); // Alex
     simulateButtonPress(game, ButtonAction::BANK);
     TEST_ASSERT_EQUAL_INT(2, game.state.players.size());
     TEST_ASSERT_EQUAL_STRING("Alex", game.state.players[1].name.c_str());
@@ -60,8 +60,11 @@ void test_TurnLifecycle_FullSetupAndTurn() {
 void test_TurnLifecycle_StandardTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::RIGHT_500);
+
+    // Simulate scoring 1500 (3 x 500)
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     
     // Start banking
     simulateButtonPress(game, ButtonAction::BANK);
@@ -83,7 +86,8 @@ void test_TurnLifecycle_RoundRobin() {
     setupGameWithPlayers(game, 4);
 
     for (int i = 0; i < 4; i++) {
-        simulateButtonPress(game, ButtonAction::UP_1000);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
+        simulateButtonPress(game, ButtonAction::PLUS_500);
         
         // Start banking
         simulateButtonPress(game, ButtonAction::BANK);
@@ -102,8 +106,8 @@ void test_TurnLifecycle_RoundRobin() {
 void test_TurnLifecycle_ClearButton() {
     Game game;
     setupGameWithPlayers(game, 4);
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::CLEAR);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);

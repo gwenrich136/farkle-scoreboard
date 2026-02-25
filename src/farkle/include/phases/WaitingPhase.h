@@ -7,7 +7,7 @@ class WaitingPhase : public InGamePhase {
 public:
     virtual ~WaitingPhase() = default;
     virtual void onEnter(GameState& state) override;
-    virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) override;
+    virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) override;
 
 protected:
     virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) override;
