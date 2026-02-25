@@ -41,7 +41,7 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
         case ButtonAction::FARKLE:
             {
                 if (state.players.empty()) break;
-                // Transition logic for Farkle
+
                 // If farkle_count >= 2 (already), entering here makes it 3 (Catastrophic).
                 Player& currentPlayer = state.players[state.currentPlayerIndex];
                 return (currentPlayer.farkle_count >= 2) ? (GamePhase*)game.getPhase<PenaltyFarklingPhase>() : (GamePhase*)game.getPhase<FarklingPhase>();

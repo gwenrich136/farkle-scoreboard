@@ -31,8 +31,6 @@ void Game::setup() {
     Serial.println("GAME: Init FarkleLights...");
     farkleLights.begin();
     
-    // ControlPad is self-configuring in constructor for hybrid input model.
-
     // 2. Reset Game to clean state
     resetGame();
 
