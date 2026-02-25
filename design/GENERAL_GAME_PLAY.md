@@ -116,7 +116,7 @@ The game begins by guiding players through setup and configuration.
 After the winner celebration, the device enters a continuous post-game loop.
 
 ### 4.1 Game Replay & Upload (Parallel)
--   **Visual Replay:** The `LedProgressGrid` continuously replays the entire game's score history, showing how each player's score progressed throughout the game.
+-   **Visual Replay:** The `LedProgressGrid` continuously replays the game's progress, showing how each player's score advanced throughout the session.
 -   **Data Upload (Background/Interactive):** Simultaneously, the scoreboard attempts to connect via Bluetooth or WiFi to a paired phone.
     -   The `TextDisplay` provides status updates (e.g., "CONNECTING...", "UPLOADING...").
     -   If the upload is successful, the `TextDisplay` indicates this.
@@ -132,4 +132,4 @@ After the winner celebration, the device enters a continuous post-game loop.
 
 ### 4.3 Reset Game
 -   **Confirmation:** Selecting "Play Again" or triggering a reset (e.g., via `CLEAR` from a specific context) leads to a "Reset Game?" confirmation screen.
--   **Action:** Confirming the reset wipes all game history and returns the device to the initial "Target Score Selection" state.
+-   **Action:** Confirming the reset returns the device to the initial "Target Score Selection" state.
