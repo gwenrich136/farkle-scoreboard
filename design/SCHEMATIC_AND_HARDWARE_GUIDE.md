@@ -28,8 +28,9 @@ The diagram below uses **Mermaid.js**. You can render this using the [Mermaid Li
 To alleviate display corruption caused by "dirty power" (noise from high-current components like the LED Grid), the following capacitors are required:
 
 1.  **Main Bulk Reservoir**: Install a large **1000µF (10V or 16V) Electrolytic Capacitor** across the main power rails (near where the PSU input enters). This acts as a reservoir to buffer the large current spikes from the NeoPixel grid.
-2.  **Local Decoupling**: Install a **0.1µF Ceramic Capacitor** as close as possible to the VCC and GND pins of the **TextDisplay (OLED)**. This filters out high-frequency noise that can interfere with the I2C signal.
-3.  **Arduino Decoupling**: Similarly, place a **0.1µF Ceramic Capacitor** near the Arduino's 5V and GND pins if using the common power rail.
+2.  **Local Decoupling**: Install a **0.1µF Ceramic Capacitor** as close as possible to the VCC and GND pins of the **IPS LCD (ST7789)**. This filters out high-frequency noise.
+3.  **Input Smoothing (Hybrid Ladder)**: Install a **0.1µF Ceramic Capacitor** between the **A2 (Analog Input)** pin and **GND**. This is crucial for stabilizing the resistor ladder readings during NeoPixel activity.
+4.  **Arduino Decoupling**: Similarly, place a **0.1µF Ceramic Capacitor** near the Arduino's 5V and GND pins if using the common power rail.
 
 ### **Connecting a USB Power Bank**
 
@@ -88,22 +89,30 @@ graph TD
     subgraph Arduino \["Arduino Uno R4 WiFi"\]  
     A\_5V\[5V Pin\]  
     A\_GND\[GND Pin\]  
-    D2\_8\["Pins D2-D8 (Buttons)"\]  
-    D9\["Pin D9 (Speaker)"\]  
-    D10\_12\["Pins D10-D12 (MAX7219)"\]  
-    A4\_A5\["SDA/SCL (LCD)"\]  
-    A0\["Pin A0 (NeoPixel Data)"\]  
+    D2\_D3\["D2/D3 (Encoder A/B)"\]
+    D4\["Pin D4 (SELECT)"\]
+    D5\["Pin D5 (BANK)"\]
+    D6\["Pin D6 (FARKLE)"\]
+    D7\["Pin D7 (LCD RES)"\]
+    D8\["Pin D8 (LCD BLK)"\]
+    D9\["Pin D9 (SD CS)"\]
+    D10_D13\["D10-D13 (SPI BUS)"\]
+    A0\["Pin A0 (NeoPixel Grid)"\]  
     A1\["Pin A1 (Status Strip)"\]  
-    A2\["Pin A2 (Available)"\]  
+    A2\["Pin A2 (Ladder: Scoring/Clear)"\]  
+    A3\["Pin A3 (Latching Switch)"\]
+    A4\["Pin A4 (LCD CS)"\]
+    A5\["Pin A5 (LCD DC)"\]
     end
 
     subgraph Components  
     NEO\["8x8 NeoPixel Grid"\]  
-    MAX\["3x MAX7219 Drivers"\]  
-    LCD\["I2C LCD Screen"\]  
-    SPK\[Speaker \+ Slide Switch\]  
-    BTNS\["7x Push Buttons"\]  
+    MAX\["MAX7219 Drivers (Chain)"\]  
+    LCD\["ST7789 IPS LCD (SPI)"\]  
+    SPK\["MP3 Player + Speaker"\]  
+    BTNS\["Hybrid Control Pad"\]  
     STRIP\["8-LED Status Strip"\]  
+    SD\["SD Card Module"\]
     end
 
     %% USB Connection  
@@ -116,99 +125,118 @@ graph TD
     SWITCH \--\> NEO  
     SWITCH \--\> MAX  
     SWITCH \--\> LCD  
-        SWITCH \--\> STRIP  
-        GND\_BUS \--\> A\_GND  
-        GND\_BUS \--\> NEO  
-        GND\_BUS \--\> MAX  
-        GND\_BUS \--\> LCD  
-        GND\_BUS \--\> SPK  
-        GND\_BUS \--\> BTNS  
-        GND\_BUS \--\> STRIP  
+    SWITCH \--\> STRIP  
+    SWITCH \--\> SD
+    GND\_BUS \--\> A\_GND  
+    GND\_BUS \--\> NEO  
+    GND\_BUS \--\> MAX  
+    GND\_BUS \--\> LCD  
+    GND\_BUS \--\> SPK  
+    GND\_BUS \--\> BTNS  
+    GND\_BUS \--\> STRIP  
+    GND\_BUS \--\> SD
     
-        %% Signals  
-        A0 \--\> NEO  
-        D10\_12 \--\> MAX  
-        D9 \--\> SPK  
-        D2\_8 \--\> BTNS  
-        A4\_A5 \--\> LCD  
-        A1 \--\> STRIP  
+    %% Signals  
+    A0 \--\> NEO  
+    D10_D13 \--\> MAX  
+    D10_D13 \--\> LCD
+    D10_D13 \--\> SD
+    D4 \--\> BTNS
+    D5 \--\> BTNS
+    D6 \--\> BTNS
+    A2 \--\> BTNS
+    A3 \--\> BTNS
+    D2_D3 \--\> BTNS
+    A1 \--\> STRIP  
+    A4 \--\> LCD
+    A5 \--\> LCD
+    D7 \--\> LCD
+    D8 \--\> LCD
 
 ## **Detailed Pin Map**
 
-### **1\. Displays (MAX7219 Daisy Chain)**
+### **1. Shared SPI Bus (D9 - D13)**
 
-*Refer to the previous section for the specific digit wiring between chips.*
+| Arduino Pin | Signal | Component | CS Pin |
+| :---- | :---- | :---- | :---- |
+| **D11** | **MOSI (COPI)** | Shared Bus | - |
+| **D12** | **MISO (CIPO)** | Shared Bus | - |
+| **D13** | **SCK (Clock)** | Shared Bus | - |
+| **D10** | **CS** | **MAX7219 Grid** | D10 |
+| **A4** | **CS** | **ST7789 LCD** | A4 |
+| **D9** | **CS** | **SD Card** | D9 |
 
-| Arduino Pin | Component Pin | Notes |
+### **2. IPS Color LCD (ST7789)**
+
+| Arduino Pin | Signal | Notes |
 | :---- | :---- | :---- |
-| **D12** | DIN (Chip 1\) | Data Input |
-| **D11** | CLK (Shared) | Clock |
-| **D10** | CS/LOAD (Shared) | Chip Select |
+| **A5** | **DC** | Data/Command |
+| **D7** | **RES** | Reset Line |
+| **D8** | **BLK** | Backlight Control (PWM) |
 
-### **2\. NeoPixel Grid (8x8)**
+### **3. Hybrid Control Pad**
 
-*Requires high current. Ensure direct connection to PSU.*
+| Input Type | Pin | Action | Rationale |
+| :---- | :---- | :---- | :---- |
+| **Digital** | **D2/D3** | **Encoder A/B** | High-speed rotation interrupts. |
+| **Digital** | **D4** | **SELECT** | Encoder Push Button (Reliable during rotation). |
+| **Digital** | **D5** | **BANK** | Dedicated high-priority action. |
+| **Digital** | **D6** | **FARKLE** | Dedicated high-priority action. |
+| **Digital (A3)** | **A3** | **Latching SW** | Static state (Total Score toggle). |
+| **Analog** | **A2** | **Ladder** | **+50, +100, +500, CLEAR**. |
 
-| Arduino Pin | Component Pin | Notes |
+### **4. LED & Audio**
+
+| Arduino Pin | Component | Function |
 | :---- | :---- | :---- |
-| **A0** | DIN / Data In | You can treat A0 as a digital pin (Pin 14\) |
+| **A0** | **8x8 LED Grid** | Visual scoring matrix. |
+| **A1** | **Status Strip** | Turn pointers & danger levels. |
+| **D0/D1** | **MP3 Module** | Serial1 UART for audio events. |
 
-### **3. Status Indicator Strip (v2 - Step 1)**
+## **Hybrid Resistor Ladder (A2)**
 
-| Arduino Pin | Component | Logic |
-| :---- | :---- | :---- |
-| **A1** | **8-LED NeoPixel Strip** | Turn pointers & Farkle warnings |
+The ladder uses a pull-up resistor to create unique voltage zones for four buttons.
 
-### **4\. Inputs (7 Buttons)**
+*   **VCC \-\> 10kΩ Resistor \-\> A2**
+*   **A2 \-\> Button \-\> R\_Zone \-\> GND**
 
-*Wire one side of the button to the Pin, the other side to GND. We will use internal pull-up resistors in code (INPUT\_PULLUP), so no external resistors are needed.*
+| Button | R\_Zone | Approx. ADC (10-bit) |
+| :--- | :--- | :--- |
+| **CLEAR** | 0Ω (Direct) | 0 (\~0V) |
+| **+50** | 1kΩ | \~93 (\~0.45V) |
+| **+100** | 4.7kΩ | \~328 (\~1.6V) |
+| **+500** | 10kΩ | \~512 (\~2.5V) |
+| **NONE** | Open | 1023 (\~5.0V) |
 
-| Arduino Pin | Function | Game Logic Example |
-| :---- | :---- | :---- |
-| **D3** | Button 1 | RIGHT_500 |
-| **D2** | Button 2 | UP_1000 |
-| **D4** | Button 3 | DOWN_50 |
-| **D5** | Button 4 | LEFT_100 |
-| **D6** | Button 5 | BANK |
-| **D7** | Button 6 | CLEAR |
-| **D8** | Button 7 | FARKLE |
-
-### **5\. Audio**
-
-*The slide switch acts as a hardware "Mute".*
-
-| Arduino Pin | Circuit Path |
-| :---- | :---- |
-| **D9** | Pin D9 \-\> 220Ω Resistor \-\> Slide Switch \-\> Speaker (+) \-\> Speaker (-) \-\> GND |
-
-### **6\. LCD Screen (I2C)**
-
-*Used for settings, Wi-Fi status, or text readouts.*
-
-| Arduino Pin | LCD Pin | Notes |
-| :---- | :---- | :---- |
-| **SDA** (or A4) | SDA | Data |
-| **SCL** (or A5) | SCL | Clock |
 
 ## **Updated Code Concepts for Uno R4**
 
 Since you are using the Uno R4 WiFi, you can take advantage of the ArduinoLEDMatrix library if you were using the built-in grid, but for your external NeoPixels, stick to Adafruit\_NeoPixel.
 
 ### **Setup Snippet**
-```
-// Buttons  
-const int btnPins\[\] \= {2, 3, 4, 5, 6, 7, 8};  
+```cpp
+// Action Buttons (Digital)
+const int BANK_PIN = 5;
+const int FARKLE_PIN = 6;
+const int SELECT_PIN = 4;
+
+// Ladder (Analog)
+const int LADDER_PIN = A2;
+
 // Status Indicator Strip
-const int STATUS\_STRIP\_PIN \= A1;
+const int STATUS_STRIP_PIN = A1;
 
 void setup() {  
-  // Initialize Buttons  
-  for (int i \= 0; i \< 7; i++) {  
-    pinMode(btnPins\[i\], INPUT\_PULLUP);  
-  }
+  // Initialize Digital Buttons
+  pinMode(BANK_PIN, INPUT_PULLUP);
+  pinMode(FARKLE_PIN, INPUT_PULLUP);
+  pinMode(SELECT_PIN, INPUT_PULLUP);
 
-  // ... Initialize Status Strip (NeoPixel), WiFi, LCD, etc ...  
+  // Note: Ladder Pin (A2) does not require pinMode for analogRead()
+  
+  // ... Initialize Status Strip (NeoPixel), LCD (SPI), etc ...  
 }
+```
 
 void loop() {  
   // Example Logic  

@@ -1,4 +1,4 @@
-# Hardware Upgrade Migration Plan: Version 2.5 (Hybrid Strategy)
+# Hardware Upgrade Migration Plan
 
 > **Scope:** Roadmap for the V1 to V2 hardware transition, featuring the ST7789 Color IPS Display and a Hybrid Input Architecture.
 > **Status:** **LIVE STRATEGY** - Step 1 is DONE. Step 2 is the active target.
@@ -26,7 +26,7 @@ The **8-LED NeoPixel Strip** provides a "Danger Map" of the table.
 
 ---
 
-## 2. The Target State: Hardware v2.5 Pin Map
+## 2. The Target State: Pin Map
 
 To accommodate the increased pin cost of the SPI LCD while preserving hardware encapsulation, we employ a "Hybrid Input" model.
 
@@ -73,9 +73,11 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 **Step 1: The Status Strip (A1) [DONE]**
 
 **Step 2: The Hybrid Input Refactor**
-*   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** to their target digital pins.
-*   **Software:** Update `ControlPad` HAL to handle `analogRead` thresholds.
-*   **Verification:** Verify 100% button detection accuracy during heavy NeoPixel activity.
+*   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** (Encoder Push) to their target digital pins.
+*   **Software (ControlPad):** Implement **Interrupt-Safe Encoder** rotation logic and **Analog Ladder** stability (50ms window).
+*   **Software (Architecture):** Refactor the system to use the encapsulated `GameInput` struct (ButtonAction + rotationDelta) and update all `GamePhase::update()` signatures.
+*   **Software (Navigation):** Migrate menu scrolling (Target Score, Player Selection) to use the Encoder.
+*   **Verification:** Native tests for priority logic, stability windows, and "no-repeat" ladder logic.
 
 **Step 3: The IPS Color Upgrade (ST7789)**
 *   **Hardware:** Connect ST7789 to SPI and Control Pins (A4, A5, D7, D8).

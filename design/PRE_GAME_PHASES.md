@@ -30,9 +30,8 @@ The system follows this sequence:
 *   **Implementation Details:**
     1.  **Selection Logic**: Starts at a default of 10,000. Clamped between 1,000 and 20,000.
     2.  **Navigation**: 
-        *   `UP_1000`: Increments `state.targetScore` by 1,000.
-        *   `DOWN_50`: Decrements `state.targetScore` by 1,000.
-    3.  **Confirmation (BANK or FARKLE)**: 
+        *   **Encoder Rotation**: Increments or decrements `state.targetScore` in steps of 1,000.
+    3.  **Confirmation (BANK, FARKLE, or SELECT)**: 
         *   Finalizes the selection by calling `game.setTargetScore(state.targetScore)` to sync hardware (LED Grid).
         *   Returns `game.getPhase<PlayerSelectionPhase>()`.
     4.  **Display Behavior (Hooks)**:
@@ -46,7 +45,7 @@ The system follows this sequence:
 *   **Implementation Details:**
     1.  **Name Pool**: Maintains a static list of available names: "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", and "Andrea".
     2.  **Navigation**: 
-        *   `UP_1000` / `DOWN_50`: Increments/decrements a selection index.
+        *   **Encoder Rotation**: Increments or decrements the selection index.
         *   The list of available names is filtered in real-time to exclude names already present in `state.players`.
     3.  **Adding Players (GREEN/BANK)**: 
         *   Checks `game.canAddPlayer()` (which queries `grid.isMaxPlayersReached()`).
