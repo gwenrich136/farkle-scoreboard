@@ -74,6 +74,11 @@ After considering multiple alternatives, we have chosen to implement the **State
 The following files will be created or modified to implement the Game State Machine, following a "Pure State" architectural pattern where the `Game` class acts as a generic engine and all game logic is encapsulated within the `GamePhase` classes.
 
 #### New Files - Common Definitions
+*   **`src/farkle/include/GameConstants.h`**
+    *   **Why:** Defines global constants used across the game logic and hardware components, ensuring a single source of truth.
+    *   **Implementation Details:**
+        *   `#define MAX_PLAYERS 8`
+
 *   **`src/farkle/include/Input.h`**
     *   **Why:** Defines the input structures used by the `Game` engine and its phases.
     *   **Implementation Details:**

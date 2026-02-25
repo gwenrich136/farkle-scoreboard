@@ -4,8 +4,7 @@
 #include "Arduino.h"
 #include <Adafruit_NeoPixel.h>
 #include "PlayerLayout.h"
-
-#define MAX_PLAYERS 8
+#include "GameConstants.h"
 
 class FarkleWarningLights
 {

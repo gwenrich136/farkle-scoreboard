@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <cstdint>
-
-#define MAX_PLAYERS 8
+#include "GameConstants.h"
 
 class LedProgressGrid {
 public:
