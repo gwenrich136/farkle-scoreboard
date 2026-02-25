@@ -1,105 +1,101 @@
-# Hardware Upgrade Migration Plan: Version 1.0 to 2.0
+# Hardware Upgrade Migration Plan: Version 2.5 (Hybrid Strategy)
 
-> **Scope:** This document serves as the roadmap for the physical and logical transition from the V1 hardware (discrete LEDs, 7 buttons, basic speaker) to the V2 hardware (Status Strip, Rotary Encoder, SD Card, MP3 Player, and Latching Switch).
-> **Status:** **LIVE STRATEGY** - This document tracks the active migration.
+> **Scope:** Roadmap for the V1 to V2 hardware transition, featuring the ST7789 Color IPS Display and a Hybrid Input Architecture.
+> **Status:** **LIVE STRATEGY** - Step 1 is DONE. Step 2 is the active target.
 
 ---
 
 ## 1. The Vision: Hardware v2 Experience
 
-The goal of this upgrade is to transform the Farkle Scoreboard from a simple point-tracker into a professional-grade, interactive gaming device. 
+The V2 upgrade transforms the Farkle Scoreboard into a premium, color-coded interactive device.
 
-### 1.1 The "Competitor Preview" Window
-The **Rotary Encoder** (infinite) allows players to actively "scout" the competition without losing focus on their own turn. 
-*   **Tactile Navigation:** Moving the encoder cycles through other players on the `COMPETITION_SCORE` display.
-*   **Smart Selection:** At the start of a turn, the display defaults to the **Leader** (if the current player is not leading) or the **2nd Place Player** (to show the "person to beat").
-*   **Global Alerts:** The display continues to blink if *any* player has triggered the final round, serving as a persistent warning that the "bell lap" is active.
+### 1.1 The IPS Color Display (ST7789)
+A 240x240 RGB IPS display replaces the monochrome OLED.
+*   **Color-Coded Feedback:** Player names, turn indicators, and "at-risk" scores are rendered in the player's unique Golden Ratio hue.
+*   **High-Speed SPI:** Utilizing the Uno R4's hardware SPI bus for zero-latency UI updates.
 
-### 1.2 The Status Strip & Turn Pointer
-The **8-LED NeoPixel Strip** replaces the primitive 2-LED system with a dedicated indicator for every player row.
-*   **Turn Awareness:** The LED corresponding to the active player's row **flashes** in sync with the scoring display.
-*   **Strategic Farkle Tracking:**
-    *   **Current Player (Flashing):** **White** (0 farkles), **Yellow** (1), **Red** (2+).
-    *   **Other Players (Solid, Half-Brightness):** **OFF** (0 farkles), **Yellow** (1), **Red** (2+). This provides a permanent, low-profile map of everyone's "danger level."
+### 1.2 The "Competitor Preview" Window
+The **Rotary Encoder** (infinite) allows players to cycle through competitors on the `COMPETITION_SCORE` display.
+*   **Smart Selection:** Defaults to the Leader or the 2nd Place Player at the start of a turn.
+*   **Press-and-Turn:** The encoder button remains digital for 100% reliability during concurrent scrolling actions.
 
-### 1.3 Real-Time Strategy Toggle
-A **Latching Switch** provides instant toggling between "Banked Score" and "Total Score" (Banked + At-Risk). This eliminates mental math for the player, showing them exactly where they would stand if they banked *now*.
+### 1.3 Strategic Farkle Tracking (Status Strip)
+The **8-LED NeoPixel Strip** provides a "Danger Map" of the table.
+*   **Current Player (Flashing):** White (0), Yellow (1), Red (2+).
+*   **Other Players (Solid-Dim):** Off (0), Yellow (1), Red (2+).
 
 ---
 
-## 2. The Target State: Hardware v2 Pin Map
+## 2. The Target State: Hardware v2.5 Pin Map
+
+To accommodate the increased pin cost of the SPI LCD while preserving hardware encapsulation, we employ a "Hybrid Input" model.
 
 | Pin | Component | Function | Status |
 | :--- | :--- | :--- | :--- |
-| **D0** | **Serial1 RX** | **MP3 Player TX** (Hardware UART) | Pending |
-| **D1** | **Serial1 TX** | **MP3 Player RX** (Hardware UART) | Pending |
-| **D2** | **Rotary Encoder A** | **Interrupt 0** (Smooth Scroll) | Pending |
-| **D3** | **Rotary Encoder B** | **Interrupt 1** (Smooth Scroll) | Pending |
-| **D4** | **SD Card CS** | **SPI Chip Select** (Data) | Pending |
-| **D5** | **Button 1 (+50)** | Scoring Input | **Active (V1)** |
-| **D6** | **Button 2 (+100)** | Scoring Input | **Active (V1)** |
-| **D7** | **Button 3 (+500)** | Scoring Input | **Active (V1)** |
-| **D8** | **Button 4 (BANK)** | Main Action | **Active (V1)** |
-| **D9** | **Button 5 (FARKLE)** | Main Action | **Active (V1)** |
-| **D10** | **MAX7219 CS** | **SPI Chip Select** (Displays) | **Active (V1)** |
-| **D11** | **SPI COPI/MOSI** | Shared SPI Data | **Active (V1)** |
-| **D12** | **SPI CIPO/MISO** | Shared SPI Data | **Active (V1)** |
+| **D0/D1** | **MP3 Player** | **Serial1** (Hardware Audio) | Pending |
+| **D2/D3** | **Encoder A/B** | **Interrupts 0/1** (Smooth Scroll) | Pending |
+| **D4** | **Encoder SW** | **Digital Input** (SELECT Button) | Pending |
+| **D5** | **BANK Button** | **Digital Input** (High Reliability) | **Active (V1)** |
+| **D6** | **FARKLE Button** | **Digital Input** (High Reliability) | **Active (V1)** |
+| **D7** | **LCD RES** | Hardware Reset for LCD | Pending |
+| **D8** | **LCD BLK** | PWM Backlight Control | Pending |
+| **D9** | **SD Card CS** | SPI Chip Select (Data) | Pending |
+| **D10** | **MAX7219 CS** | SPI Chip Select (Displays) | **Active (V1)** |
+| **D11** | **SPI COPI** | Shared Data Out (MOSI) | **Active (V1)** |
+| **D12** | **SPI CIPO** | Shared Data In (MISO) | **Active (V1)** |
 | **D13** | **SPI SCK** | Shared SPI Clock | **Active (V1)** |
-| **A0** | **LedProgressGrid** | NeoPixel Data (8x8) | **Active (V1)** |
+| **A0** | **LED Grid** | NeoPixel Data (8x8) | **Active (V1)** |
 | **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
-| **A2** | **Button 6 (CLEAR)** | Reset Input | **Active (V1)** |
+| **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | Pending |
 | **A3** | **Latching Switch** | **"Total Score" Toggle** | Pending |
-| **A4** | **I2C SDA** | OLED Data | **Active (V1)** |
-| **A5** | **I2C SCL** | OLED Clock | **Active (V1)** |
+| **A4** | **LCD CS** | SPI Chip Select (LCD) | Pending |
+| **A5** | **LCD DC** | Data/Command (LCD) | Pending |
 
 ---
 
-## 3. Migration Steps (The "Safe Point" Approach)
+## 3. Rationale & Trade-off Analysis
 
-### **Phase 1: Visual Feedback Overhaul**
+### 3.1 Why the "Hybrid" Resistor Ladder?
+*   **Constraint:** The ST7789 IPS display requires 4 dedicated pins (CS, DC, RES, BLK) beyond the SPI bus.
+*   **Alternative Considered:** **Full Button Ladder (8 buttons).** Rejected due to "Ground Bounce" noise from the NeoPixel grid causing potential misreads on critical "Game Ender" buttons (BANK/FARKLE).
+*   **Alternative Considered:** **Daisy-Chaining LEDs.** Rejected to maintain strict software encapsulation between the `LedProgressGrid` and `FarkleWarningLights` components.
+*   **Decision:** Place the 4 "Utility/Scoring" buttons on an Analog Ladder (**A2**). Keep **BANK**, **FARKLE**, and **SELECT** (Encoder) on digital pins for 100% reliability and concurrent "Press-and-Turn" support.
+
+### 3.2 Handling Noise
+*   **Challenge:** Large NeoPixel current spikes create high-frequency noise on the analog rail.
+*   **Solution:** We implement **Analog Hysteresis** (Dead Zones) in the `ControlPad` library and recommend a **0.1µF capacitor** across the A2-GND pins to smooth the signal.
+
+---
+
+## 4. Migration Steps (The "Safe Point" Approach)
+
+### **Phase 1: Input & Display Foundation**
 **Step 1: The Status Strip (A1) [DONE]**
-*   **Hardware:** Unwire 2 LEDs. Connect 8-LED Status Strip to **A1**.
-*   **Software:** 
-    *   Overhaul `FarkleWarningLights` to manage an `Adafruit_NeoPixel` object.
-    *   Implement logic for White/Yellow/Red colors and the "Sync-Blink" vs "Solid-Dim" behaviors.
-*   **Verification:** Verify all 8 indicators respond correctly to turn changes and farkle events across all players.
 
-### **Phase 2: Input & Navigation Foundation**
-**Step 2: The ControlPad v2 (Encoder & Switch)**
-*   **Hardware:** Connect **Rotary Encoder** (D2, D3), **Latching Switch** (A3), and rearrange **6 Buttons**. Remove +1000 button.
-*   **Software:**
-    *   Integrate Switch and Encoder into the `ControlPad` HAL.
-    *   Implement `n-click` thresholding for encoder deltas.
-*   **Verification:** Test discrete button presses, switch state reading, and smooth encoder deltas.
+**Step 2: The Hybrid Input Refactor**
+*   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** to their target digital pins.
+*   **Software:** Update `ControlPad` HAL to handle `analogRead` thresholds.
+*   **Verification:** Verify 100% button detection accuracy during heavy NeoPixel activity.
 
-**Step 3: Menu Navigation (Pre-Game)**
-*   **Software:** Update `TargetScoreSelectionPhase` and `PlayerSelectionPhase` to use `encoder.getDelta()` for scrolling.
-*   **Verification:** Verify infinite, tactile scrolling through setup menus.
+**Step 3: The IPS Color Upgrade (ST7789)**
+*   **Hardware:** Connect ST7789 to SPI and Control Pins (A4, A5, D7, D8).
+*   **Software:** Swap `U8G2` for `Adafruit_ST7789`. Update UI for 240x240 and color-coded text.
+*   **Verification:** High-speed, color-accurate UI updates.
 
-### **Phase 4: Logic & Strategy Enhancements**
-**Step 4: The "Total Score" Toggle**
-*   **Software:** Modify `InGamePhase` to check the `ControlPad` switch state and toggle the middle display calculation.
-*   **Verification:** Verify real-time display switching during an active turn.
+### **Phase 2: Navigation & Logic**
+**Step 4: Strategic Navigation (Encoder A/B)**
+*   **Hardware:** Connect Encoder pulses to D2/D3.
+*   **Software:** Implement `encoder.getDelta()` for Competitor Preview and menu scrolling.
 
-**Step 5: Competitor Preview (The Strategy Window)**
-*   **Software:**
-    *   Update `WaitingPhase` to use `encoder.getDelta()` to cycle through competitors.
-    *   Implement "Skip Self" logic and "Reset on Turn End" behavior.
-*   **Verification:** Verify that the player can check other scores without losing focus on their turn.
+**Step 5: The "Total Score" Toggle (A3)**
+*   **Software:** Implement the latching switch logic to swap between Banked and Total scores.
 
-### **Phase 5: Persistence & Atmosphere**
-**Step 6: SD Card Storage**
-*   **Hardware:** Connect SD Module to SPI bus.
-*   **Software:** Integrate `SdFat.h`. Implement `Storage` class for game-data persistence.
-*   **Verification:** Verify that player names and target scores persist across power-cycles.
-
-**Step 7: MP3 Audio**
-*   **Hardware:** Connect DFPlayer Mini to **Serial1**.
-*   **Software:** Implement `AudioManager` and trigger tracks for key game events.
-*   **Verification:** Verify audio sync with game animations.
+### **Phase 3: Persistence & Audio**
+**Step 6: SD Card Storage (D9)**
+**Step 7: MP3 Audio (D0/D1)**
 
 ---
 
-## 4. Rollout Strategy
-1.  **Iterative Updates:** The `SCHEMATIC_AND_HARDWARE_GUIDE.md` will be updated after *each* step to reflect the current physical state.
-2.  **Continuous Testing:** No step is considered complete until all unit and component tests pass.
+## 5. Rollout Strategy
+1.  **Iterative Updates:** `SCHEMATIC_AND_HARDWARE_GUIDE.md` updated after each step.
+2.  **Safe Points:** No transition begins until the current hardware is playable and passing tests.
