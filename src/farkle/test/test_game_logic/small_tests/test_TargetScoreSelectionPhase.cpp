@@ -65,7 +65,7 @@ void test_TargetScoreSelection_Clamping() {
     TEST_ASSERT_EQUAL_INT(20000, game.state.targetScore);
 }
 
-// Verifies that pressing BANK or FARKLE transitions to PlayerSelectionPhase.
+// Verifies that pressing SELECT transitions to PlayerSelectionPhase, and BANK/FARKLE do not.
 void test_TargetScoreSelection_Transition() {
     Game game;
     game.setup();
@@ -76,15 +76,18 @@ void test_TargetScoreSelection_Transition() {
     }
     TEST_ASSERT_EQUAL_INT(5000, game.state.targetScore);
 
-    // Transition with BANK
+    // Transition with BANK should do nothing
     simulateButtonPress(game, ButtonAction::BANK);
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
+
+    // Transition with FARKLE should do nothing
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
+
+    // Transition with SELECT
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Should be in PlayerSelectionPhase
-    TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
-
-    // Reset and test transition with FARKLE
-    game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
     TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
 }
 

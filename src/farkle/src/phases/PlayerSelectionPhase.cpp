@@ -32,7 +32,7 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
     }
 
     // Handle actions
-    if (input.action == ButtonAction::BANK) {
+    if (input.action == ButtonAction::SELECT) {
         if (game.canAddPlayer()) {
             if (m_availableNames.size() > 0) {
                 game.addPlayer(m_availableNames[m_selectionIndex]);

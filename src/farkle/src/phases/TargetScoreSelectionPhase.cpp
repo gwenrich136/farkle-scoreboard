@@ -7,7 +7,7 @@ void TargetScoreSelectionPhase::onEnter(GameState& state) {
 }
 
 GamePhase* TargetScoreSelectionPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    if (input.action == ButtonAction::BANK || input.action == ButtonAction::FARKLE) {
+    if (input.action == ButtonAction::SELECT) {
         game.setTargetScore(state.targetScore);
         return game.getPhase<PlayerSelectionPhase>();
     }

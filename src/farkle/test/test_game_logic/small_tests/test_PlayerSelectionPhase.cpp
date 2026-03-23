@@ -10,7 +10,7 @@ void test_PlayerSelection_InitialState() {
     game.setup();
 
     // Transition to PlayerSelectionPhase
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Should be in PlayerSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
@@ -22,7 +22,7 @@ void test_PlayerSelection_InitialState() {
 void test_PlayerSelection_Cycling() {
     Game game;
     game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Next name
     simulateRotation(game, 1);
@@ -41,19 +41,23 @@ void test_PlayerSelection_Cycling() {
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 }
 
-// Verifies that pressing BANK adds the selected name and the selection "stays in place" (shifts to next name).
+// Verifies that pressing SELECT adds the selected name and the selection "stays in place" (shifts to next name).
 void test_PlayerSelection_AddPlayer() {
     Game game;
     game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Navigate to Sammy (index 1)
     simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Sammy", game.oled.captured_item.c_str());
 
-    // Add Sammy. List becomes: Geewee, Coach, Sheshe, ...
-    // index 1 should now point to "Coach"
+    // Press BANK should not add
     simulateButtonPress(game, ButtonAction::BANK);
+    TEST_ASSERT_EQUAL_INT(0, game.state.players.size());
+
+    // Add Sammy with SELECT. List becomes: Geewee, Coach, Sheshe, ...
+    // index 1 should now point to "Coach"
+    simulateButtonPress(game, ButtonAction::SELECT);
     TEST_ASSERT_EQUAL_INT(1, game.state.players.size());
     TEST_ASSERT_EQUAL_STRING("Sammy", game.state.players[0].name.c_str());
 
@@ -64,14 +68,14 @@ void test_PlayerSelection_AddPlayer() {
 void test_PlayerSelection_Filtering() {
     Game game;
     game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Add Geewee (index 0)
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::SELECT);
     // index 0 is now Sammy
 
     // Add Sammy (index 0)
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::SELECT);
     // index 0 is now Coach
 
     TEST_ASSERT_EQUAL_INT(2, game.state.players.size());
@@ -87,11 +91,12 @@ void test_PlayerSelection_TransitionValidation() {
     game.setup();
 
     // Cannot start with 0 players
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT); // Transition from TargetScore to PlayerSelection
+    simulateButtonPress(game, ButtonAction::FARKLE); // Try to start with 0
     TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
 
     // Add 1 player
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Now can start
     simulateButtonPress(game, ButtonAction::FARKLE);
@@ -104,17 +109,17 @@ void test_PlayerSelection_TransitionValidation() {
 void test_PlayerSelection_MaxPlayers() {
     Game game;
     game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Add 8 players
-    simulateButtonPress(game, ButtonAction::BANK, 8);
+    simulateButtonPress(game, ButtonAction::SELECT, 8);
 
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
     TEST_ASSERT_TRUE(game.grid.isMaxPlayersReached());
     TEST_ASSERT_EQUAL_STRING("ROSTER FULL", game.oled.captured_message.c_str());
 
     // Try to add one more
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::SELECT);
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
 }
 
@@ -122,7 +127,7 @@ void test_PlayerSelection_MaxPlayers() {
 void test_PlayerSelection_AddLastPlayerWraps() {
     Game game;
     game.setup();
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Pool size is 9. Add first 8 players one by one, but always selecting the LAST one.
     // names: 0, 1, 2, 3, 4, 5, 6, 7, 8
@@ -132,7 +137,7 @@ void test_PlayerSelection_AddLastPlayerWraps() {
     TEST_ASSERT_EQUAL_STRING("Andrea", game.oled.captured_item.c_str());
 
     // Add Andrea. List size becomes 8. Index 8 is out of bounds. Should wrap to 0 (Geewee).
-    simulateButtonPress(game, ButtonAction::BANK);
+    simulateButtonPress(game, ButtonAction::SELECT);
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 }
 
