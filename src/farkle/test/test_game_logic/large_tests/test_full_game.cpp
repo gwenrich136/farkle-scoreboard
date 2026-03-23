@@ -60,11 +60,11 @@ void test_FullGame_TripleFarkle() {
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count); // Farkle count is reset
 
     // --- Run the penalty animation ---
-    // Needs to cover 3000ms PAIN + 1000ms DRAIN
+    // Needs to cover 5000ms PAIN + 1000ms DRAIN
     GameInput noInput;
     noInput.action = ButtonAction::NONE;
     noInput.rotationDelta = 0;
-    for (int i = 0; i < 450; ++i) {
+    for (int i = 0; i < 650; ++i) {
         game.currentPhase->update(game, game.state, noInput, 10);
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);

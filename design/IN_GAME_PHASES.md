@@ -61,7 +61,7 @@ This category handles user input for scoring, provides feedback through animatio
         *   Resets the player's `farkle_count` to 0 immediately.
         *   Initializes a phase-local timer/state for the animation sequence.
     2.  **3-Stage Animation (`update()`):**
-        *   **Stage 1: The Pain (0s - 3s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
+        *   **Stage 1: The Pain (0s - 5s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
         *   **Stage 2: The Drain:** `atRisk` display stops blinking. Values animate: `atRisk` goes up to 0, Banked score goes down. Warning lights continue alternating.
         *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
     3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.

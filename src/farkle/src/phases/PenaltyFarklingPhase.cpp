@@ -3,7 +3,7 @@
 #include <algorithm>
 
 // Constants for animation sequence
-const unsigned long PAIN_DURATION = 3000;
+const unsigned long PAIN_DURATION = 5000;
 const float PENALTY_DRAIN_SPEED = 1.0f;
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
@@ -23,7 +23,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput 
 
     switch (currentStage) {
         case PenaltyStage::THE_PAIN:
-            // Dramatic pause for 3 seconds with blinking score
+            // Dramatic pause for 5 seconds with blinking score
             if (stageTimer >= PAIN_DURATION) {
                 currentStage = PenaltyStage::THE_DRAIN;
             }
