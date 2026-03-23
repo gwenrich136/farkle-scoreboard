@@ -113,17 +113,20 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_TargetScoreSelectionPhase.cpp`**
     *   **`test_TargetScoreSelection_InitialState`**: Verifies that the phase starts with the default target score (10,000).
-    *   **`test_TargetScoreSelection_Adjustment`**: Verifies that `UP_1000` and `DOWN_50` increment and decrement the target score correctly.
+    *   **`test_TargetScoreSelection_Adjustment`**: Verifies that `rotationDelta` (Encoder) increments and decrements the target score correctly.
     *   **`test_TargetScoreSelection_Clamping`**: Verifies that the target score is clamped between 1,000 and 20,000.
-    *   **`test_TargetScoreSelection_Transition`**: Verifies that pressing `BANK` or `FARKLE` transitions to `PlayerSelectionPhase`.
+    *   **`test_TargetScoreSelection_Transition`**: Verifies that pressing `BANK`, `FARKLE`, or `SELECT` transitions to `PlayerSelectionPhase`.
 
 *   **`test_PlayerSelectionPhase.cpp`**
     *   **`test_PlayerSelection_InitialState`**: Verifies that the phase starts with the first name in the pool and an empty player list (after transitioning from target selection).
-    *   **`test_PlayerSelection_Cycling`**: Verifies that `UP_1000` and `DOWN_50` navigate the filtered name list correctly, including wrapping behavior.
+    *   **`test_PlayerSelection_Cycling`**: Verifies that `rotationDelta` (Encoder) navigates the filtered name list correctly, including wrapping behavior.
     *   **`test_PlayerSelection_AddPlayer`**: Verifies that pressing **BANK** (Green) adds the selected name to the `GameState`, assigns a color in the `LedProgressGrid`, and removes the name from the selection list.
     *   **`test_PlayerSelection_MaxPlayers`**: Verifies that the phase respects the hardware limit by disabling player addition once the `LedProgressGrid` is full (8 players).
     *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
+
+*   **`test_multi_press.cpp`** (Test Utilities Verification)
+    *   **`test_simulate_button_press_count`**: Verifies that `simulateButtonPress` correctly interprets the optional `count` parameter to trigger multiple button presses in sequence, ensuring the test utility functions as intended.
 
 ### 4.2 MEDIUM Tests (Integration Tests)
 **Focus:** Handoffs. Verification of state persistence across phase transitions.
@@ -208,3 +211,26 @@ pio test -e component_tests
 *   **`test_MultiLedMapping`**: Verifies that the component uses the shared `PlayerLayout` to map a single player to multiple LEDs when fewer than 8 players are present.
 *   **`test_BlinkLogic`**: Verifies that the active player's LEDs blink (toggle On/Off) based on the `isBlinking` parameter, while idle players remain solid.
 *   **`test_Alternate_SmoothTransition`**: Verifies that the warning light smoothly transitions between Red and Yellow over a 1000ms cycle during the catastrophic penalty phase.
+
+
+## 7. Hybrid Input & Parallel Architecture (v2)
+
+With the move to the Hybrid Input Model, testing must ensure that digital actions, analog ladder values, and encoder rotations are resolved correctly.
+
+### 7.1 Priority Matrix Testing
+Mocks must simulate simultaneous inputs to verify the following priority rules:
+1.  **Digital Dominance**: If `BANK`, `FARKLE`, or `SELECT` (Digital) is pressed, any simultaneous `PLUS_XXX` (Analog) or `Rotation` (Encoder) signals must be suppressed or ignored in the `GameInput` result for that frame.
+2.  **Exclusive Discrete Action**: The `read()` method must return only ONE `ButtonAction` per frame.
+
+### 7.2 Temporal Stability (Analog Ladder)
+To filter noise from NeoPixel power draw, the Analog Ladder (A2) requires temporal validation:
+*   **Stability Window**: An ADC value must remain within a specific zone (e.g., the `PLUS_50` zone) for **exactly 50ms** before a `ButtonAction` is emitted.
+*   **Noise Rejection**: Mocks must verify that a 40ms pulse in an ADC zone is ignored.
+
+### 7.3 Encoder & Buffer Validation
+*   **Atomic Consumption**: Verify that `read()` returns the *full* `rotationDelta` accumulated since the last call and resets the internal atomic buffer to zero.
+*   **Directionality**: Ensure `rotationDelta` correctly reflects positive (clockwise) and negative (counter-clockwise) ticks.
+
+### 7.4 No-Repeat & Undefined States
+*   **Single Trigger**: Holding an analog button (e.g., `PLUS_50`) must result in exactly one action. A return to the "Neutral" ADC zone is required before another action can be triggered.
+*   **Dead Zones**: Verify that ADC values between defined zones return `ButtonAction::NONE`.

@@ -18,26 +18,26 @@ void test_PlayerSelection_InitialState() {
     TEST_ASSERT_EQUAL_INT(0, game.state.players.size());
 }
 
-// Verifies that UP_1000 and DOWN_50 navigate the name list correctly, including wrapping.
+// Verifies that rotation increments and decrements the name list correctly, including wrapping.
 void test_PlayerSelection_Cycling() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Next name
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Sammy", game.oled.captured_item.c_str());
 
     // Previous name
-    simulateButtonPress(game, ButtonAction::DOWN_50);
+    simulateRotation(game, -1);
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 
     // Wrap around backward
-    simulateButtonPress(game, ButtonAction::DOWN_50);
+    simulateRotation(game, -1);
     TEST_ASSERT_EQUAL_STRING("Andrea", game.oled.captured_item.c_str());
 
     // Wrap around forward
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
 }
 
@@ -48,7 +48,7 @@ void test_PlayerSelection_AddPlayer() {
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Navigate to Sammy (index 1)
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Sammy", game.oled.captured_item.c_str());
 
     // Add Sammy. List becomes: Geewee, Coach, Sheshe, ...
@@ -107,9 +107,7 @@ void test_PlayerSelection_MaxPlayers() {
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Add 8 players
-    for (int i = 0; i < 8; ++i) {
-        simulateButtonPress(game, ButtonAction::BANK);
-    }
+    simulateButtonPress(game, ButtonAction::BANK, 8);
 
     TEST_ASSERT_EQUAL_INT(8, game.state.players.size());
     TEST_ASSERT_TRUE(game.grid.isMaxPlayersReached());
@@ -130,7 +128,7 @@ void test_PlayerSelection_AddLastPlayerWraps() {
     // names: 0, 1, 2, 3, 4, 5, 6, 7, 8
 
     // Move to last (index 8: Andrea)
-    for(int i=0; i<8; ++i) simulateButtonPress(game, ButtonAction::UP_1000);
+    for(int i=0; i<8; ++i) simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Andrea", game.oled.captured_item.c_str());
 
     // Add Andrea. List size becomes 8. Index 8 is out of bounds. Should wrap to 0 (Geewee).

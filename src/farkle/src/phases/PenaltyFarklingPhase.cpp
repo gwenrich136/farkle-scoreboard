@@ -18,7 +18,7 @@ void PenaltyFarklingPhase::onEnter(GameState& state) {
     state.players[state.currentPlayerIndex].farkle_count = 0;
 }
 
-GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     stageTimer += deltaTime;
 
     switch (currentStage) {
@@ -55,7 +55,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
 
         case PenaltyStage::THE_AFTERMATH:
             // Wait for user dismissal
-            if (action != ButtonAction::NONE) {
+            if (input.action != ButtonAction::NONE) {
                 this->endTurn(state);
                 return game.getPhase<WaitingPhase>();
             }

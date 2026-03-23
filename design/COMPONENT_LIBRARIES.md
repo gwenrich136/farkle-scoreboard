@@ -10,19 +10,24 @@ This document outlines the design and intended functionality of the custom compo
 ## 1. ControlPad
 
 ### Purpose
-The `ControlPad` component is responsible for managing physical button inputs, translating them into logical game actions. It handles common input issues such as debouncing and preventing multiple simultaneous presses from registering as valid input.
+The `ControlPad` component is responsible for managing both digital and analog inputs, translating them into logical game actions and navigation. It handles debouncing, analog ladder stability, and high-precision encoder rotation.
 
 ### API Design
--   **`ControlPad()`**: Constructor. Initializes the control pad.
--   **`void addButton(int pin, ButtonAction buttonAction)`**: Configures a physical `pin` to trigger a specific `ButtonAction`. The `ControlPad` internally enables `INPUT_PULLUP` for the given pin.
--   **`ButtonAction read()`**: Scans all configured buttons. Returns the `ButtonAction` of a *single, debounced* button press.
-    -   If more than one button is pressed simultaneously, it returns `ButtonAction::NONE`.
-    -   If the same button remains pressed, it returns `ButtonAction::NONE` after the initial press, preventing repeated actions.
+-   **`ControlPad()`**: Constructor.
+-   **`GameInput read()`**: Scans all inputs (Digital pins, Analog ladder, and Encoder buffer). Returns a `GameInput` struct containing the current discrete `ButtonAction` and any `rotationDelta` from the encoder.
+    -   **Digital Priority**: If a digital button (BANK, FARKLE, SELECT) is pressed simultaneously with an analog ladder button (PLUS_50, etc.), the digital action takes priority.
+    -   **Single Action per Press**: Discrete buttons return their action only once per distinct press/release cycle (no auto-repeat).
+-   **`bool isToggled()`**: Returns the current state of the latching switch (A3), used for system-wide mode toggles (e.g., "Total Score" view).
 
 ### Key Logic & Behavior
--   **Single Action per Press:** The `read()` method ensures that only one `ButtonAction` is registered per distinct button press, making it ideal for a state-based game loop.
--   **Dynamic Mapping:** Buttons are mapped to actions at runtime, providing flexibility for different control layouts.
--   **`ButtonAction` Enum:** This enum, representing game-level actions, lives in its own dedicated header file: `src/farkle/include/ButtonActions.h`. This decouples the core game actions from the `ControlPad` hardware library. The `ControlPad`'s `read()` method should return values from this centrally-defined enum. The dual-purpose actions (`DOWN_50`, etc.) depend on the current game state for their interpretation.
+-   **Hybrid Input Model**:
+    -   **Digital (D4, D5, D6)**: High-reliability interrupts/polling for core actions (SELECT, BANK, FARKLE).
+    -   **Analog Ladder (A2)**: Interprets voltage levels to trigger CLEAR, PLUS_50, PLUS_100, or PLUS_500. Requires a **50ms stability window** to filter NeoPixel power noise.
+-   **Encoder Rotation (D2, D3)**:
+    -   Uses **Interrupts (ISR)** to ensure no pulses are missed during display updates.
+    -   Maintains an **Atomic Rotation Buffer** that tracks net displacement (ticks).
+    -   The `read()` method consumes this buffer, populating `GameInput.rotationDelta` and resetting the buffer to zero.
+-   **Input Data Structures**: The `GameInput` struct and `ButtonAction` enum are defined in `src/farkle/include/Input.h`.
 
 ---
 

@@ -14,12 +14,16 @@ void test_WaitingPhase_ScoreAccumulation() {
     // Ensure atRiskScore is initially 0
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
-    // Simulate pressing UP_1000 and RIGHT_500
-    simulateButtonPress(game, ButtonAction::UP_1000);
-    simulateButtonPress(game, ButtonAction::RIGHT_500);
+    // Simulate pressing PLUS_500 and PLUS_100 (Total 600)
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_100);
 
-    // Verify atRiskScore is 1500
-    TEST_ASSERT_EQUAL_INT(1500, game.state.atRiskScore);
+    // Removed rotation test as per request "Waiting phase can entirely ignore scrolling, please update tests as well to not allow this"
+    // So we verify that rotation does NOTHING
+    simulateRotation(game, 2); // 2 clicks
+
+    // Verify atRiskScore is 600 (not 700)
+    TEST_ASSERT_EQUAL_INT(600, game.state.atRiskScore);
 }
 
 // Verifies that the atRiskScore is cleared when the CLEAR button is pressed.
@@ -28,7 +32,7 @@ void test_WaitingPhase_ScoreCorrection() {
     setupGameWithPlayers(game, 4);
 
     // Add some score
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500, 2);
     TEST_ASSERT_EQUAL_INT(1000, game.state.atRiskScore);
 
     // Simulate pressing CLEAR
@@ -47,7 +51,7 @@ void test_WaitingPhase_TransitionToBanking() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 
     // Add some score to enable the BANK transition
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
 
     // Simulate pressing the BANK button
     simulateButtonPress(game, ButtonAction::BANK);

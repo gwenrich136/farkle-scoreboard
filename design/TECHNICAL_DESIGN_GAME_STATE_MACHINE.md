@@ -74,10 +74,16 @@ After considering multiple alternatives, we have chosen to implement the **State
 The following files will be created or modified to implement the Game State Machine, following a "Pure State" architectural pattern where the `Game` class acts as a generic engine and all game logic is encapsulated within the `GamePhase` classes.
 
 #### New Files - Common Definitions
-*   **`src/farkle/include/ButtonActions.h`**
-    *   **Why:** Defines the `ButtonAction` enumeration used by the `Game` engine and its phases.
+*   **`src/farkle/include/GameConstants.h`**
+    *   **Why:** Defines global constants used across the game logic and hardware components, ensuring a single source of truth.
     *   **Implementation Details:**
-        *   `enum ButtonAction { NONE, BANK, FARKLE, CLEAR, DOWN_50, LEFT_100, RIGHT_500, UP_1000 };`
+        *   `#define MAX_PLAYERS 8`
+
+*   **`src/farkle/include/Input.h`**
+    *   **Why:** Defines the input structures used by the `Game` engine and its phases.
+    *   **Implementation Details:**
+        *   `enum ButtonAction { NONE, BANK, FARKLE, CLEAR, SELECT, PLUS_50, PLUS_100, PLUS_500 };`
+        *   `struct GameInput { ButtonAction action; int rotationDelta; };`
 
 *   **`src/farkle/include/Displays.h`**
     *   **Why:** To group all display component objects into a single parameter object (struct), simplifying method signatures.
@@ -102,7 +108,7 @@ The following files will be created or modified to implement the Game State Mach
         *   `class GamePhase` will be an abstract base class.
         *   It will define the pure virtual interface:
             *   `virtual void onEnter(GameState& state) = 0;`
-            *   `virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) = 0;`
+            *   `virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;`
             *   `virtual void display(const GameState& state, const Displays& displays) = 0;`
         *   `class PreGamePhase : public GamePhase` will be an intermediate class.
             *   It will provide a concrete, shared implementation of the `display()` method that ensures `ScoreDisplay` (at-risk and current score) and `FarkleWarningLights` are explicitly cleared/OFF.
@@ -129,9 +135,9 @@ The following files will be created or modified to implement the Game State Mach
         *   `Game::setup()` will initialize hardware, call `resetGame()`, and set the initial state: `currentPhase = &phasePool.targetScoreSelection;`.
         *   `Game::loop()` will be a pure state machine engine, containing no game-specific logic:
             1.  Calculate `deltaTime`.
-            2.  Read input from the `ControlPad`.
+            2.  Read input from the `ControlPad`: `GameInput input = controlPad.read();`.
             3.  Construct the `Displays` struct.
-            4.  `GamePhase* nextPhase = currentPhase->update(*this, state, action, deltaTime);`
+            4.  `GamePhase* nextPhase = currentPhase->update(*this, state, input, deltaTime);`
             5.  `if (nextPhase != currentPhase) { currentPhase = nextPhase; currentPhase->onEnter(state); }`
             6.  `currentPhase->display(state, displays);`
 

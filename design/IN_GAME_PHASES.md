@@ -24,7 +24,8 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Defined in:** `src/farkle/include/phases/WaitingPhase.h` & `src/farkle/src/phases/WaitingPhase.cpp`
 *   **Implementation Details:** The `update()` method contains all logic for this phase:
     *   **Check for Game End:** At the start of the `update` method, it checks if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it immediately `return game.getPhase<PostGamePhase_V1>();`.
-    *   **Handle Input:** A `switch(action)` block handles `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
+    *   **Handle Score Input:** A `switch(input.action)` block handles `PLUS_50`, `PLUS_100`, and `PLUS_500` by modifying `state.atRiskScore`.
+    *   **Handle Navigation (Competitor Preview):** Uses `input.rotationDelta` (Encoder) to cycle through other players' scores on the `COMPETITION_SCORE` display.
     *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it `return game.getPhase<FarklingPhase>();`.
 
 ### BankingPhase
@@ -33,7 +34,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     0.  **Reset Farkle Count:** The `onEnter()` method resets the current player's `farkle_count` to 0.
     1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
-    2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
+    2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `input.action != NONE`. This allows players to review the final score.
     3.  **Finalize Turn:** Once a button is pressed:
         a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
         b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
@@ -45,7 +46,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     1.  **Increment Count:** The `onEnter()` method checks if `player.score > 0`. If true, it increments the `farkle_count`. If false (score is 0), the count is **not** incremented ("No Harm, No Foul").
     2.  **Animate Score Loss:** The `update()` method runs a time-based animation to drain `state.atRiskScore` to 0. It ignores input during the animation.
-    3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
+    3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `input.action != NONE`.
     3.  **Finalize Turn:** Upon button press:
         a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
         b. `return game.getPhase<WaitingPhase>();`.

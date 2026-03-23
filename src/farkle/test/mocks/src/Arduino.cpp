@@ -5,6 +5,8 @@
 static unsigned long mocked_millis = 0;
 static std::map<int, int> mockPinModes;
 static std::map<int, int> mockPinStates;
+static std::map<int, int> mockAnalogStates;
+static std::map<int, void (*)(void)> mockInterrupts;
 
 unsigned long millis() {
     return mocked_millis;
@@ -29,8 +31,35 @@ int digitalRead(int pin) {
     return mockPinStates[pin];
 }
 
+int analogRead(int pin) {
+    if (mockAnalogStates.find(pin) == mockAnalogStates.end()) {
+        return 0; // Default 0
+    }
+    return mockAnalogStates[pin];
+}
+
+int digitalPinToInterrupt(int pin) {
+    return pin; // Simplified mock mapping
+}
+
+void attachInterrupt(int interrupt, void (*userFunc)(void), int mode) {
+    mockInterrupts[interrupt] = userFunc;
+}
+
+void interrupts() {
+    // No-op for mock
+}
+
+void noInterrupts() {
+    // No-op for mock
+}
+
 void setMockPinState(int pin, int state) {
     mockPinStates[pin] = state;
+}
+
+void setMockAnalogPin(int pin, int val) {
+    mockAnalogStates[pin] = val;
 }
 
 int getMockPinMode(int pin) {
@@ -40,9 +69,19 @@ int getMockPinMode(int pin) {
     return mockPinModes[pin];
 }
 
+void triggerInterrupt(int pin) {
+    if (mockInterrupts.find(pin) != mockInterrupts.end()) {
+        mockInterrupts[pin]();
+    }
+}
+
 void resetMockPins() {
     mockPinModes.clear();
     mockPinStates.clear();
+    mockAnalogStates.clear();
+    mockInterrupts.clear();
+    // mocked_millis is intentionally preserved to simulate continuous time if needed,
+    // or tests can manually reset it if they had access, but usually it's fine.
 }
 
 long random(long max) {
