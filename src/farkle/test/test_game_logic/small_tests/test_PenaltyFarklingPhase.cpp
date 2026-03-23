@@ -119,6 +119,23 @@ void test_PenaltyFarklingPhase_FinalRoundBlinking() {
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 }
 
+// Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the PenaltyFarklingPhase.
+void test_PenaltyFarklingPhase_GridAnimationScores() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.players[0].score = 1000;
+    game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
+    game.currentPhase->onEnter(game.state);
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    // It should display the player's base score.
+    TEST_ASSERT_EQUAL_INT(1000, game.grid.captured_scores[0]);
+    // The blinking score should be 0.
+    TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
+}
+
 void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_AnimationMath);
     RUN_TEST(test_PenaltyFarklingPhase_BlinkParameter);
@@ -126,4 +143,5 @@ void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_InputSpamming);
     RUN_TEST(test_PenaltyFarklingPhase_ManualAdvance);
     RUN_TEST(test_PenaltyFarklingPhase_FinalRoundBlinking);
+    RUN_TEST(test_PenaltyFarklingPhase_GridAnimationScores);
 }

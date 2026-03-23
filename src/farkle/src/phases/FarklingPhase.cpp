@@ -40,3 +40,11 @@ GamePhase* FarklingPhase::update(Game& game, GameState& state, GameInput input, 
 
     return this;
 }
+
+int FarklingPhase::getGridScoreForPlayer(const GameState& state, int playerIndex) const {
+    if (playerIndex == state.currentPlayerIndex) {
+        // Show potential score falling back to banked score
+        return state.players[playerIndex].score + state.atRiskScore;
+    }
+    return InGamePhase::getGridScoreForPlayer(state, playerIndex);
+}

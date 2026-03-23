@@ -35,14 +35,23 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
-        m_scores.clear();
-        for (const auto& player : state.players) {
-            m_scores.push_back(player.score);
-        }
-        m_lastScoresVersion = state.scoresVersion;
+    // Rebuild the m_scores array every frame because animation phases (like FarklingPhase)
+    // drain atRiskScore continuously, and atRiskScore is not tracked by scoresVersion.
+    m_scores.clear();
+    for (size_t i = 0; i < state.players.size(); ++i) {
+        m_scores.push_back(getGridScoreForPlayer(state, i));
     }
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore);
+    m_lastScoresVersion = state.scoresVersion;
+
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, getBlinkingScore(state));
+}
+
+int InGamePhase::getGridScoreForPlayer(const GameState& state, int playerIndex) const {
+    return state.players[playerIndex].score;
+}
+
+int InGamePhase::getBlinkingScore(const GameState& state) const {
+    return 0; // Default behavior is no blinking score
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {
