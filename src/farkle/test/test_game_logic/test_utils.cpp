@@ -19,7 +19,7 @@ void setupGameWithPlayers(Game& game, int numPlayers) {
     game.setup();
 
     // 1. Transition from TargetScoreSelectionPhase to PlayerSelectionPhase
-    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateButtonPress(game, ButtonAction::SELECT);
 
     // Names from the pool to be consistent
     const char* names[] = {"Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"};

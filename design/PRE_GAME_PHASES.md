@@ -31,7 +31,7 @@ The system follows this sequence:
     1.  **Selection Logic**: Starts at a default of 10,000. Clamped between 1,000 and 20,000.
     2.  **Navigation**: 
         *   **Encoder Rotation**: Increments or decrements `state.targetScore` in steps of 1,000.
-    3.  **Confirmation (BANK, FARKLE, or SELECT)**: 
+    3.  **Confirmation (SELECT)**:
         *   Finalizes the selection by calling `game.setTargetScore(state.targetScore)` to sync hardware (LED Grid).
         *   Returns `game.getPhase<PlayerSelectionPhase>()`.
     4.  **Display Behavior (Hooks)**:
@@ -47,7 +47,7 @@ The system follows this sequence:
     2.  **Navigation**: 
         *   **Encoder Rotation**: Increments or decrements the selection index.
         *   The list of available names is filtered in real-time to exclude names already present in `state.players`.
-    3.  **Adding Players (GREEN/BANK)**: 
+    3.  **Adding Players (SELECT)**:
         *   Checks `game.canAddPlayer()` (which queries `grid.isMaxPlayersReached()`).
         *   If allowed, calls `game.addPlayer(selectedName)`. This updates both the `GameState` and the hardware (color assignment in `LedProgressGrid`).
     4.  **Starting Game (RED/FARKLE)**: 
