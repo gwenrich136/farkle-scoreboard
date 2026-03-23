@@ -75,7 +75,7 @@ The game begins by guiding players through setup and configuration.
 -   **Trigger:** When a player gets their third consecutive farkle in a turn (and has points to lose).
 -   **Penalty:** A player who gets a third consecutive farkle loses 1,000 points, or their entire score if it's less than 1,000.
 -   **Dramatic Animation Sequence:**
-    1.  **"The Pain Sets In" (approx 3 seconds):**
+    1.  **"The Pain Sets In" (approx 5 seconds):**
         *   The `TextDisplay` shows a penalty quip.
         *   The `atRisk` score display flashes the negative penalty amount (e.g., "-1000" or "-850").
         *   The `FarkleWarningLights` begin **alternating** (Yellow/Red) to signal the catastrophe.

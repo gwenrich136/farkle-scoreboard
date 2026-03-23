@@ -103,7 +103,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FarklingPhase_NoHarmNoFoul`:** Verifies that if a player has 0 banked points, their `farkle_count` does **not** increment upon farkling.
 
 *   **`test_PenaltyFarklingPhase.cpp`**
-    *   **`test_PenaltyFarklingPhase_Stage1_ThePain`:** Verifies that for the first 3 seconds, the `atRiskScore` flashes/blinks, the `FarkleWarningLights` alternate, and **no points are moved**.
+    *   **`test_PenaltyFarklingPhase_Stage1_ThePain`:** Verifies that for the first 5 seconds, the `atRiskScore` flashes/blinks, the `FarkleWarningLights` alternate, and **no points are moved**.
     *   **`test_PenaltyFarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_PenaltyFarklingPhase_Stage2_TheDrain`:** Verifies that after the initial delay, points begin to move (inverse banking) while lights continue to alternate.
     *   **`test_PenaltyFarklingPhase_Stage3_TheWait`:** Verifies that once the score is 0, the animation stops, lights turn OFF, and the game waits for a manual advance button.

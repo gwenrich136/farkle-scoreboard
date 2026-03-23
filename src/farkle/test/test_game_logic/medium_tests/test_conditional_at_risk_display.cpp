@@ -63,14 +63,14 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     // Enter PenaltyFarklingPhase
     simulateButtonPress(game, ButtonAction::FARKLE);
 
-    // Stage 1: THE_PAIN (0-3s). Verify display is NOT cleared while score is -1000
+    // Stage 1: THE_PAIN (0-5s). Verify display is NOT cleared while score is -1000
     simulateNoAction(game, 1500);
     TEST_ASSERT_EQUAL_INT(-1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
     TEST_ASSERT_FALSE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 
-    // Advance past THE_PAIN (3 seconds total)
-    simulateNoAction(game, 1501);
+    // Advance past THE_PAIN (5 seconds total)
+    simulateNoAction(game, 3501);
 
     // Stage 2: THE_DRAIN. Verify display is NOT cleared while score is still negative
     // We can just step once and check
