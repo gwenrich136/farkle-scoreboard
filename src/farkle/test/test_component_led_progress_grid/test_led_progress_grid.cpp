@@ -178,7 +178,7 @@ void test_LedProgressGrid_MaxScore_Exact(void) {
 }
 
 void test_LedProgressGrid_MaxScore_IncludesAtRisk(void) {
-    // Verify that _maxScore takes atRiskScore into account.
+    // Verify that _maxScore takes blinkingScore into account.
     grid->setTargetScore(10000);
     grid->addPlayer();
     std::vector<int> scores = {9000};
@@ -196,15 +196,15 @@ void test_LedProgressGrid_MaxScore_Shrinking(void) {
     grid->update(scores.data(), scores.size(), 0, 0);
     TEST_ASSERT_EQUAL(12000, grid->getMaxScore());
 
-    // Player Farkles, score stays 12000? No, if atRisk was part of it.
-    // Let's use atRisk to grow and then remove it.
+    // Player Farkles, score stays 12000? No, if blinkingScore was part of it.
+    // Let's use blinkingScore to grow and then remove it.
     scores[0] = 10000;
     grid->update(scores.data(), scores.size(), 0, 2000); // 10000 + 2000 = 12000
     TEST_ASSERT_EQUAL(12000, grid->getMaxScore());
 
-    // Now Farkle (atRisk becomes 0)
+    // Now Farkle (blinkingScore becomes 0)
     grid->update(scores.data(), scores.size(), 0, 0);
-    // Should shrink back to targetScore (10000) because banked is 10000 and atRisk is 0.
+    // Should shrink back to targetScore (10000) because banked is 10000 and blinkingScore is 0.
     TEST_ASSERT_EQUAL(10000, grid->getMaxScore());
 }
 
