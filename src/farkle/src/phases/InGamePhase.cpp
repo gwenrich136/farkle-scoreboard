@@ -35,15 +35,8 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    // For subclasses where the score calculation logic is dynamic and does not simply increment
-    // scoresVersion, we will always recalculate the grid. To be safe, we just rebuild the scores array
-    // when finalRoundTriggered is active or when scoresVersion changes, but for simplicity we should
-    // probably just recalculate it each frame if we use state.atRiskScore in the grid score for FarklingPhase
-    // because atRiskScore doesn't bump scoresVersion.
-    // However, the animation runs many frames.
-
-    // Actually, FarklingPhase drains atRiskScore every frame. atRiskScore isn't tracked by scoresVersion.
-    // So we must rebuild the m_scores array if it's dependent on atRiskScore or if scoresVersion changed.
+    // Rebuild the m_scores array every frame because animation phases (like FarklingPhase)
+    // drain atRiskScore continuously, and atRiskScore is not tracked by scoresVersion.
     m_scores.clear();
     for (size_t i = 0; i < state.players.size(); ++i) {
         m_scores.push_back(getGridScoreForPlayer(state, i));
