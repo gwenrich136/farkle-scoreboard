@@ -70,3 +70,7 @@ void WaitingPhase::updateWarningLights(const GameState& state, const Displays& d
     // In WaitingPhase, we WANT the current player to blink (turn indicator)
     displays.farkleLights.update(farkleCounts, count, state.currentPlayerIndex, isBlinkOn);
 }
+
+int WaitingPhase::getBlinkingScore(const GameState& state) const {
+    return state.atRiskScore;
+}

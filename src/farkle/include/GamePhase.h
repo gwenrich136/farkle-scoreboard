@@ -61,6 +61,10 @@ protected:
     virtual void updateWarningLights(const GameState& state, const Displays& displays);
     virtual void updateTextDisplay(const GameState& state, const Displays& displays);
 
+    // Virtual hooks for calculating scores displayed on the Progress Grid
+    virtual int getGridScoreForPlayer(const GameState& state, int playerIndex) const;
+    virtual int getBlinkingScore(const GameState& state) const;
+
     // Helper to calculate the highest score among all players
     int calculateLeadingScore(const GameState& state);
 

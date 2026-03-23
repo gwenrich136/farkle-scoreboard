@@ -100,6 +100,23 @@ void test_WaitingPhase_FinalRoundBlinking() {
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 }
 
+// Verifies that the LedProgressGrid receives the correct scores and YES blinking score during the WaitingPhase.
+void test_WaitingPhase_GridAnimationScores() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.players[0].score = 1000;
+    game.state.atRiskScore = 500;
+    game.currentPhase = game.getPhase<WaitingPhase>();
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    // It should display the player's base score.
+    TEST_ASSERT_EQUAL_INT(1000, game.grid.captured_scores[0]);
+    // The blinking score should be the atRiskScore.
+    TEST_ASSERT_EQUAL_INT(500, game.grid.captured_blinkingScore);
+}
+
 void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_ScoreAccumulation);
     RUN_TEST(test_WaitingPhase_ScoreCorrection);
@@ -107,4 +124,5 @@ void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_TransitionToFarkling);
     RUN_TEST(test_WaitingPhase_TransitionToPenaltyFarkling);
     RUN_TEST(test_WaitingPhase_FinalRoundBlinking);
+    RUN_TEST(test_WaitingPhase_GridAnimationScores);
 }

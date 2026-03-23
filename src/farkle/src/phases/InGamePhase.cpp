@@ -35,14 +35,30 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
-        m_scores.clear();
-        for (const auto& player : state.players) {
-            m_scores.push_back(player.score);
-        }
-        m_lastScoresVersion = state.scoresVersion;
+    // For subclasses where the score calculation logic is dynamic and does not simply increment
+    // scoresVersion, we will always recalculate the grid. To be safe, we just rebuild the scores array
+    // when finalRoundTriggered is active or when scoresVersion changes, but for simplicity we should
+    // probably just recalculate it each frame if we use state.atRiskScore in the grid score for FarklingPhase
+    // because atRiskScore doesn't bump scoresVersion.
+    // However, the animation runs many frames.
+
+    // Actually, FarklingPhase drains atRiskScore every frame. atRiskScore isn't tracked by scoresVersion.
+    // So we must rebuild the m_scores array if it's dependent on atRiskScore or if scoresVersion changed.
+    m_scores.clear();
+    for (size_t i = 0; i < state.players.size(); ++i) {
+        m_scores.push_back(getGridScoreForPlayer(state, i));
     }
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore);
+    m_lastScoresVersion = state.scoresVersion;
+
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, getBlinkingScore(state));
+}
+
+int InGamePhase::getGridScoreForPlayer(const GameState& state, int playerIndex) const {
+    return state.players[playerIndex].score;
+}
+
+int InGamePhase::getBlinkingScore(const GameState& state) const {
+    return 0; // Default behavior is no blinking score
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {

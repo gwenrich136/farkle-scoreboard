@@ -75,6 +75,11 @@ This category handles user input for scoring, provides feedback through animatio
     -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
     -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.
     -   **PenaltyFarklingPhase:** Triggers a special alternating animation during the penalty sequence.
+-   **LED Progress Grid Animations:**
+    -   **WaitingPhase:** Shows the banked score and blinks the potential score (`atRiskScore`).
+    -   **BankingPhase:** Shows only the banked score growing smoothly. No blinking score.
+    -   **FarklingPhase:** Shows the potential score (banked + `atRiskScore`) shrinking smoothly back to the banked score. No blinking score.
+    -   **PenaltyFarklingPhase:** Shows only the banked score shrinking smoothly. No blinking score.
 
 ### Score Display Behavior
 - **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.
