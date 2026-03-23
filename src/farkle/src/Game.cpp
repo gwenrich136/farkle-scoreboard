@@ -16,6 +16,9 @@ void Game::setup() {
     Serial.println("GAME: Initializing hardware...");
     
     // 1. Initialize Hardware
+    Serial.println("GAME: Init ControlPad...");
+    controlPad.begin();
+
     Serial.println("GAME: Init OLED...");
     oled.begin();
     

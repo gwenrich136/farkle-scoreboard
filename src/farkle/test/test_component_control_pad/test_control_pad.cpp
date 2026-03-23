@@ -10,6 +10,7 @@ void setUp(void) {
     // Set Analog Input to a value that maps to NONE (>= 700) so it doesn't interfere with digital/encoder tests
     setMockAnalogPin(ANALOG_INPUT_PIN, 1000);
     controlPad = new ControlPad();
+    controlPad->begin(); // Added to initialize hardware/interrupts
     // Stabilize the Analog Input at 1000 (NONE)
     controlPad->read(); // Initial read sets _lastAnalogValue
     advance_millis(ANALOG_STABILITY_THRESHOLD_MS + 10);

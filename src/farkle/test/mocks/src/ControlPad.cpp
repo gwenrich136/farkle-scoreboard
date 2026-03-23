@@ -1,5 +1,9 @@
 #include "ControlPad.h"
 
+void ControlPad::begin() {
+    // No-op for mock
+}
+
 void ControlPad::press(ButtonAction action) {
     GameInput input;
     input.action = action;

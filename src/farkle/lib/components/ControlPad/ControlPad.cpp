@@ -13,14 +13,10 @@ static void encoderInterruptHandler() {
 
 ControlPad::ControlPad() {
   instance = this;
-  initializeHardware();
-}
-
-void ControlPad::initializeHardware() {
-  // Initialize state
+  // State initialization only, no hardware calls here!
   _lastAction = ButtonAction::NONE;
   _encoderDelta = 0;
-
+  _old_AB = 0x03; // Default HIGH/HIGH
   _lastAnalogValue = -1;
   _analogStableStartTime = 0;
   _currentAnalogAction = ButtonAction::NONE;
@@ -30,10 +26,16 @@ void ControlPad::initializeHardware() {
       _buttonState[i] = HIGH;
       _lastButtonState[i] = HIGH;
   }
+}
 
-  // Setup Pins
+void ControlPad::begin() {
+  initializeHardware();
+}
+
+void ControlPad::initializeHardware() {
   pinMode(BANK_PIN, INPUT_PULLUP);
   pinMode(FARKLE_PIN, INPUT_PULLUP);
+  pinMode(SELECT_PIN, INPUT_PULLUP);
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
   pinMode(ANALOG_INPUT_PIN, INPUT);
@@ -44,24 +46,16 @@ void ControlPad::initializeHardware() {
 }
 
 void ControlPad::handleInterrupt() {
-  static int lastA = HIGH;
-  static int lastB = HIGH;
+  static const int8_t KNOB_DIR[] = {
+    0, -1,  1,  0,
+    1,  0,  0, -1,
+   -1,  0,  0,  1,
+    0,  1, -1,  0
+  };
 
-  int newA = digitalRead(ENCODER_PIN_A);
-  int newB = digitalRead(ENCODER_PIN_B);
-
-  if (newA != lastA || newB != lastB) {
-      if (newA != lastA) {
-          if (newA == newB) _encoderDelta--;
-          else _encoderDelta++;
-      } else {
-          if (newA != newB) _encoderDelta--;
-          else _encoderDelta++;
-      }
-  }
-
-  lastA = newA;
-  lastB = newB;
+  _old_AB <<= 2;
+  _old_AB |= ( (digitalRead(ENCODER_PIN_A) << 1) | digitalRead(ENCODER_PIN_B) );
+  _encoderDelta += KNOB_DIR[_old_AB & 0x0F];
 }
 
 ButtonAction ControlPad::mapAnalogValueToAction(int val) {
@@ -92,11 +86,12 @@ ButtonAction ControlPad::checkAnalogInput() {
 }
 
 ButtonAction ControlPad::checkDigitalInput() {
-    // Check BANK and FARKLE
-    int pins[] = {BANK_PIN, FARKLE_PIN};
-    ButtonAction actions[] = {ButtonAction::BANK, ButtonAction::FARKLE};
+    // Check BANK, FARKLE, and SELECT
+    int pins[] = {BANK_PIN, FARKLE_PIN, SELECT_PIN};
+    ButtonAction actions[] = {ButtonAction::BANK, ButtonAction::FARKLE, ButtonAction::SELECT};
+    ButtonAction result = ButtonAction::NONE;
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         int pin = pins[i];
         int reading = digitalRead(pin);
 
@@ -112,11 +107,12 @@ ButtonAction ControlPad::checkDigitalInput() {
 
         _lastButtonState[pin] = reading;
 
-        if (_buttonState[pin] == LOW) {
-            return actions[i];
+        // Collect the first pressed button detected in the loop
+        if (_buttonState[pin] == LOW && result == ButtonAction::NONE) {
+            result = actions[i];
         }
     }
-    return ButtonAction::NONE;
+    return result;
 }
 
 GameInput ControlPad::read() {
@@ -149,9 +145,22 @@ GameInput ControlPad::read() {
     } else {
         // No action, process rotation
         noInterrupts();
-        input.rotationDelta = _encoderDelta;
+        int rawDelta = _encoderDelta;
         _encoderDelta = 0;
         interrupts();
+
+        // Standard encoders (KY-040) have 4 pulses per physical click (detent)
+        input.rotationDelta = rawDelta / 4;
+        
+        // If we didn't reach a full click, we need to preserve the remainder
+        // to prevent "dead zones" where slow turning does nothing.
+        static int fractionalPulses = 0;
+        fractionalPulses += (rawDelta % 4);
+        
+        if (abs(fractionalPulses) >= 4) {
+            input.rotationDelta += (fractionalPulses / 4);
+            fractionalPulses %= 4;
+        }
 
         // Reset last action if button released (meaning no action detected this frame)
         _lastAction = ButtonAction::NONE;

@@ -8,6 +8,8 @@ class ControlPad {
 public:
     ControlPad() = default;
 
+    void begin(); // Matches the real class
+
     // The real methods (can be no-ops for the mock)
     // Removed addButton as per real class change
     GameInput read();
