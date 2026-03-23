@@ -57,7 +57,7 @@ protected:
     virtual void updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays);
     virtual void updateCompetitionScoreDisplay(const GameState& state, const Displays& displays);
 
-    virtual void updateProgressGrid(const GameState& state, const Displays& displays);
+    virtual void updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk = true, bool blinkAtRisk = true);
     virtual void updateWarningLights(const GameState& state, const Displays& displays);
     virtual void updateTextDisplay(const GameState& state, const Displays& displays);
 

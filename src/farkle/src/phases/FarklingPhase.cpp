@@ -40,3 +40,16 @@ GamePhase* FarklingPhase::update(Game& game, GameState& state, ButtonAction acti
 
     return this;
 }
+
+void FarklingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
+    displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+}
+
+void FarklingPhase::updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays) {
+    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score + state.atRiskScore, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+}
+
+void FarklingPhase::updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk, bool blinkAtRisk) {
+    // Farkling phase shows the potential score (no blinking)
+    InGamePhase::updateProgressGrid(state, displays, true, false);
+}

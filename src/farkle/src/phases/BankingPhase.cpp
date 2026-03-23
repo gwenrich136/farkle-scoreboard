@@ -46,3 +46,12 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, ButtonAction actio
 
     return this;
 }
+
+void BankingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
+    displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+}
+
+void BankingPhase::updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk, bool blinkAtRisk) {
+    // Banking phase only shows the banked score (no blinking)
+    InGamePhase::updateProgressGrid(state, displays, false, false);
+}

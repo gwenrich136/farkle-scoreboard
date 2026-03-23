@@ -51,6 +51,11 @@ void WaitingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displa
     displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE);
 }
 
+void WaitingPhase::updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk, bool blinkAtRisk) {
+    // Waiting phase blinks both at-risk score and warning lights
+    InGamePhase::updateProgressGrid(state, displays, true, true);
+}
+
 void WaitingPhase::updateWarningLights(const GameState& state, const Displays& displays) {
     int farkleCounts[MAX_PLAYERS];
     int count = 0;

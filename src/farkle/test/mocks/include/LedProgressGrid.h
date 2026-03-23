@@ -12,6 +12,8 @@ public:
     std::vector<int> captured_scores;
     int captured_currentPlayerIndex;
     int captured_atRiskScore;
+    bool captured_includeAtRisk;
+    bool captured_blinkAtRisk;
     int player_count;
     bool was_cleared;
     bool was_reset;
@@ -25,7 +27,7 @@ public:
     bool isMaxPlayersReached();
     void reset();
     void clear();
-    void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
+    void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore, bool includeAtRisk = true, bool blinkAtRisk = true);
     void displayPlayersPregame(bool isPlayerPending);
 };
 

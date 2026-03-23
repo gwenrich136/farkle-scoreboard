@@ -33,7 +33,7 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
     displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
 }
 
-void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
+void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk, bool blinkAtRisk) {
     if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
         m_scores.clear();
         for (const auto& player : state.players) {
@@ -41,7 +41,7 @@ void InGamePhase::updateProgressGrid(const GameState& state, const Displays& dis
         }
         m_lastScoresVersion = state.scoresVersion;
     }
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore);
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore, includeAtRisk, blinkAtRisk);
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {

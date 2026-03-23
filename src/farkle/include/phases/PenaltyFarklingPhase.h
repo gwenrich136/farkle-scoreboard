@@ -16,6 +16,7 @@ public:
 
 protected:
     virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) override;
+    virtual void updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk = true, bool blinkAtRisk = true) override;
     virtual void updateWarningLights(const GameState& state, const Displays& displays) override;
     virtual void updateTextDisplay(const GameState& state, const Displays& displays) override;
 

@@ -32,13 +32,15 @@ void LedProgressGrid::clear() {
     was_cleared = true;
 }
 
-void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore) {
+void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore, bool includeAtRisk, bool blinkAtRisk) {
     captured_scores.clear();
     for (int i = 0; i < playerCount; ++i) {
         captured_scores.push_back(scores[i]);
     }
     captured_currentPlayerIndex = currentPlayerIndex;
     captured_atRiskScore = atRiskScore;
+    captured_includeAtRisk = includeAtRisk;
+    captured_blinkAtRisk = blinkAtRisk;
 }
 
 void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {

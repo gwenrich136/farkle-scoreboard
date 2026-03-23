@@ -66,14 +66,23 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
 }
 
 void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) {
-    // Use the blink parameter provided by the updated ScoreDisplay library
-    bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
-
-    if (state.atRiskScore == 0) {
+    if (currentStage == PenaltyStage::THE_DRAIN) {
         displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
     } else {
-        displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
+        // Use the blink parameter provided by the updated ScoreDisplay library
+        bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
+
+        if (state.atRiskScore == 0) {
+            displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+        } else {
+            displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
+        }
     }
+}
+
+void PenaltyFarklingPhase::updateProgressGrid(const GameState& state, const Displays& displays, bool includeAtRisk, bool blinkAtRisk) {
+    // Penalty phase always shows the banked score (no blinking)
+    InGamePhase::updateProgressGrid(state, displays, false, false);
 }
 
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {

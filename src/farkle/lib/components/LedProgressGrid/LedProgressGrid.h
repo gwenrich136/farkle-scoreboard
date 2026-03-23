@@ -20,6 +20,8 @@ public:
     int scores[MAX_PLAYERS] = {0};
     int currentPlayerIndex = -1;
     int atRiskScore = -1;
+    bool includeAtRisk = true;
+    bool blinkAtRisk = true;
     bool isBlinkOn = false;
     bool isPlayerPending = false;
     int playerCount = 0;
@@ -31,6 +33,8 @@ public:
           mode != other.mode ||
           currentPlayerIndex != other.currentPlayerIndex ||
           atRiskScore != other.atRiskScore ||
+          includeAtRisk != other.includeAtRisk ||
+          blinkAtRisk != other.blinkAtRisk ||
           isBlinkOn != other.isBlinkOn ||
           isPlayerPending != other.isPlayerPending ||
           playerCount != other.playerCount ||
@@ -54,7 +58,7 @@ public:
   bool isMaxPlayersReached();
   void reset();
   void clear();
-  void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
+  void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore, bool includeAtRisk = true, bool blinkAtRisk = true);
   void displayPlayersPregame(bool isPlayerPending);
   int getMaxScore() const { return _maxScore; }
 

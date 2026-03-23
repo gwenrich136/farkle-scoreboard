@@ -70,6 +70,11 @@ This category handles user input for scoring, provides feedback through animatio
     *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
 
 ### Visual Feedback
+-   **LED Progress Grid:**
+    -   **WaitingPhase:** Displays the potential score (banked + at-risk) with the at-risk portion blinking. This provides clear feedback on the points currently at stake.
+    -   **BankingPhase:** Displays only the banked score as it grows to incorporate the at-risk points. Blinking is disabled to ensure a smooth, satisfying animation.
+    -   **FarklingPhase:** Displays the potential score as it drains back to the banked level. Blinking is disabled to focus on the "withering" effect.
+    -   **PenaltyFarklingPhase:** Displays only the banked score as it shrinks due to the penalty.
 -   **Turn Indicator (FarkleWarningLights):**
     -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
     -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.
@@ -77,6 +82,8 @@ This category handles user input for scoring, provides feedback through animatio
 
 ### Score Display Behavior
 - **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.
-- **WaitingPhase:** Overrides `updateAtRiskScoreDisplay` to show 0 even when `atRiskScore` is 0.
-- **Rationale:** This provides clear visual feedback of when a turn has truly ended and the next turn is ready to begin.
+- **WaitingPhase:** Overrides `updateAtRiskScoreDisplay` to show the current `atRiskScore`.
+- **BankingPhase:** Clears the at-risk display and shows only the growing banked score on the current player display.
+- **FarklingPhase:** Clears the at-risk display and shows the potential score (banked + at-risk) on the current player display as it drains.
+- **PenaltyFarklingPhase:** Shows the blinking penalty amount during "The Pain" stage, then clears the at-risk display and shows the shrinking banked score during "The Drain".
 - **Final Round Feedback:** In all `InGamePhase` subclasses, the `COMPETITION_SCORE` display (showing the leading score) will blink if `state.finalRoundTriggered` is true. This signals to the current player that they are in the "bell lap" and must catch the leader.
