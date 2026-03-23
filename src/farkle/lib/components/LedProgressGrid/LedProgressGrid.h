@@ -18,7 +18,7 @@ public:
     DisplayMode mode = DisplayMode::NONE;
     int scores[MAX_PLAYERS] = {0};
     int currentPlayerIndex = -1;
-    int atRiskScore = -1;
+    int blinkingScore = -1;
     bool isBlinkOn = false;
     bool isPlayerPending = false;
     int playerCount = 0;
@@ -29,7 +29,7 @@ public:
       if (isDirty || other.isDirty ||
           mode != other.mode ||
           currentPlayerIndex != other.currentPlayerIndex ||
-          atRiskScore != other.atRiskScore ||
+          blinkingScore != other.blinkingScore ||
           isBlinkOn != other.isBlinkOn ||
           isPlayerPending != other.isPlayerPending ||
           playerCount != other.playerCount ||
@@ -53,7 +53,7 @@ public:
   bool isMaxPlayersReached();
   void reset();
   void clear();
-  void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
+  void update(const int* scores, int playerCount, int currentPlayerIndex, int blinkingScore);
   void displayPlayersPregame(bool isPlayerPending);
   int getMaxScore() const { return _maxScore; }
 

@@ -144,7 +144,7 @@ void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float rati
     }
 }
 
-void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore) {
+void LedProgressGrid::update(const int* scores, int playerCount, int currentPlayerIndex, int blinkingScore) {
   if (playerCount < _playerCount) {
     return;
   }
@@ -156,7 +156,7 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
   for (int i = 0; i < _playerCount; ++i) {
     int potentialScore = scores[i];
     if (i == currentPlayerIndex) {
-        potentialScore += atRiskScore;
+        potentialScore += blinkingScore;
     }
     if (potentialScore > highestScore) {
       highestScore = potentialScore;
@@ -178,7 +178,7 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
   }
 
   currentState.currentPlayerIndex = currentPlayerIndex;
-  currentState.atRiskScore = atRiskScore;
+  currentState.blinkingScore = blinkingScore;
   currentState.isBlinkOn = _isBlinkOn;
   currentState.playerCount = _playerCount;
   currentState.maxScore = _maxScore;
@@ -194,9 +194,9 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
     PlayerRows rows = PlayerLayout::getMapping(_playerCount, playerIdx);
     
     int scoreToDraw = scores[playerIdx];
-    bool showingRisk = (playerIdx == currentPlayerIndex && atRiskScore > 0 && _isBlinkOn);
-    if (showingRisk) {
-      scoreToDraw += atRiskScore;
+    bool showingBlink = (playerIdx == currentPlayerIndex && blinkingScore > 0 && _isBlinkOn);
+    if (showingBlink) {
+      scoreToDraw += blinkingScore;
     }
 
     float ratioToDraw = (float)scoreToDraw / _maxScore;
