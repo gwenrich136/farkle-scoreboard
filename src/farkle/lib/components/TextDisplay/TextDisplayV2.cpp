@@ -120,6 +120,8 @@ void TextDisplayV2::drawArrow(int x, int y, bool up, uint16_t color) {
 
 uint16_t TextDisplayV2::colorHSVtoRGB565(uint16_t hue) {
     // Basic conversion from hue (0-65535) to RGB565 with max saturation & value
+    // We do not rely on standard HSV-to-RGB library here to avoid external heavy dependencies.
+    // The following code efficiently maps 0-65535 to an RGB565 short using standard algorithms.
     float h = (hue / 65535.0f) * 360.0f;
     float c = 1.0f;
     float x = c * (1.0f - abs(fmod(h / 60.0f, 2.0f) - 1.0f));
