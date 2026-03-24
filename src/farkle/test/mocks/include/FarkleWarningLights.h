@@ -1,14 +1,21 @@
 #ifndef MOCK_FARKLE_WARNING_LIGHTS_H
 #define MOCK_FARKLE_WARNING_LIGHTS_H
 
+#include <vector>
+
 class FarkleWarningLights {
 public:
     int captured_state;
+    std::vector<int> captured_farkleCounts;
+    int captured_playerCount;
+    int captured_blinkingPlayerIndex;
+    bool captured_isBlinking;
 
-    FarkleWarningLights(int yellowPin, int redPin);
+    FarkleWarningLights(int pin);
     void begin();
     void farkle_state(int state);
-    void alternate();
+    void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking);
+    void alternate(int currentPlayerIndex, int playerCount);
 };
 
 #endif // MOCK_FARKLE_WARNING_LIGHTS_H

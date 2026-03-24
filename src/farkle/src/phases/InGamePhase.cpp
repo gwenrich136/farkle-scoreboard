@@ -1,6 +1,8 @@
 #include "GamePhase.h"
 #include "GameState.h"
+#include "GameConstants.h"
 #include <vector>
+#include <Arduino.h>
 
 void InGamePhase::display(const GameState& state, const Displays& displays) {
     updateScoreDisplays(state, displays);
@@ -33,18 +35,40 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
-    if (m_scores.size() != state.players.size() || m_lastScoresVersion != state.scoresVersion) {
-        m_scores.clear();
-        for (const auto& player : state.players) {
-            m_scores.push_back(player.score);
-        }
-        m_lastScoresVersion = state.scoresVersion;
+    // Rebuild the m_scores array every frame because animation phases (like FarklingPhase)
+    // drain atRiskScore continuously, and atRiskScore is not tracked by scoresVersion.
+    m_scores.clear();
+    for (size_t i = 0; i < state.players.size(); ++i) {
+        m_scores.push_back(getGridScoreForPlayer(state, i));
     }
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, state.atRiskScore);
+    m_lastScoresVersion = state.scoresVersion;
+
+    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, getBlinkingScore(state));
+}
+
+int InGamePhase::getGridScoreForPlayer(const GameState& state, int playerIndex) const {
+    return state.players[playerIndex].score;
+}
+
+int InGamePhase::getBlinkingScore(const GameState& state) const {
+    return 0; // Default behavior is no blinking score
 }
 
 void InGamePhase::updateWarningLights(const GameState& state, const Displays& displays) {
-    displays.farkleLights.farkle_state(state.players[state.currentPlayerIndex].farkle_count);
+    int farkleCounts[MAX_PLAYERS];
+    int count = 0;
+    for (const auto& player : state.players) {
+        if (count < MAX_PLAYERS) {
+            farkleCounts[count++] = player.farkle_count;
+        }
+    }
+
+    // Sync with LedProgressGrid blink logic (500ms half period)
+    bool isBlinkOn = (millis() % 1000) > 500;
+
+    // Default behavior for InGamePhase is NO blinking (solid lights)
+    // Subclasses like WaitingPhase can override this to pass the current player index
+    displays.farkleLights.update(farkleCounts, count, -1, isBlinkOn);
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {

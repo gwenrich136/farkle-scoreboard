@@ -3,15 +3,14 @@
 
 #include <vector>
 #include <cstdint>
-
-#define MAX_PLAYERS 8
+#include "GameConstants.h"
 
 class LedProgressGrid {
 public:
     // Captured state for inspection by tests
     std::vector<int> captured_scores;
     int captured_currentPlayerIndex;
-    int captured_atRiskScore;
+    int captured_blinkingScore;
     int player_count;
     bool was_cleared;
     bool was_reset;
@@ -25,7 +24,7 @@ public:
     bool isMaxPlayersReached();
     void reset();
     void clear();
-    void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
+    void update(const int* scores, int playerCount, int currentPlayerIndex, int blinkingScore);
     void displayPlayersPregame(bool isPlayerPending);
 };
 

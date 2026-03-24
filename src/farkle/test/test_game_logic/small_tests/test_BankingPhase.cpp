@@ -45,7 +45,7 @@ void test_BankingPhase_InputSpamming() {
 
     simulateButtonPress(game, ButtonAction::BANK);
     simulateButtonPress(game, ButtonAction::CLEAR);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 }
@@ -107,6 +107,23 @@ void test_BankingPhase_FinalRoundBlinking() {
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 }
 
+// Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the BankingPhase.
+void test_BankingPhase_GridAnimationScores() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.players[0].score = 1000;
+    game.state.atRiskScore = 500;
+    game.currentPhase = game.getPhase<BankingPhase>();
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    // It should display the player's base score (1000), not added to atRiskScore.
+    TEST_ASSERT_EQUAL_INT(1000, game.grid.captured_scores[0]);
+    // The blinking score should be 0.
+    TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
+}
+
 void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_AnimationMath);
     RUN_TEST(test_BankingPhase_ZeroFloorSafety);
@@ -115,4 +132,5 @@ void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_FarkleResetOnEnter);
     RUN_TEST(test_BankingPhase_LightsOffDuringAnimation);
     RUN_TEST(test_BankingPhase_FinalRoundBlinking);
+    RUN_TEST(test_BankingPhase_GridAnimationScores);
 }

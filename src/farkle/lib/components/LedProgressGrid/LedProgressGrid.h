@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-
-#define MAX_PLAYERS 8
+#include "PlayerLayout.h"
+#include "GameConstants.h"
 
 class LedProgressGrid {
 public:
@@ -14,16 +14,11 @@ public:
     PRE_GAME
   };
 
-  struct PlayerRows {
-    int startRow;
-    int numRows;
-  };
-
   struct State {
     DisplayMode mode = DisplayMode::NONE;
     int scores[MAX_PLAYERS] = {0};
     int currentPlayerIndex = -1;
-    int atRiskScore = -1;
+    int blinkingScore = -1;
     bool isBlinkOn = false;
     bool isPlayerPending = false;
     int playerCount = 0;
@@ -34,7 +29,7 @@ public:
       if (isDirty || other.isDirty ||
           mode != other.mode ||
           currentPlayerIndex != other.currentPlayerIndex ||
-          atRiskScore != other.atRiskScore ||
+          blinkingScore != other.blinkingScore ||
           isBlinkOn != other.isBlinkOn ||
           isPlayerPending != other.isPlayerPending ||
           playerCount != other.playerCount ||
@@ -58,7 +53,7 @@ public:
   bool isMaxPlayersReached();
   void reset();
   void clear();
-  void update(const int* scores, int playerCount, int currentPlayerIndex, int atRiskScore);
+  void update(const int* scores, int playerCount, int currentPlayerIndex, int blinkingScore);
   void displayPlayersPregame(bool isPlayerPending);
   int getMaxScore() const { return _maxScore; }
 
@@ -79,7 +74,6 @@ private:
   int get_pixel_index(int row, int col);
   int getRemainderBrightness(float remainder, int fullBrightness);
 
-  PlayerRows getRowMapping(int totalPlayers, int playerIdx);
   bool shouldRefresh(const State& newState);
   void renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness);
   uint16_t getPlayerHue(int playerIdx);

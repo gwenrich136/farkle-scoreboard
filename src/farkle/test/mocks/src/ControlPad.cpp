@@ -1,14 +1,35 @@
 #include "ControlPad.h"
 
-void ControlPad::press(ButtonAction action) {
-    button_press_queue.push(action);
+void ControlPad::begin() {
+    // No-op for mock
 }
 
-ButtonAction ControlPad::read() {
-    if (button_press_queue.empty()) {
-        return ButtonAction::NONE;
+void ControlPad::press(ButtonAction action) {
+    GameInput input;
+    input.action = action;
+    input.rotationDelta = 0;
+    input_queue.push(input);
+}
+
+void ControlPad::rotate(int delta) {
+    GameInput input;
+    input.action = ButtonAction::NONE;
+    input.rotationDelta = delta;
+    input_queue.push(input);
+}
+
+void ControlPad::simulate(GameInput input) {
+    input_queue.push(input);
+}
+
+GameInput ControlPad::read() {
+    if (input_queue.empty()) {
+        GameInput input;
+        input.action = ButtonAction::NONE;
+        input.rotationDelta = 0;
+        return input;
     }
-    ButtonAction action = button_press_queue.front();
-    button_press_queue.pop();
-    return action;
+    GameInput input = input_queue.front();
+    input_queue.pop();
+    return input;
 }

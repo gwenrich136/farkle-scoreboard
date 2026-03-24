@@ -10,39 +10,53 @@ This document outlines the design and intended functionality of the custom compo
 ## 1. ControlPad
 
 ### Purpose
-The `ControlPad` component is responsible for managing physical button inputs, translating them into logical game actions. It handles common input issues such as debouncing and preventing multiple simultaneous presses from registering as valid input.
+The `ControlPad` component is responsible for managing both digital and analog inputs, translating them into logical game actions and navigation. It handles debouncing, analog ladder stability, and high-precision encoder rotation.
 
 ### API Design
--   **`ControlPad()`**: Constructor. Initializes the control pad.
--   **`void addButton(int pin, ButtonAction buttonAction)`**: Configures a physical `pin` to trigger a specific `ButtonAction`. The `ControlPad` internally enables `INPUT_PULLUP` for the given pin.
--   **`ButtonAction read()`**: Scans all configured buttons. Returns the `ButtonAction` of a *single, debounced* button press.
-    -   If more than one button is pressed simultaneously, it returns `ButtonAction::NONE`.
-    -   If the same button remains pressed, it returns `ButtonAction::NONE` after the initial press, preventing repeated actions.
+-   **`ControlPad()`**: Constructor.
+-   **`GameInput read()`**: Scans all inputs (Digital pins, Analog ladder, and Encoder buffer). Returns a `GameInput` struct containing the current discrete `ButtonAction` and any `rotationDelta` from the encoder.
+    -   **Digital Priority**: If a digital button (BANK, FARKLE, SELECT) is pressed simultaneously with an analog ladder button (PLUS_50, etc.), the digital action takes priority.
+    -   **Single Action per Press**: Discrete buttons return their action only once per distinct press/release cycle (no auto-repeat).
+-   **`bool isToggled()`**: Returns the current state of the latching switch (A3), used for system-wide mode toggles (e.g., "Total Score" view).
 
 ### Key Logic & Behavior
--   **Single Action per Press:** The `read()` method ensures that only one `ButtonAction` is registered per distinct button press, making it ideal for a state-based game loop.
--   **Dynamic Mapping:** Buttons are mapped to actions at runtime, providing flexibility for different control layouts.
--   **`ButtonAction` Enum:** This enum, representing game-level actions, lives in its own dedicated header file: `src/farkle/include/ButtonActions.h`. This decouples the core game actions from the `ControlPad` hardware library. The `ControlPad`'s `read()` method should return values from this centrally-defined enum. The dual-purpose actions (`DOWN_50`, etc.) depend on the current game state for their interpretation.
+-   **Hybrid Input Model**:
+    -   **Digital (D4, D5, D6)**: High-reliability interrupts/polling for core actions (SELECT, BANK, FARKLE).
+    -   **Analog Ladder (A2)**: Interprets voltage levels to trigger CLEAR, PLUS_50, PLUS_100, or PLUS_500. Requires a **50ms stability window** to filter NeoPixel power noise.
+-   **Encoder Rotation (D2, D3)**:
+    -   Uses **Interrupts (ISR)** to ensure no pulses are missed during display updates.
+    -   Maintains an **Atomic Rotation Buffer** that tracks net displacement (ticks).
+    -   The `read()` method consumes this buffer, populating `GameInput.rotationDelta` and resetting the buffer to zero.
+-   **Input Data Structures**: The `GameInput` struct and `ButtonAction` enum are defined in `src/farkle/include/Input.h`.
 
 ---
 
 ## 2. FarkleWarningLights
 
 ### Purpose
-The `FarkleWarningLights` component provides a simple visual indication of a player's "farkle" count during a turn using two LEDs (one yellow, one red).
+The `FarkleWarningLights` component provides a system-wide visual map of every player's "farkle" status using an 8-LED NeoPixel strip. It serves both as a "turn pointer" and a danger indicator.
 
 ### API Design
--   **`FarkleWarningLights(int yellowPin, int redPin)`**: Constructor. Initializes the component with the Arduino pins connected to the yellow and red LEDs, configuring them as outputs.
--   **`void farkle_state(int state)`**: Sets the state of the warning lights based on the integer `state`.
-    -   `state = 0`: Both LEDs are off.
-    -   `state = 1`: The yellow LED is on, red is off.
-    -   `state = 2` (or greater): Both the yellow and red LEDs are on.
--   **`void alternate()`**: Manages an alternating flashing state for the yellow and red LEDs. This method is non-blocking and must be called repeatedly in a loop (e.g., `update()`) to function correctly. When called, it checks if it's time to toggle the lights based on an internal timer.
+-   **`FarkleWarningLights(int pin)`**: Constructor. Initializes the component for an 8-LED strip (NeoPixel) on the specified digital pin.
+-   **`void update(const int* farkleCounts, int playerCount, int blinkingPlayerIndex, bool isBlinking)`**: Updates the entire strip.
+    -   `farkleCounts`: An array of the current farkle count for every player in the game.
+    -   `playerCount`: Total number of active players.
+    -   `blinkingPlayerIndex`: The index of the player who should receive the blinking "turn indicator" treatment. Pass `-1` if no player should blink (e.g., during banking or farkling animations).
+    -   `isBlinking`: A flag (synced with the 500ms global timer) that toggles the blinking player's LED.
+-   **`void alternate(int currentPlayerIndex)`**: Triggers the alternating Yellow/Red "Pain" animation for the specified player (used during `PenaltyFarklingPhase`).
 
 ### Key Logic & Behavior
--   **Direct State Mapping:** The integer input directly maps to the visual output, simplifying usage in the main game logic.
--   **Max Farkle Count:** The game logic will ensure the `state` passed to `farkle_state()` will never exceed 2, as a third farkle resets the counter to zero.
--   **Alternating State for Catastrophic Farkle:** The `alternate()` method provides the specific visual effect required for the "catastrophic farkle" event. It uses `millis()` for non-blocking timing, allowing the rest of the game loop to run without interruption while the lights flash.
+-   **Visual Hierarchy**:
+    -   **Blinking Player (Active/Flashing)**: If `blinkingPlayerIndex` is valid, that player's LED flashes at **50% Brightness** (128).
+    -   **Other Players (Idle/Solid)**: LEDs for other players are **Solid** and at **50% Brightness** (128).
+    -   **Pain Animation (Alternate)**: When `alternate()` is called (e.g., during `PenaltyFarklingPhase`), the LEDs operate at **Full Brightness** (255) to maximize the "alarm" effect.
+    -   **Global Brightness**: Generally, active LEDs use 50% brightness (128) to avoid being overpowering, with the exception of the "Pain" animation.
+-   **Color Logic**:
+    -   **0 Farkles**: **White** (Blinking player only; Idle/Solid players are **OFF**).
+    -   **1 Farkle**: **Yellow** (Warning).
+    -   **2+ Farkles**: **Red** (Danger).
+-   **Hardware Optimization**: The component tracks the previous state and only calls `pixels.show()` when a value, current player, or blink state has changed.
+-   **Safety**: The strip is automatically cleared during `reset()`.
 
 ---
 

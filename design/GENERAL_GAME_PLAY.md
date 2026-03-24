@@ -14,20 +14,20 @@ The game begins by guiding players through setup and configuration.
 
 ### 1.1 Target Score Selection
 -   **Initial State:** The scoreboard asks "Target Score?". The default selection is 10,000.
--   **Navigation:** Players use `Up/Down` buttons to increment or decrement the goal in steps of 1,000. The range is clamped between 1,000 and 20,000.
+-   **Navigation:** Players rotate the dial (Encoder) to increment or decrement the goal in steps of 1,000. The range is clamped between 1,000 and 20,000.
 -   **Visual Feedback:** The `ScoreDisplay` segment for the "Competition Score" updates in real-time to show the currently selected target.
--   **Confirmation:** Pressing either `BANK` (Green) or `FARKLE` (Red) confirms the target score and transitions to the "Player Selection" screen.
+-   **Confirmation:** Pressing `SELECT` (Encoder Push) confirms the target score and transitions to the "Player Selection" screen.
 
 ### 1.2 Player Selection
 -   **Initial State:** The scoreboard displays a "Player Selection" screen, presenting a list of pre-stored player names.
 -   **Goal Persistence:** The "Competition Score" segment remains lit with the chosen target score throughout the selection process.
--   **Navigation:** Players use `Up/Down` buttons to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy with their assigned color.
--   **Selecting a Player:** Pressing the `BANK` (Green) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player from the available list, and the system remains in the "Player Selection" state, ready for the next player.
+-   **Navigation:** Players rotate the dial (Encoder) to scroll through the available names. While scrolling, the `LedProgressGrid` visually indicates the "pending player" by blinking the rows that player would occupy with their assigned color.
+-   **Selecting a Player:** Pressing the `SELECT` (Encoder Push) button on a highlighted name adds that player to the game. The player list refreshes, removing the selected player from the available list, and the system remains in the "Player Selection" state, ready for the next player.
 -   **Player Limit**: Once the maximum number of players is reached (currently 8), the system stops showing a "pending" player and the ability to add more is disabled.
 
 ### 1.2 Player Creation
 -   **Purpose:** Allows users to input a new player name character by character.
--   **Input Method:** The screen (via `TextDisplay`) shows the name being built. The active character is highlighted and can be changed by pressing `Up/Down`. Players navigate through the name using `Left/Right` buttons.
+-   **Input Method:** The screen (via `TextDisplay`) shows the name being built. The active character is highlighted and can be changed by rotating the dial (Encoder). Players navigate through the name by pressing `+100` (Left) or `+500` (Right).
 -   **Confirmation:** Pressing `BANK` confirms the new name, adds the player to the game, and returns to the "Player Selection" screen.
 -   **Aborting:** Pressing `CLEAR` discards the new name and returns to the "Player Selection" screen without adding a player.
 
@@ -46,11 +46,10 @@ The game begins by guiding players through setup and configuration.
 -   **Turn Start:** The `TextDisplay` clearly indicates whose turn it is (e.g., "PLAYER 1'S TURN").
 -   **Dice Rolling:** Players roll physical dice.
 -   **Score Input:**
-    -   Players use the directional buttons on the `ControlPad` to add points to their `at-risk` score. These buttons map to common Farkle score increments:
-        -   `DOWN`: +50 points
-        -   `LEFT`: +100 points
-        -   `RIGHT`: +500 points
-        -   `UP`: +1000 points
+    -   Players use the dedicated buttons on the `ControlPad` to add points to their `at-risk` score. These buttons map to common Farkle score increments:
+        -   `+50` button
+        -   `+100` button
+        -   `+500` button
     -   The `atRisk` score is displayed on a `ScoreDisplay` segment and as a blinking section on the `LedProgressGrid`.
     -   **Visual Feedback Rule:** If the `atRiskScore` is 0, it is only displayed as "0" on the `ScoreDisplay` during the `WaitingPhase`. In all other phases (such as during animations in the `BankingPhase` or `FarklingPhase`), an `atRiskScore` of 0 is treated as an empty display. This helps visually distinguish between an active turn and the transition between turns.
     -   **Correction:** Pressing `CLEAR` resets the `atRisk` score to 0 for the current roll, allowing the player to re-enter their score.
@@ -76,7 +75,7 @@ The game begins by guiding players through setup and configuration.
 -   **Trigger:** When a player gets their third consecutive farkle in a turn (and has points to lose).
 -   **Penalty:** A player who gets a third consecutive farkle loses 1,000 points, or their entire score if it's less than 1,000.
 -   **Dramatic Animation Sequence:**
-    1.  **"The Pain Sets In" (approx 3 seconds):**
+    1.  **"The Pain Sets In" (approx 5 seconds):**
         *   The `TextDisplay` shows a penalty quip.
         *   The `atRisk` score display flashes the negative penalty amount (e.g., "-1000" or "-850").
         *   The `FarkleWarningLights` begin **alternating** (Yellow/Red) to signal the catastrophe.
@@ -116,7 +115,7 @@ The game begins by guiding players through setup and configuration.
 After the winner celebration, the device enters a continuous post-game loop.
 
 ### 4.1 Game Replay & Upload (Parallel)
--   **Visual Replay:** The `LedProgressGrid` continuously replays the entire game's score history, showing how each player's score progressed throughout the game.
+-   **Visual Replay:** The `LedProgressGrid` continuously replays the game's progress, showing how each player's score advanced throughout the session.
 -   **Data Upload (Background/Interactive):** Simultaneously, the scoreboard attempts to connect via Bluetooth or WiFi to a paired phone.
     -   The `TextDisplay` provides status updates (e.g., "CONNECTING...", "UPLOADING...").
     -   If the upload is successful, the `TextDisplay` indicates this.
@@ -132,4 +131,4 @@ After the winner celebration, the device enters a continuous post-game loop.
 
 ### 4.3 Reset Game
 -   **Confirmation:** Selecting "Play Again" or triggering a reset (e.g., via `CLEAR` from a specific context) leads to a "Reset Game?" confirmation screen.
--   **Action:** Confirming the reset wipes all game history and returns the device to the initial "Target Score Selection" state.
+-   **Action:** Confirming the reset returns the device to the initial "Target Score Selection" state.

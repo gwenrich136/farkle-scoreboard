@@ -3,7 +3,7 @@
 #include <algorithm>
 
 // Constants for animation sequence
-const unsigned long PAIN_DURATION = 3000;
+const unsigned long PAIN_DURATION = 5000;
 const float PENALTY_DRAIN_SPEED = 1.0f;
 
 void PenaltyFarklingPhase::onEnter(GameState& state) {
@@ -18,12 +18,12 @@ void PenaltyFarklingPhase::onEnter(GameState& state) {
     state.players[state.currentPlayerIndex].farkle_count = 0;
 }
 
-GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) {
+GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     stageTimer += deltaTime;
 
     switch (currentStage) {
         case PenaltyStage::THE_PAIN:
-            // Dramatic pause for 3 seconds with blinking score
+            // Dramatic pause for 5 seconds with blinking score
             if (stageTimer >= PAIN_DURATION) {
                 currentStage = PenaltyStage::THE_DRAIN;
             }
@@ -55,7 +55,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, ButtonActi
 
         case PenaltyStage::THE_AFTERMATH:
             // Wait for user dismissal
-            if (action != ButtonAction::NONE) {
+            if (input.action != ButtonAction::NONE) {
                 this->endTurn(state);
                 return game.getPhase<WaitingPhase>();
             }
@@ -79,7 +79,7 @@ void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, cons
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {
     // Lights alternate during THE_PAIN and THE_DRAIN stages
     if (currentStage == PenaltyStage::THE_PAIN || currentStage == PenaltyStage::THE_DRAIN) {
-        displays.farkleLights.alternate();
+        displays.farkleLights.alternate(state.currentPlayerIndex, state.players.size());
     } else {
         // Inherit behavior for THE_AFTERMATH (turns them off as count is 0)
         InGamePhase::updateWarningLights(state, displays);

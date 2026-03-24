@@ -46,7 +46,7 @@ void test_FarklingPhase_InputSpamming() {
 
     simulateButtonPress(game, ButtonAction::BANK);
     simulateButtonPress(game, ButtonAction::CLEAR);
-    simulateButtonPress(game, ButtonAction::UP_1000);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
 
     TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 }
@@ -107,6 +107,23 @@ void test_FarklingPhase_FinalRoundBlinking() {
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 }
 
+// Verifies that the LedProgressGrid receives the potential score as the base score, and NO blinking score during the FarklingPhase.
+void test_FarklingPhase_GridAnimationScores() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    game.state.players[0].score = 1000;
+    game.state.atRiskScore = 500;
+    game.currentPhase = game.getPhase<FarklingPhase>();
+
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    game.currentPhase->display(game.state, displays);
+
+    // It should display the player's potential score (1500) falling back to base.
+    TEST_ASSERT_EQUAL_INT(1500, game.grid.captured_scores[0]);
+    // The blinking score should be 0.
+    TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
+}
+
 void run_farkling_phase_tests() {
     RUN_TEST(test_FarklingPhase_AnimationMath);
     RUN_TEST(test_FarklingPhase_ZeroFloorSafety);
@@ -115,4 +132,5 @@ void run_farkling_phase_tests() {
     RUN_TEST(test_FarklingPhase_NoHarmNoFoul_NoIncrement);
     RUN_TEST(test_FarklingPhase_IncrementWithPoints);
     RUN_TEST(test_FarklingPhase_FinalRoundBlinking);
+    RUN_TEST(test_FarklingPhase_GridAnimationScores);
 }

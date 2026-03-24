@@ -24,7 +24,8 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Defined in:** `src/farkle/include/phases/WaitingPhase.h` & `src/farkle/src/phases/WaitingPhase.cpp`
 *   **Implementation Details:** The `update()` method contains all logic for this phase:
     *   **Check for Game End:** At the start of the `update` method, it checks if `state.finalRoundTriggered` is true. If it is, and the current player's score is `>= state.targetScore`, it immediately `return game.getPhase<PostGamePhase_V1>();`.
-    *   **Handle Input:** A `switch(action)` block handles `UP_1000`, `RIGHT_500`, etc., by modifying `state.atRiskScore`.
+    *   **Handle Score Input:** A `switch(input.action)` block handles `PLUS_50`, `PLUS_100`, and `PLUS_500` by modifying `state.atRiskScore`.
+    *   **Handle Navigation (Competitor Preview):** Uses `input.rotationDelta` (Encoder) to cycle through other players' scores on the `COMPETITION_SCORE` display.
     *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it `return game.getPhase<FarklingPhase>();`.
 
 ### BankingPhase
@@ -33,7 +34,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     0.  **Reset Farkle Count:** The `onEnter()` method resets the current player's `farkle_count` to 0.
     1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
-    2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `action != NONE`. This allows players to review the final score.
+    2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `input.action != NONE`. This allows players to review the final score.
     3.  **Finalize Turn:** Once a button is pressed:
         a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
         b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
@@ -45,7 +46,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     1.  **Increment Count:** The `onEnter()` method checks if `player.score > 0`. If true, it increments the `farkle_count`. If false (score is 0), the count is **not** incremented ("No Harm, No Foul").
     2.  **Animate Score Loss:** The `update()` method runs a time-based animation to drain `state.atRiskScore` to 0. It ignores input during the animation.
-    3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `action != NONE`.
+    3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `input.action != NONE`.
     3.  **Finalize Turn:** Upon button press:
         a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
         b. `return game.getPhase<WaitingPhase>();`.
@@ -60,12 +61,25 @@ This category handles user input for scoring, provides feedback through animatio
         *   Resets the player's `farkle_count` to 0 immediately.
         *   Initializes a phase-local timer/state for the animation sequence.
     2.  **3-Stage Animation (`update()`):**
-        *   **Stage 1: The Pain (0s - 3s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
+        *   **Stage 1: The Pain (0s - 5s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
         *   **Stage 2: The Drain:** `atRisk` display stops blinking. Values animate: `atRisk` goes up to 0, Banked score goes down. Warning lights continue alternating.
         *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
     3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
 
-*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks (e.g., `updateWarningLights()`, `updateScoreDisplays()`). The `updateScoreDisplays()` hook is further broken down into `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+*   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks:
+    *   `updateWarningLights()`: Collects the `farkle_count` for all players and the `currentPlayerIndex`. It passes this data to the `FarkleWarningLights` component to update the entire 8-LED Status Strip (current player flashing, others dim/solid).
+    *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+
+### Visual Feedback
+-   **Turn Indicator (FarkleWarningLights):**
+    -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
+    -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.
+    -   **PenaltyFarklingPhase:** Triggers a special alternating animation during the penalty sequence.
+-   **LED Progress Grid Animations:**
+    -   **WaitingPhase:** Shows the banked score and blinks the potential score (`atRiskScore`).
+    -   **BankingPhase:** Shows only the banked score growing smoothly. No blinking score.
+    -   **FarklingPhase:** Shows the potential score (banked + `atRiskScore`) shrinking smoothly back to the banked score. No blinking score.
+    -   **PenaltyFarklingPhase:** Shows only the banked score shrinking smoothly. No blinking score.
 
 ### Score Display Behavior
 - **Default (InGamePhase):** If `atRiskScore` is 0, the display is cleared.

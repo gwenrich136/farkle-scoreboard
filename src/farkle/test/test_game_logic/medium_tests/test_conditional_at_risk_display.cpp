@@ -63,14 +63,14 @@ void test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero() {
     // Enter PenaltyFarklingPhase
     simulateButtonPress(game, ButtonAction::FARKLE);
 
-    // Stage 1: THE_PAIN (0-3s). Verify display is NOT cleared while score is -1000
+    // Stage 1: THE_PAIN (0-5s). Verify display is NOT cleared while score is -1000
     simulateNoAction(game, 1500);
     TEST_ASSERT_EQUAL_INT(-1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
     TEST_ASSERT_FALSE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 
-    // Advance past THE_PAIN (3 seconds total)
-    simulateNoAction(game, 1501);
+    // Advance past THE_PAIN (5 seconds total)
+    simulateNoAction(game, 3501);
 
     // Stage 2: THE_DRAIN. Verify display is NOT cleared while score is still negative
     // We can just step once and check
@@ -110,10 +110,53 @@ void test_DisplayLogic_FarklingPhase_ClearsZero() {
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
+void test_DisplayLogic_InGamePhase_PassesAllFarkleCounts() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    // Set some farkle counts
+    game.state.players[0].farkle_count = 0;
+    game.state.players[1].farkle_count = 1;
+    game.state.players[2].farkle_count = 2;
+    game.state.players[3].farkle_count = 0;
+
+    game.loop();
+
+    // Verify farkle counts are passed to the mock
+    TEST_ASSERT_EQUAL_INT(4, game.farkleLights.captured_farkleCounts.size());
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_farkleCounts[0]);
+    TEST_ASSERT_EQUAL_INT(1, game.farkleLights.captured_farkleCounts[1]);
+    TEST_ASSERT_EQUAL_INT(2, game.farkleLights.captured_farkleCounts[2]);
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_farkleCounts[3]);
+
+    // Also verify player count and blinking player index (should be 0 for WaitingPhase)
+    TEST_ASSERT_EQUAL_INT(4, game.farkleLights.captured_playerCount);
+    TEST_ASSERT_EQUAL_INT(0, game.farkleLights.captured_blinkingPlayerIndex);
+}
+
+void test_DisplayLogic_BankingPhase_NoBlinking() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    // Add score so we can bank
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+
+    // Enter BankingPhase
+    simulateButtonPress(game, ButtonAction::BANK);
+
+    // During BankingPhase (InGamePhase subclass), blinkingPlayerIndex should be -1
+    game.loop();
+
+    TEST_ASSERT_EQUAL_INT(-1, game.farkleLights.captured_blinkingPlayerIndex);
+}
+
 void run_display_logic_tests() {
     RUN_TEST(test_DisplayLogic_PlayerSelection_DisplaysOff);
     RUN_TEST(test_DisplayLogic_WaitingPhase_ShowsZero);
     RUN_TEST(test_DisplayLogic_BankingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_FarklingPhase_ClearsZero);
     RUN_TEST(test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero);
+    RUN_TEST(test_DisplayLogic_InGamePhase_PassesAllFarkleCounts);
+    RUN_TEST(test_DisplayLogic_BankingPhase_NoBlinking);
 }

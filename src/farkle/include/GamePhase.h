@@ -2,7 +2,7 @@
 #define GamePhase_h
 
 #include "GameState.h"
-#include "ButtonActions.h"
+#include "Input.h"
 #include "Displays.h"
 #include <vector>
 
@@ -18,7 +18,7 @@ public:
 
     // Called every loop to handle logic and transitions
     // Returns a pointer to the next phase (or 'this' to stay in current phase)
-    virtual GamePhase* update(Game& game, GameState& state, ButtonAction action, unsigned long deltaTime) = 0;
+    virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;
 
     // Called every loop to handle rendering
     virtual void display(const GameState& state, const Displays& displays) = 0;
@@ -60,6 +60,10 @@ protected:
     virtual void updateProgressGrid(const GameState& state, const Displays& displays);
     virtual void updateWarningLights(const GameState& state, const Displays& displays);
     virtual void updateTextDisplay(const GameState& state, const Displays& displays);
+
+    // Virtual hooks for calculating scores displayed on the Progress Grid
+    virtual int getGridScoreForPlayer(const GameState& state, int playerIndex) const;
+    virtual int getBlinkingScore(const GameState& state) const;
 
     // Helper to calculate the highest score among all players
     int calculateLeadingScore(const GameState& state);
