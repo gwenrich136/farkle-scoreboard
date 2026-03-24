@@ -8,10 +8,9 @@
 // Constructor: initializes the NeoPixel object
 LedProgressGrid::LedProgressGrid(uint8_t pin)
   : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800),
-    _targetScore(10000),
-    _hasProspectiveFirstHue(false)
+    _targetScore(10000)
 {
-    memset(_playerHues, 0, sizeof(_playerHues));
+    memset(_playerColors, 0, sizeof(_playerColors));
     _lastState.isDirty = true;
 }
 
@@ -26,21 +25,39 @@ void LedProgressGrid::setTargetScore(int target) {
     _lastState.isDirty = true;
 }
 
-void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
+uint32_t LedProgressGrid::scaleColorBrightness(uint32_t color, uint8_t brightness) {
+    if (brightness == 255) return color;
+    if (brightness == 0) return 0;
+
+    // Extract RGB from 32-bit color (0x00RRGGBB)
+    uint8_t r = (color >> 16) & 0xFF;
+    uint8_t g = (color >>  8) & 0xFF;
+    uint8_t b =  color        & 0xFF;
+
+    // Scale and shift
+    r = (r * brightness) >> 8;
+    g = (g * brightness) >> 8;
+    b = (b * brightness) >> 8;
+
+    return _pixels.Color(r, g, b);
+}
+
+void LedProgressGrid::illuminate_row(int row, uint32_t baseColor, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
   // rows snake, so we need to count backwards for odd rows
-    uint32_t color = _pixels.ColorHSV(hue, 255, brightness);
+    uint32_t solidColor = scaleColorBrightness(baseColor, brightness);
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
         get_pixel_index(row, col),
-        color);
+        solidColor);
     }
     // Only draw partial pixel if we haven't filled the row
     if (num_pixels < GRID_LENGTH) {
+      uint32_t partialColor = scaleColorBrightness(baseColor, getRemainderBrightness(remainder, brightness));
       _pixels.setPixelColor(
         get_pixel_index(row, num_pixels),
-        _pixels.ColorHSV(hue, 255, getRemainderBrightness(remainder, brightness))
+        partialColor
       );
     }
 }
@@ -75,18 +92,15 @@ int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness)
   return (int) (fullBrightness * y);
 }
 
-int LedProgressGrid::addPlayer() {
-    if (isMaxPlayersReached()) {
+int LedProgressGrid::addPlayer(int playerIndex, uint16_t hue) {
+    if (isMaxPlayersReached() || playerIndex != _playerCount) {
         return -1;
     }
 
-    uint16_t newHue = getPlayerHue(_playerCount);
-    _playerHues[_playerCount] = newHue;
+    _playerColors[playerIndex] = _pixels.ColorHSV(hue, 255, 255);
     
-    int playerIndex = _playerCount;
     _playerCount++;
     _lastState.isDirty = true;
-    _hasProspectiveFirstHue = false;
     
     return playerIndex;
 }
@@ -104,7 +118,6 @@ void LedProgressGrid::clear() {
 
 void LedProgressGrid::reset() {
   _playerCount = 0;
-  _hasProspectiveFirstHue = false;
 
   _maxScore = _targetScore;
   _isBlinkOn = false;
@@ -121,26 +134,9 @@ bool LedProgressGrid::shouldRefresh(const State& newState) {
     return false;
 }
 
-uint16_t LedProgressGrid::getPlayerHue(int playerIdx) {
-    if (playerIdx < _playerCount) {
-        return _playerHues[playerIdx];
-    }
-
-    // Pending player logic
-    if (_playerCount == 0) {
-        if (!_hasProspectiveFirstHue) {
-            _prospectiveFirstHue = random(0, 65536);
-            _hasProspectiveFirstHue = true;
-        }
-        return _prospectiveFirstHue;
-    } else {
-        return (uint16_t)(_playerHues[_playerCount - 1] + (GOLDEN_RATIO_CONJUGATE * 65536)) % 65536;
-    }
-}
-
-void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness) {
+void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint32_t baseColor, float ratio, uint8_t brightness) {
     for (int r = 0; r < rows.numRows; ++r) {
-        illuminate_row(rows.startRow + r, hue, ratio, brightness);
+        illuminate_row(rows.startRow + r, baseColor, ratio, brightness);
     }
 }
 
@@ -202,13 +198,14 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
     float ratioToDraw = (float)scoreToDraw / _maxScore;
     if (ratioToDraw > 1.0f) ratioToDraw = 1.0f;
 
-    renderPlayerRows(rows, _playerHues[playerIdx], ratioToDraw, 128);
+    renderPlayerRows(rows, _playerColors[playerIdx], ratioToDraw, 128);
   }
 
   _pixels.show();
 }
 
-void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+void LedProgressGrid::displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue) {
+  bool isPlayerPending = pendingPlayerHue.has_value();
   if (isMaxPlayersReached()) {
     isPlayerPending = false;
   }
@@ -234,15 +231,15 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
   // Draw existing players
   for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
       PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, playerIdx);
-      renderPlayerRows(rows, _playerHues[playerIdx], 1.0f, 128);
+      renderPlayerRows(rows, _playerColors[playerIdx], 1.0f, 128);
   }
 
   // Draw pending player
   if (isPlayerPending && _isBlinkOn) {
       int pendingIdx = _playerCount;
       PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, pendingIdx);
-      uint16_t hue = getPlayerHue(pendingIdx);
-      renderPlayerRows(rows, hue, 1.0f, 128);
+      uint32_t pendingColor = _pixels.ColorHSV(*pendingPlayerHue, 255, 255);
+      renderPlayerRows(rows, pendingColor, 1.0f, 128);
   }
 
   _pixels.show();
