@@ -70,15 +70,15 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 #### Setup & State Management
 -   **`LedProgressGrid(uint8_t pin)`**: Constructor. Initializes the NeoPixel strip for a hardcoded 8x8 grid (64 pixels).
 -   **`void reset()`**: Resets the component to its initial state, clearing all player configurations and turning off all LEDs, preparing for a new game.
--   **`int addPlayer()`**: Dynamically adds a player to the grid configuration.
-    -   Assigns a unique color (hue) to the new player. The first player gets a random hue, subsequent players get hues generated using the golden ratio for maximal distinction.
+-   **`int addPlayer(uint16_t hue)`**: Dynamically adds a player to the grid configuration.
+    -   Assigns the given `hue` to the new player. The `GameState` is responsible for generating and providing this color.
     -   Returns the `playerIndex` (0-indexed) of the newly added player.
 
 #### Display Modes
 
--   **`void displayPlayersPregame(bool isPlayerPending)`**: Displays the current player setup in a pre-game or player selection screen.
+-   **`void displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue)`**: Displays the current player setup in a pre-game or player selection screen.
     -   Illuminates all rows assigned to each existing player with their solid color.
-    -   If `isPlayerPending` is `true`: The rows that would be assigned to the *next* player (Player `_playerCount`) will blink with their prospective hue. If no players are added yet (`_playerCount == 0`), the middle four rows will blink.
+    -   If `pendingPlayerHue` has a value: The rows that will be assigned to the *next* player will blink with the provided prospective hue.
 
 -   **`void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore)`**: The primary method for rendering game scores during active gameplay. This should be called repeatedly in the main game loop.
     -   The `LedProgressGrid` internally calculates `maxScore` as the maximum of the `targetScore` and the highest potential score (banked + at-risk) among all players.

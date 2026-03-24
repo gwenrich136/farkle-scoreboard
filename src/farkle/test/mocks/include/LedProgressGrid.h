@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <optional>
 #include "GameConstants.h"
 
 class LedProgressGrid {
@@ -20,12 +21,12 @@ public:
     LedProgressGrid(uint8_t pin);
     void begin();
     void setTargetScore(int target);
-    int addPlayer();
+    int addPlayer(uint16_t hue);
     bool isMaxPlayersReached();
     void reset();
     void clear();
     void update(const int* scores, int playerCount, int currentPlayerIndex, int blinkingScore);
-    void displayPlayersPregame(bool isPlayerPending);
+    void displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue);
 };
 
 #endif // MOCK_LED_PROGRESS_GRID_H

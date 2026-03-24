@@ -55,7 +55,11 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
 
 void PlayerSelectionPhase::updateProgressGrid(const GameState& state, const Displays& displays) {
     bool isRosterFull = state.players.size() >= MAX_PLAYERS;
-    displays.grid.displayPlayersPregame(!isRosterFull);
+    if (!isRosterFull) {
+        displays.grid.displayPlayersPregame(state.getNextPlayerHue(state.players.size()));
+    } else {
+        displays.grid.displayPlayersPregame(std::nullopt);
+    }
 }
 
 void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
