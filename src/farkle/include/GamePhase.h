@@ -21,6 +21,8 @@ public:
     virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;
 
     // Called every loop to handle rendering
+    // Note: GameState provides player hues (e.g., state.players[i].hue)
+    // for rendering by specific phases (like PlayerSelectionPhase).
     virtual void display(const GameState& state, const Displays& displays) = 0;
 };
 

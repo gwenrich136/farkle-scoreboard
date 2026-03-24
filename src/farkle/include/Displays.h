@@ -4,7 +4,7 @@
 #include "ScoreDisplay.h"
 #include "LedProgressGrid.h"
 #include "FarkleWarningLights.h"
-#include "TextDisplay.h"
+#include "TextDisplayV2.h"
 
 // This struct groups all hardware display components to simplify
 // passing them to the GamePhase::display() method.
@@ -12,10 +12,10 @@ struct Displays {
     ScoreDisplay& scoreDisplay;
     LedProgressGrid& grid;
     FarkleWarningLights& farkleLights;
-    TextDisplay& oled;
+    TextDisplayV2& textDisplay;
 
-    Displays(ScoreDisplay& sd, LedProgressGrid& g, FarkleWarningLights& fl, TextDisplay& t)
-        : scoreDisplay(sd), grid(g), farkleLights(fl), oled(t) {}
+    Displays(ScoreDisplay& sd, LedProgressGrid& g, FarkleWarningLights& fl, TextDisplayV2& t)
+        : scoreDisplay(sd), grid(g), farkleLights(fl), textDisplay(t) {}
 };
 
 #endif

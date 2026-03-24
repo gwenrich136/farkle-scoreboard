@@ -94,7 +94,7 @@ void test_WaitingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<WaitingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -108,7 +108,7 @@ void test_WaitingPhase_GridAnimationScores() {
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<WaitingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's base score.

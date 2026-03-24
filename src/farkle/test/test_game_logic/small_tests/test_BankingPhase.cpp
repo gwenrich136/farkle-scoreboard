@@ -87,7 +87,7 @@ void test_BankingPhase_LightsOffDuringAnimation() {
     // Enter the phase and update display
     game.currentPhase->onEnter(game.state);
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // Captured state 0 means all lights are off
@@ -101,7 +101,7 @@ void test_BankingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<BankingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -115,7 +115,7 @@ void test_BankingPhase_GridAnimationScores() {
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<BankingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's base score (1000), not added to atRiskScore.
