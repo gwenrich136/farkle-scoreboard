@@ -8,8 +8,7 @@
 // Constructor: initializes the NeoPixel object
 LedProgressGrid::LedProgressGrid(uint8_t pin)
   : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800),
-    _targetScore(10000),
-    _hasProspectiveFirstHue(false)
+    _targetScore(10000)
 {
     memset(_playerHues, 0, sizeof(_playerHues));
     _lastState.isDirty = true;
@@ -75,18 +74,16 @@ int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness)
   return (int) (fullBrightness * y);
 }
 
-int LedProgressGrid::addPlayer() {
+int LedProgressGrid::addPlayer(uint16_t hue) {
     if (isMaxPlayersReached()) {
         return -1;
     }
 
-    uint16_t newHue = getPlayerHue(_playerCount);
-    _playerHues[_playerCount] = newHue;
+    _playerHues[_playerCount] = hue;
     
     int playerIndex = _playerCount;
     _playerCount++;
     _lastState.isDirty = true;
-    _hasProspectiveFirstHue = false;
     
     return playerIndex;
 }
@@ -104,7 +101,6 @@ void LedProgressGrid::clear() {
 
 void LedProgressGrid::reset() {
   _playerCount = 0;
-  _hasProspectiveFirstHue = false;
 
   _maxScore = _targetScore;
   _isBlinkOn = false;
@@ -119,23 +115,6 @@ bool LedProgressGrid::shouldRefresh(const State& newState) {
         return true;
     }
     return false;
-}
-
-uint16_t LedProgressGrid::getPlayerHue(int playerIdx) {
-    if (playerIdx < _playerCount) {
-        return _playerHues[playerIdx];
-    }
-
-    // Pending player logic
-    if (_playerCount == 0) {
-        if (!_hasProspectiveFirstHue) {
-            _prospectiveFirstHue = random(0, 65536);
-            _hasProspectiveFirstHue = true;
-        }
-        return _prospectiveFirstHue;
-    } else {
-        return (uint16_t)(_playerHues[_playerCount - 1] + (GOLDEN_RATIO_CONJUGATE * 65536)) % 65536;
-    }
 }
 
 void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness) {
@@ -208,7 +187,8 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
   _pixels.show();
 }
 
-void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+void LedProgressGrid::displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue) {
+  bool isPlayerPending = pendingPlayerHue.has_value();
   if (isMaxPlayersReached()) {
     isPlayerPending = false;
   }
@@ -241,8 +221,7 @@ void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
   if (isPlayerPending && _isBlinkOn) {
       int pendingIdx = _playerCount;
       PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, pendingIdx);
-      uint16_t hue = getPlayerHue(pendingIdx);
-      renderPlayerRows(rows, hue, 1.0f, 128);
+      renderPlayerRows(rows, *pendingPlayerHue, 1.0f, 128);
   }
 
   _pixels.show();

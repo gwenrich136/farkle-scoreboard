@@ -71,8 +71,9 @@ void Game::loop() {
 
 void Game::addPlayer(const std::string& name) {
     if (!canAddPlayer()) return;
-    state.players.push_back(Player(name));
-    grid.addPlayer();
+    uint16_t hue = state.getNextPlayerHue(state.players.size());
+    state.players.push_back(Player(name, hue));
+    grid.addPlayer(hue);
 }
 
 bool Game::canAddPlayer() {
