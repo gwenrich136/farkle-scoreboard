@@ -71,6 +71,7 @@ This category handles user input for scoring, provides feedback through animatio
     *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
 
 ### Visual Feedback
+-   **Unified Color Identity:** The `TextDisplayV2` renders the active player's name and critical turn information in the `Player.color` stored in the `GameState`. This matches the player's row on the `LedProgressGrid`, creating a cohesive visual link between the scoreboard and the high-resolution UI.
 -   **Turn Indicator (FarkleWarningLights):**
     -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
     -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.

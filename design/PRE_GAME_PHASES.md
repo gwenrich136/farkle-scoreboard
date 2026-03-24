@@ -53,5 +53,5 @@ The system follows this sequence:
     4.  **Starting Game (RED/FARKLE)**: 
         *   If `state.players.size() >= 1`, returns `game.getPhase<WaitingPhase>()`.
     5.  **Display Behavior (Hooks)**:
-        *   **`updateTextDisplay()`**: Calls `oled.printSelectionScreen("Add Player", currentSelection)`.
+        *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Add Player", currentSelection, getNextPlayerColor(state.players.size()))`. The `currentSelection` is rendered in the specific color that will be assigned to this player index, providing immediate visual feedback of their "identity" before they are added.
         *   **`updateProgressGrid()`**: Calls `grid.displayPlayersPregame(isPlayerPending)`. `isPlayerPending` is true if the grid is not full.

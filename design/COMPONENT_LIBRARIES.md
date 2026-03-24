@@ -113,7 +113,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven by MAX7219 chips) to show various numerical scores from the game.
 
 ### API Design
--   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
+-   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library. In the Hardware SPI configuration (Step 3+), `dataPin` and `clkPin` must match the hardware SPI MOSI (D11) and SCK (D13) pins respectively.
 -   **`void addDisplay(DisplayType type, int deviceIndex)`**: Maps a logical `DisplayType` to a physical `deviceIndex`.
 -   **`void print_number(int number, DisplayType type, bool blink = false)`**: Displays an integer `number` on the display mapped to the given `DisplayType`.
     -   The number will be right-aligned on the 5-digit display.
@@ -121,6 +121,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **`void clear(DisplayType type)`**: Clears all digits on the display mapped to the given `DisplayType`.
 
 ### Key Logic & Behavior
+-   **Shared SPI Bus**: To support the high-speed requirements of the IPS LCD, the `ScoreDisplay` is migrated to the hardware SPI bus (D11/D13). It shares these pins with the `TextDisplayV2` but is controlled by its dedicated **CS (D10)** line.
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, logically identified by the `DisplayType` enum:
     -   `AT_RISK_SCORE`
     -   `CURRENT_PLAYER_SCORE`
@@ -168,3 +169,34 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
 -   **State Caching**: The component caches the last rendered content and current mode using `std::string` comparison to prevent unnecessary screen refreshes, optimizing I2C bus usage.
 -   **I2C Communication**: Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
 -   **Visual Styling**: Uses specific fonts for titles and main text to ensure hierarchy and readability.
+
+---
+
+## 6. TextDisplayV2 (IPS LCD)
+
+### Purpose
+The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 240x240 Color IPS LCD**. It is designed to be functionally equivalent to the original `TextDisplay` but utilizes the hardware SPI bus and is optimized for the larger color-capable resolution.
+
+### API Design
+
+#### Static Text Display Modes
+-   **`void print(const char* message)`**: Displays a single message centered on the 240x240 screen.
+-   **`void displayTitle(const char* title)`**: Displays a single line of `title` text, centered horizontally and vertically.
+-   **`void displayTitleWithSubtitle(const char* title, const char* subtitle)`**: Displays a main `title` centered towards the top, with a smaller `subtitle` centered towards the bottom.
+-   **`void displayTitleWithSubtitles(const char* title, const char* leftSubtitle, const char* rightSubtitle)`**: Displays a main `title` centered towards the top, with two smaller subtitles at the bottom: one left-aligned (`leftSubtitle`) and one right-aligned (`rightSubtitle`).
+
+#### Interactive UI Modes
+-   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint32_t color = 0xFFFF)`**: Renders an interactive selection screen. The `selectionItem` can be rendered in a specific `color` (defaulting to White) to highlight player identities during setup.
+-   **`void displayCharacterInput(const char* currentName, int activeIndex, uint32_t color = 0xFFFF)`**: Renders an interactive screen for name input, with the active character highlighted in the provided `color`.
+
+### Key Logic & Behavior
+-   **Unified Color Identity**: By accepting `uint32_t` color values, the LCD can match the text and UI elements to the specific hue assigned to the current player on the LED grid.
+-   **Hardware SPI Bus**: Uses the Uno R4's hardware SPI (D11/D13) for zero-latency UI updates. It shares this bus with the `ScoreDisplay` (MAX7219) but uses a dedicated **CS (A4)** pin.
+-   **Control Pins**:
+    -   **CS (A4)**: Chip Select.
+    -   **DC (A5)**: Data/Command.
+    -   **RES (D7)**: Hardware Reset.
+    -   **BLK (D8)**: Backlight Control (automatically set to 100% in `begin()`).
+-   **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
+-   **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
+-   **State Caching**: The component caches the last rendered content to skip redundant SPI updates.
