@@ -3,10 +3,10 @@
 
 Game::Game() : 
     controlPad(),
-    scoreDisplay(12, 11, 10), // dataPin, clkPin, csPin
+    scoreDisplay(11, 13, 10), // dataPin(MOSI), clkPin(SCK), csPin
     grid(A0),                // NeoPixel Data Pin
     farkleLights(A1),        // Status Strip NeoPixel Pin
-    oled(),
+    textDisplay(-1, A5, D7, D8), // cs, dc, res, blk
     currentPhase(nullptr),
     lastUpdateTime(0)
 {
@@ -19,8 +19,8 @@ void Game::setup() {
     Serial.println("GAME: Init ControlPad...");
     controlPad.begin();
 
-    Serial.println("GAME: Init OLED...");
-    oled.begin();
+    Serial.println("GAME: Init TextDisplayV2...");
+    textDisplay.begin();
     
     Serial.println("GAME: Init ScoreDisplay...");
     scoreDisplay.begin();
@@ -54,7 +54,7 @@ void Game::loop() {
     GameInput input = controlPad.read();
 
     // 3. Construct Displays struct
-    Displays displays(scoreDisplay, grid, farkleLights, oled);
+    Displays displays(scoreDisplay, grid, farkleLights, textDisplay);
 
     // 4. Update Current Phase
     GamePhase* nextPhase = currentPhase->update(*this, state, input, deltaTime);

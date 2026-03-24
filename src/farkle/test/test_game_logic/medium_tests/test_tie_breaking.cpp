@@ -51,7 +51,7 @@ void test_TieBreaking_Case1() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 
     // Verify Player 1 wins
-    TEST_ASSERT_EQUAL_STRING("Geewee WINS!", game.oled.captured_message.c_str());
+    TEST_ASSERT_EQUAL_STRING("Geewee WINS!", game.textDisplay.captured_message.c_str());
 }
 
 /**
@@ -92,7 +92,7 @@ void test_TieBreaking_Case2() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 
     // Verify Player 2 wins (Sammy)
-    TEST_ASSERT_EQUAL_STRING("Sammy WINS!", game.oled.captured_message.c_str());
+    TEST_ASSERT_EQUAL_STRING("Sammy WINS!", game.textDisplay.captured_message.c_str());
 }
 
 /**
@@ -145,7 +145,7 @@ void test_TieBreaking_Case3() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 
     // Verify Player 2 wins (Sammy) because they reached 3000 FIRST.
-    TEST_ASSERT_EQUAL_STRING("Sammy WINS!", game.oled.captured_message.c_str());
+    TEST_ASSERT_EQUAL_STRING("Sammy WINS!", game.textDisplay.captured_message.c_str());
 }
 
 void run_tie_breaking_tests() {

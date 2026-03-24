@@ -113,7 +113,7 @@ void test_PenaltyFarklingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -127,7 +127,7 @@ void test_PenaltyFarklingPhase_GridAnimationScores() {
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
     game.currentPhase->onEnter(game.state);
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's base score.

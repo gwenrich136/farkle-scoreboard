@@ -2,6 +2,7 @@
 #define MOCK_TEXT_DISPLAY_V2_H
 
 #include <string>
+#include <cstdint>
 
 class TextDisplayV2 {
 public:

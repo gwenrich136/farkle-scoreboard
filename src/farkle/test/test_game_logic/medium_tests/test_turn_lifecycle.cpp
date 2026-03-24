@@ -21,15 +21,15 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     game.loop();
 
     // 1. Target Score Selection
-    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
-    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
 
     // Transition to Player Selection
     simulateButtonPress(game, ButtonAction::SELECT);
 
     // 2. Initial selection state (Geewee selected)
-    TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
-    TEST_ASSERT_EQUAL_STRING("Geewee", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Geewee", game.textDisplay.captured_item.c_str());
 
     // 3. Navigate to "Coach"
     simulateRotation(game, 1); // Sammy
@@ -52,7 +52,7 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Should be in WaitingPhase, showing first player (Coach)
-    TEST_ASSERT_EQUAL_STRING("Coach", game.oled.captured_message.c_str());
+    TEST_ASSERT_EQUAL_STRING("Coach", game.textDisplay.captured_message.c_str());
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
 }
 
