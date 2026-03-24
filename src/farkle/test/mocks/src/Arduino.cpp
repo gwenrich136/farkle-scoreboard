@@ -24,6 +24,10 @@ void pinMode(int pin, int mode) {
     mockPinModes[pin] = mode;
 }
 
+void digitalWrite(int pin, int val) {
+    mockPinStates[pin] = val;
+}
+
 int digitalRead(int pin) {
     if (mockPinStates.find(pin) == mockPinStates.end()) {
         return HIGH; // Default to HIGH (like INPUT_PULLUP unpressed)
