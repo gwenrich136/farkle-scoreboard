@@ -31,8 +31,8 @@ void test_LedProgressGrid_InitialState(void) {
 }
 
 void test_LedProgressGrid_AddPlayer(void) {
-    int p1 = grid->addPlayer(0, 0);
-    int p2 = grid->addPlayer(1, 0);
+    int p1 = grid->addPlayer(0);
+    int p2 = grid->addPlayer(0);
 
     TEST_ASSERT_EQUAL(0, p1);
     TEST_ASSERT_EQUAL(1, p2);
@@ -42,8 +42,8 @@ void test_LedProgressGrid_Optimization(void) {
     // This test verifies that multiple calls to update() with same state
     // do NOT trigger multiple calls to show().
     std::vector<int> scores = {1000, 2000};
-    grid->addPlayer(0, 0); // p0
-    grid->addPlayer(1, 0); // p1
+    grid->addPlayer(0); // p0
+    grid->addPlayer(0); // p1
 
     mockNeoPixelShowCount = 0;
     grid->update(scores.data(), scores.size(), 0, 0);
@@ -92,7 +92,7 @@ void test_LedProgressGrid_Pregame_Blink_Optimization(void) {
 }
 
 void test_LedProgressGrid_Update_Basic(void) {
-    grid->addPlayer(0, 0);
+    grid->addPlayer(0);
     std::vector<int> scores = {5000};
     grid->update(scores.data(), scores.size(), 0, 0);
 
@@ -113,7 +113,7 @@ void test_LedProgressGrid_Update_Basic(void) {
 
 void test_LedProgressGrid_InsufficientScores(void) {
     // If we have more players than scores provided, update should return early (safety check)
-    grid->addPlayer(0, 0); // 1 player
+    grid->addPlayer(0); // 1 player
     std::vector<int> emptyScores; // 0 scores
 
     mockNeoPixelShowCount = 0;
@@ -126,7 +126,7 @@ void test_LedProgressGrid_InsufficientScores(void) {
 void test_LedProgressGrid_MaxPlayers(void) {
     // Add 8 players (MAX_PLAYERS)
     for (int i = 0; i < 8; ++i) {
-        int idx = grid->addPlayer(i, 0);
+        int idx = grid->addPlayer(0);
         TEST_ASSERT_EQUAL(i, idx);
 
         // Before the last one, it shouldn't be full yet?
@@ -141,14 +141,14 @@ void test_LedProgressGrid_MaxPlayers(void) {
     TEST_ASSERT_TRUE(grid->isMaxPlayersReached());
 
     // Try adding 9th player
-    int idx = grid->addPlayer(8, 0);
+    int idx = grid->addPlayer(0);
     TEST_ASSERT_EQUAL(-1, idx);
     TEST_ASSERT_TRUE(grid->isMaxPlayersReached());
 }
 
 void test_LedProgressGrid_SetTargetScore(void) {
     mockNeoPixelShowCount = 0;
-    grid->addPlayer(0, 0);
+    grid->addPlayer(0);
     std::vector<int> scores = {1000};
 
     // Default target is 10000. 1000/10000 = 0.1 ratio -> 0.8 pixels (1 pixel total brightness)
@@ -169,7 +169,7 @@ void test_LedProgressGrid_SetTargetScore(void) {
 void test_LedProgressGrid_MaxScore_Exact(void) {
     // Verify that _maxScore is exactly highestScore (if > _targetScore) and not a multiple of 2000.
     grid->setTargetScore(10000);
-    grid->addPlayer(0, 0);
+    grid->addPlayer(0);
     std::vector<int> scores = {11000};
 
     grid->update(scores.data(), scores.size(), 0, 0);
@@ -180,7 +180,7 @@ void test_LedProgressGrid_MaxScore_Exact(void) {
 void test_LedProgressGrid_MaxScore_IncludesAtRisk(void) {
     // Verify that _maxScore takes blinkingScore into account.
     grid->setTargetScore(10000);
-    grid->addPlayer(0, 0);
+    grid->addPlayer(0);
     std::vector<int> scores = {9000};
 
     grid->update(scores.data(), scores.size(), 0, 1500); // 9000 + 1500 = 10500
@@ -190,7 +190,7 @@ void test_LedProgressGrid_MaxScore_IncludesAtRisk(void) {
 void test_LedProgressGrid_MaxScore_Shrinking(void) {
     // Verify that _maxScore shrinks when the leading player's score decreases.
     grid->setTargetScore(10000);
-    grid->addPlayer(0, 0);
+    grid->addPlayer(0);
     std::vector<int> scores = {12000};
 
     grid->update(scores.data(), scores.size(), 0, 0);

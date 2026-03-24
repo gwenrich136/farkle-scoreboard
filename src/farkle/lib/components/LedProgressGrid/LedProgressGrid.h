@@ -50,7 +50,7 @@ public:
   LedProgressGrid(uint8_t pin);
   void begin();
   void setTargetScore(int target);
-  int addPlayer(int playerIndex, uint16_t hue);
+  int addPlayer(uint16_t hue);
   bool isMaxPlayersReached();
   void reset();
   void clear();
@@ -62,20 +62,19 @@ private:
   Adafruit_NeoPixel _pixels;
 
   int _playerCount;
-  uint32_t _playerColors[MAX_PLAYERS];
+  uint16_t _playerHues[MAX_PLAYERS];
   int _maxScore;
   int _targetScore;
   bool _isBlinkOn;
 
   State _lastState;
 
-  void illuminate_row(int row, uint32_t baseColor, float ratio, uint8_t brightness = 255);
+  void illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness = 255);
   int get_pixel_index(int row, int col);
   int getRemainderBrightness(float remainder, int fullBrightness);
-  uint32_t scaleColorBrightness(uint32_t color, uint8_t brightness);
 
   bool shouldRefresh(const State& newState);
-  void renderPlayerRows(PlayerRows rows, uint32_t baseColor, float ratio, uint8_t brightness);
+  void renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness);
 };
 
 #endif

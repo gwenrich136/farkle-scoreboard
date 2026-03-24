@@ -10,7 +10,7 @@ LedProgressGrid::LedProgressGrid(uint8_t pin)
   : _pixels(GRID_LENGTH*GRID_LENGTH, pin, NEO_GRB + NEO_KHZ800),
     _targetScore(10000)
 {
-    memset(_playerColors, 0, sizeof(_playerColors));
+    memset(_playerHues, 0, sizeof(_playerHues));
     _lastState.isDirty = true;
 }
 
@@ -25,39 +25,21 @@ void LedProgressGrid::setTargetScore(int target) {
     _lastState.isDirty = true;
 }
 
-uint32_t LedProgressGrid::scaleColorBrightness(uint32_t color, uint8_t brightness) {
-    if (brightness == 255) return color;
-    if (brightness == 0) return 0;
-
-    // Extract RGB from 32-bit color (0x00RRGGBB)
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >>  8) & 0xFF;
-    uint8_t b =  color        & 0xFF;
-
-    // Scale and shift
-    r = (r * brightness) >> 8;
-    g = (g * brightness) >> 8;
-    b = (b * brightness) >> 8;
-
-    return _pixels.Color(r, g, b);
-}
-
-void LedProgressGrid::illuminate_row(int row, uint32_t baseColor, float ratio, uint8_t brightness) {
+void LedProgressGrid::illuminate_row(int row, uint16_t hue, float ratio, uint8_t brightness) {
   int num_pixels = (int) (ratio * GRID_LENGTH);
   float remainder = (ratio * GRID_LENGTH) - num_pixels;
   // rows snake, so we need to count backwards for odd rows
-    uint32_t solidColor = scaleColorBrightness(baseColor, brightness);
+    uint32_t color = _pixels.ColorHSV(hue, 255, brightness);
     for (int col = 0; col < num_pixels; ++col) {
       _pixels.setPixelColor(
         get_pixel_index(row, col),
-        solidColor);
+        color);
     }
     // Only draw partial pixel if we haven't filled the row
     if (num_pixels < GRID_LENGTH) {
-      uint32_t partialColor = scaleColorBrightness(baseColor, getRemainderBrightness(remainder, brightness));
       _pixels.setPixelColor(
         get_pixel_index(row, num_pixels),
-        partialColor
+        _pixels.ColorHSV(hue, 255, getRemainderBrightness(remainder, brightness))
       );
     }
 }
@@ -92,13 +74,14 @@ int LedProgressGrid::getRemainderBrightness(float remainder, int fullBrightness)
   return (int) (fullBrightness * y);
 }
 
-int LedProgressGrid::addPlayer(int playerIndex, uint16_t hue) {
-    if (isMaxPlayersReached() || playerIndex != _playerCount) {
+int LedProgressGrid::addPlayer(uint16_t hue) {
+    if (isMaxPlayersReached()) {
         return -1;
     }
 
-    _playerColors[playerIndex] = _pixels.ColorHSV(hue, 255, 255);
+    _playerHues[_playerCount] = hue;
     
+    int playerIndex = _playerCount;
     _playerCount++;
     _lastState.isDirty = true;
     
@@ -134,9 +117,9 @@ bool LedProgressGrid::shouldRefresh(const State& newState) {
     return false;
 }
 
-void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint32_t baseColor, float ratio, uint8_t brightness) {
+void LedProgressGrid::renderPlayerRows(PlayerRows rows, uint16_t hue, float ratio, uint8_t brightness) {
     for (int r = 0; r < rows.numRows; ++r) {
-        illuminate_row(rows.startRow + r, baseColor, ratio, brightness);
+        illuminate_row(rows.startRow + r, hue, ratio, brightness);
     }
 }
 
@@ -198,7 +181,7 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
     float ratioToDraw = (float)scoreToDraw / _maxScore;
     if (ratioToDraw > 1.0f) ratioToDraw = 1.0f;
 
-    renderPlayerRows(rows, _playerColors[playerIdx], ratioToDraw, 128);
+    renderPlayerRows(rows, _playerHues[playerIdx], ratioToDraw, 128);
   }
 
   _pixels.show();
@@ -231,15 +214,14 @@ void LedProgressGrid::displayPlayersPregame(std::optional<uint16_t> pendingPlaye
   // Draw existing players
   for (int playerIdx = 0; playerIdx < _playerCount; ++playerIdx) {
       PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, playerIdx);
-      renderPlayerRows(rows, _playerColors[playerIdx], 1.0f, 128);
+      renderPlayerRows(rows, _playerHues[playerIdx], 1.0f, 128);
   }
 
   // Draw pending player
   if (isPlayerPending && _isBlinkOn) {
       int pendingIdx = _playerCount;
       PlayerRows rows = PlayerLayout::getMapping(effectivePlayerCount, pendingIdx);
-      uint32_t pendingColor = _pixels.ColorHSV(*pendingPlayerHue, 255, 255);
-      renderPlayerRows(rows, pendingColor, 1.0f, 128);
+      renderPlayerRows(rows, *pendingPlayerHue, 1.0f, 128);
   }
 
   _pixels.show();

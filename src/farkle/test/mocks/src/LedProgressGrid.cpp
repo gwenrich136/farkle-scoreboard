@@ -12,8 +12,8 @@ void LedProgressGrid::setTargetScore(int target) {
     captured_targetScore = target;
 }
 
-int LedProgressGrid::addPlayer(int playerIndex, uint16_t hue) {
-    if (isMaxPlayersReached() || playerIndex != player_count) {
+int LedProgressGrid::addPlayer(uint16_t hue) {
+    if (isMaxPlayersReached()) {
         return -1;
     }
     return player_count++;

@@ -8,6 +8,8 @@
 #include <Arduino.h>
 
 #define MAX_SCORE 99999
+#define HUE_MAX_16BIT 65536
+#define HUE_GOLDEN_RATIO_JUMP 40503
 
 struct Player {
     std::string name;
@@ -42,12 +44,12 @@ struct GameState {
 
     uint16_t getNextPlayerHue(int playerCount) const {
         if (!prospectiveFirstHue.has_value()) {
-            prospectiveFirstHue = random(0, 65536);
+            prospectiveFirstHue = random(0, HUE_MAX_16BIT);
         }
         if (playerCount == 0) {
             return *prospectiveFirstHue;
         } else {
-            return (*prospectiveFirstHue + (playerCount * 40503)) % 65536;
+            return (*prospectiveFirstHue + (playerCount * HUE_GOLDEN_RATIO_JUMP)) % HUE_MAX_16BIT;
         }
     }
 

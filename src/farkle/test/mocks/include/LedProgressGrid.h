@@ -21,7 +21,7 @@ public:
     LedProgressGrid(uint8_t pin);
     void begin();
     void setTargetScore(int target);
-    int addPlayer(int playerIndex, uint16_t hue);
+    int addPlayer(uint16_t hue);
     bool isMaxPlayersReached();
     void reset();
     void clear();
