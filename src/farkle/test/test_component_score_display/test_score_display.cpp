@@ -21,7 +21,7 @@ void setUp(void) {
     mockSetCharCount = 0;
 
     // Pins don't matter for mock
-    display = new ScoreDisplay(10, 11, 12);
+    display = new ScoreDisplay(10);
     display->begin();
     display->addDisplay(ScoreDisplay::DisplayType::AT_RISK_SCORE, 0);
     display->addDisplay(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE, 1);

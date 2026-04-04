@@ -18,7 +18,8 @@
  */
 
 #include <Arduino.h>
-#include <LedControl.h>
+#include <SPI.h>
+#include <MD_MAX72xx.h>
 
 #define NUM_DISPLAY_TYPES 3
 
@@ -26,8 +27,8 @@ class ScoreDisplay {
 public:
   enum class DisplayType { AT_RISK_SCORE, CURRENT_PLAYER_SCORE, COMPETITION_SCORE };
 
-  // dataPin, clkPin, csPin
-  ScoreDisplay(int dataPin, int clkPin, int csPin);
+  // Hardware SPI uses predefined MOSI, SCK, so we only need csPin
+  ScoreDisplay(int csPin);
   void begin();
   void addDisplay(DisplayType type, int deviceIndex);
   void print_number(int number, DisplayType type, bool blink = false);
@@ -49,7 +50,7 @@ public:
   };
 
 private:
-  LedControl _lc;
+  MD_MAX72XX _lc;
   int _deviceMap[NUM_DISPLAY_TYPES]; // Map DisplayType to deviceIndex
   State _states[NUM_DISPLAY_TYPES];
 

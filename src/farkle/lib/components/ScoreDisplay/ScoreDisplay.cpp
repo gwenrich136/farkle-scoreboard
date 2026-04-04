@@ -8,8 +8,29 @@
 #define SCORE_BLINK_HIGH 12
 #define SCORE_DEFAULT_INTENSITY 8
 
-ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin)
-  : _lc(dataPin, clkPin, csPin, NUM_DEVICES)
+// Standard 7-segment encoding for MAX7219 (DP A B C D E F G)
+// where A=bit6, B=bit5, etc.
+static const uint8_t charToSegment(char c) {
+  switch (c) {
+    case '0': return 0x7E;
+    case '1': return 0x30;
+    case '2': return 0x6D;
+    case '3': return 0x79;
+    case '4': return 0x33;
+    case '5': return 0x5B;
+    case '6': return 0x5F;
+    case '7': return 0x70;
+    case '8': return 0x7F;
+    case '9': return 0x7B;
+    case '-': return 0x01;
+    case ' ': default: return 0x00;
+  }
+}
+
+// Standard FC16_HW modules are the most common generic 4-in-1 dot matrix / 7-seg displays.
+// If actual hardware shows backward or inverted text, change to GENERIC_HW or PAROLA_HW.
+ScoreDisplay::ScoreDisplay(int csPin)
+  : _lc(MD_MAX72XX::GENERIC_HW, csPin, NUM_DEVICES)
 {
   for (int i = 0; i < NUM_DISPLAY_TYPES; i++) {
     _deviceMap[i] = -1;
@@ -27,10 +48,10 @@ bool ScoreDisplay::isValidType(DisplayType type) {
 
 void ScoreDisplay::begin() {
   // Set up the MAX7219 devices
+  _lc.begin();
   for (int i = 0; i < NUM_DEVICES; i++) {
-    _lc.shutdown(i, false); // Wake up display
-    _lc.setIntensity(i, SCORE_DEFAULT_INTENSITY); // Set brightness (0-15)
-    _lc.clearDisplay(i);    // Clear display
+    _lc.control(i, MD_MAX72XX::INTENSITY, SCORE_DEFAULT_INTENSITY);
+    _lc.clear(i);
   }
 
   setState(DisplayType::AT_RISK_SCORE, -1, false, true, -1);
@@ -50,7 +71,7 @@ void ScoreDisplay::clear(DisplayType type) {
 
   int deviceIndex = _deviceMap[typeIdx];
   if (deviceIndex == -1) return;
-  _lc.clearDisplay(deviceIndex);
+  _lc.clear(deviceIndex);
 
   setState(type, -1, false, true, -1);
 }
@@ -83,7 +104,7 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
   }
 
   if (intensityChanged || blinkModeChanged) {
-    _lc.setIntensity(deviceIndex, targetIntensity);
+    _lc.control(deviceIndex, MD_MAX72XX::INTENSITY, targetIntensity);
   }
 
   if (numberChanged) {
@@ -105,14 +126,26 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
     }
 
     const int emptySlots = NUM_DIGITS_PER_DISPLAY - len;
-    for (int i = 0; i < emptySlots; ++i) {
-      _lc.setChar(deviceIndex, i, ' ', false);
+    // MD_MAX72XX typically addresses digits per module 0-7.
+    // Assuming each module is a single device.
+    // For setChar in MD_MAX72XX: we just clear all 8 digits, then write the ones we need.
+    // NOTE: MD_MAX72XX does not have a setChar that takes (device, digit, char).
+    // Instead, it maps columns 0 to (NUM_DEVICES * 8) - 1.
+    // A standard 7-segment display wired as FC-16 module puts digit 0 at col 0, digit 1 at col 1, etc.
+    // Let's implement printing to the correct columns for this device.
+    // Each device has 8 columns (digits).
+
+    int startCol = deviceIndex * 8;
+    for (int i = 0; i < 8; i++) {
+        _lc.setColumn(startCol + i, 0x00);
     }
-    for (int i = 0; i < len; ++i){
-      int targetIndex = i + emptySlots;
-      if (targetIndex >= 0 && targetIndex < NUM_DIGITS_PER_DISPLAY) {
-        _lc.setChar(deviceIndex, targetIndex, digits[len - 1 - i], false);
-      }
+    for (int i = 0; i < len; ++i) {
+        int targetIndex = i + emptySlots;
+        if (targetIndex >= 0 && targetIndex < NUM_DIGITS_PER_DISPLAY) {
+            // Note: NUM_DIGITS_PER_DISPLAY is 5, but hardware digits might be mapped 0-7.
+            // On a 7-segment display with GENERIC_HW, column indices directly map to digits.
+            _lc.setColumn(startCol + targetIndex, charToSegment(digits[len - 1 - i]));
+        }
     }
   }
 
