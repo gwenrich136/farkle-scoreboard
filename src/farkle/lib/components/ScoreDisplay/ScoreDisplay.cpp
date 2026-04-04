@@ -1,9 +1,6 @@
 #include "ScoreDisplay.h"
 #include <Arduino.h> // Include Arduino.h for Serial.println
 
-#define NUM_DEVICES 3
-#define NUM_DIGITS_PER_DISPLAY 5
-
 #define SCORE_BLINK_LOW 2
 #define SCORE_BLINK_HIGH 12
 #define SCORE_DEFAULT_INTENSITY 8
@@ -27,13 +24,51 @@ static const uint8_t charToSegment(char c) {
   }
 }
 
-// Standard FC16_HW modules are the most common generic 4-in-1 dot matrix / 7-seg displays.
-// If actual hardware shows backward or inverted text, change to GENERIC_HW or PAROLA_HW.
 ScoreDisplay::ScoreDisplay(int csPin)
-  : _lc(MD_MAX72XX::GENERIC_HW, csPin, NUM_DEVICES)
+  : _csPin(csPin)
 {
   for (int i = 0; i < NUM_DISPLAY_TYPES; i++) {
     _deviceMap[i] = -1;
+  }
+}
+
+// MAX7219 Registers
+#define MAX7219_REG_NOOP         0x00
+#define MAX7219_REG_DIGIT0       0x01
+#define MAX7219_REG_DECODEMODE   0x09
+#define MAX7219_REG_INTENSITY    0x0A
+#define MAX7219_REG_SCANLIMIT    0x0B
+#define MAX7219_REG_SHUTDOWN     0x0C
+#define MAX7219_REG_DISPLAYTEST  0x0F
+
+void ScoreDisplay::max7219_write(int deviceIndex, uint8_t reg, uint8_t data) {
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  digitalWrite(_csPin, LOW);
+
+  // MAX7219 devices are daisy chained.
+  // We send NOOP to devices we don't want to update.
+  // The first data sent ends up in the LAST device in the chain.
+  for (int i = NUM_DEVICES - 1; i >= 0; i--) {
+    if (i == deviceIndex) {
+      SPI.transfer(reg);
+      SPI.transfer(data);
+    } else {
+      SPI.transfer(MAX7219_REG_NOOP);
+      SPI.transfer(0x00);
+    }
+  }
+
+  digitalWrite(_csPin, HIGH);
+  SPI.endTransaction();
+}
+
+void ScoreDisplay::max7219_setIntensity(int deviceIndex, int intensity) {
+  max7219_write(deviceIndex, MAX7219_REG_INTENSITY, intensity);
+}
+
+void ScoreDisplay::max7219_clear(int deviceIndex) {
+  for (int i = 0; i < 8; i++) {
+    max7219_write(deviceIndex, MAX7219_REG_DIGIT0 + i, 0x00);
   }
 }
 
@@ -47,11 +82,19 @@ bool ScoreDisplay::isValidType(DisplayType type) {
 }
 
 void ScoreDisplay::begin() {
-  // Set up the MAX7219 devices
-  _lc.begin();
+  pinMode(_csPin, OUTPUT);
+  digitalWrite(_csPin, HIGH);
+  SPI.begin();
+
+  // Initialize all devices
   for (int i = 0; i < NUM_DEVICES; i++) {
-    _lc.control(i, MD_MAX72XX::INTENSITY, SCORE_DEFAULT_INTENSITY);
-    _lc.clear(i);
+    max7219_write(i, MAX7219_REG_SHUTDOWN, 0x00); // Disable
+    max7219_write(i, MAX7219_REG_DISPLAYTEST, 0x00); // No test mode
+    max7219_write(i, MAX7219_REG_DECODEMODE, 0x00); // Disable BCD decoding
+    max7219_write(i, MAX7219_REG_SCANLIMIT, NUM_DIGITS_PER_DISPLAY - 1); // Scan exactly the number of digits we use
+    max7219_clear(i);
+    max7219_setIntensity(i, SCORE_DEFAULT_INTENSITY);
+    max7219_write(i, MAX7219_REG_SHUTDOWN, 0x01); // Enable
   }
 
   setState(DisplayType::AT_RISK_SCORE, -1, false, true, -1);
@@ -71,7 +114,7 @@ void ScoreDisplay::clear(DisplayType type) {
 
   int deviceIndex = _deviceMap[typeIdx];
   if (deviceIndex == -1) return;
-  _lc.clear(deviceIndex);
+  max7219_clear(deviceIndex);
 
   setState(type, -1, false, true, -1);
 }
@@ -104,7 +147,7 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
   }
 
   if (intensityChanged || blinkModeChanged) {
-    _lc.control(deviceIndex, MD_MAX72XX::INTENSITY, targetIntensity);
+    max7219_setIntensity(deviceIndex, targetIntensity);
   }
 
   if (numberChanged) {
@@ -125,26 +168,18 @@ void ScoreDisplay::print_number(int number, DisplayType type, bool blink)
       if (negative) digits[len++] = '-';
     }
 
-    const int emptySlots = NUM_DIGITS_PER_DISPLAY - len;
-    // MD_MAX72XX typically addresses digits per module 0-7.
-    // Assuming each module is a single device.
-    // For setChar in MD_MAX72XX: we just clear all 8 digits, then write the ones we need.
-    // NOTE: MD_MAX72XX does not have a setChar that takes (device, digit, char).
-    // Instead, it maps columns 0 to (NUM_DEVICES * 8) - 1.
-    // A standard 7-segment display wired as FC-16 module puts digit 0 at col 0, digit 1 at col 1, etc.
-    // Let's implement printing to the correct columns for this device.
-    // Each device has 8 columns (digits).
+    max7219_clear(deviceIndex); // clear remaining spaces
 
-    int startCol = deviceIndex * 8;
-    for (int i = 0; i < 8; i++) {
-        _lc.setColumn(startCol + i, 0x00);
-    }
+    const int emptySlots = NUM_DIGITS_PER_DISPLAY - len;
+
+    // MAX7219 digits are 1-indexed for the command register (MAX7219_REG_DIGIT0 + i)
+    // The user noted: "The module is wired so that the left most digit is Digit 0."
+    // So targetIndex 0 is the leftmost digit.
+    // MAX7219 registers: 0x01 is Digit 0, 0x02 is Digit 1, etc.
     for (int i = 0; i < len; ++i) {
         int targetIndex = i + emptySlots;
         if (targetIndex >= 0 && targetIndex < NUM_DIGITS_PER_DISPLAY) {
-            // Note: NUM_DIGITS_PER_DISPLAY is 5, but hardware digits might be mapped 0-7.
-            // On a 7-segment display with GENERIC_HW, column indices directly map to digits.
-            _lc.setColumn(startCol + targetIndex, charToSegment(digits[len - 1 - i]));
+            max7219_write(deviceIndex, MAX7219_REG_DIGIT0 + targetIndex, charToSegment(digits[len - 1 - i]));
         }
     }
   }

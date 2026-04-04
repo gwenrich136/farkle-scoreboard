@@ -19,9 +19,10 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#include <MD_MAX72xx.h>
 
 #define NUM_DISPLAY_TYPES 3
+#define NUM_DEVICES 3
+#define NUM_DIGITS_PER_DISPLAY 5
 
 class ScoreDisplay {
 public:
@@ -50,12 +51,17 @@ public:
   };
 
 private:
-  MD_MAX72XX _lc;
+  int _csPin;
   int _deviceMap[NUM_DISPLAY_TYPES]; // Map DisplayType to deviceIndex
   State _states[NUM_DISPLAY_TYPES];
 
   bool isValidType(DisplayType type);
   void setState(DisplayType type, int number, bool blink, bool isCleared, int lastIntensity);
+
+  // Direct SPI control for MAX7219
+  void max7219_write(int deviceIndex, uint8_t reg, uint8_t data);
+  void max7219_setIntensity(int deviceIndex, int intensity);
+  void max7219_clear(int deviceIndex);
 };
 
 #endif
