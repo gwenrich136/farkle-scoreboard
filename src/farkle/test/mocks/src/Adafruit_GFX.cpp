@@ -9,3 +9,4 @@ int mockAdafruitFillScreenCount = 0;
 
 // Dummy Font definition
 const GFXfont FreeSans9pt7b = {nullptr, nullptr, 0x20, 0x7E, 22};
+const GFXfont FreeSans18pt7b = {nullptr, nullptr, 0x20, 0x7E, 44};

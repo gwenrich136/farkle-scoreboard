@@ -24,6 +24,7 @@ typedef struct {
 } GFXfont;
 
 extern const GFXfont FreeSans9pt7b;
+extern const GFXfont FreeSans18pt7b;
 
 struct MockAdafruitPrintCall {
     std::string str;

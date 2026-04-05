@@ -8,8 +8,9 @@ void TextDisplayV2::begin() {
     // Begin can be empty for the mock
 }
 
-void TextDisplayV2::print(const char* message) {
+void TextDisplayV2::print(const char* message, uint16_t hue) {
     captured_message = message;
+    captured_hue = hue;
 }
 
 void TextDisplayV2::printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue) {

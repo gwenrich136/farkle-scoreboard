@@ -1,5 +1,5 @@
 #include "TextDisplayV2.h"
-#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSans18pt7b.h>
 #include <math.h>
 #include <cstring>
 
@@ -31,18 +31,21 @@ void TextDisplayV2::begin() {
   Serial.println("    TEXTV2: Init complete.");
 }
 
-void TextDisplayV2::print(const char* message)
+void TextDisplayV2::print(const char* message, uint16_t hue)
 {
-  if (_currentMode == DisplayModeV2::MESSAGE && strcmp(_lastMessage, message) == 0) {
+  if (_currentMode == DisplayModeV2::MESSAGE && strcmp(_lastMessage, message) == 0 && _lastHue == hue) {
     return; // State cache
   }
   _currentMode = DisplayModeV2::MESSAGE;
   strncpy(_lastMessage, message, sizeof(_lastMessage) - 1);
   _lastMessage[sizeof(_lastMessage) - 1] = '\0';
+  _lastHue = hue;
 
   _display.fillScreen(ST77XX_BLACK);
-  _display.setFont(&FreeSans9pt7b);
-  _display.setTextColor(ST77XX_WHITE);
+  _display.setFont(&FreeSans18pt7b);
+
+  uint16_t textColor = (hue == 0xFFFF) ? ST77XX_WHITE : colorHSVtoRGB565(hue);
+  _display.setTextColor(textColor);
 
   int16_t x1, y1;
   uint16_t w, h;
@@ -71,7 +74,7 @@ void TextDisplayV2::printSelectionScreen(const char* selectionTitle, const char*
     _lastHue = hue;
 
     _display.fillScreen(ST77XX_BLACK);
-    _display.setFont(&FreeSans9pt7b);
+    _display.setFont(&FreeSans18pt7b);
 
     // Resolve color
     uint16_t itemColor = (hue == 0xFFFF) ? ST77XX_WHITE : colorHSVtoRGB565(hue);

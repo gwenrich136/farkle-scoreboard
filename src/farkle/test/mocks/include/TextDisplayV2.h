@@ -13,7 +13,7 @@ public:
 
     TextDisplayV2(int cs, int dc, int res, int blk);
     void begin();
-    void print(const char* message);
+    void print(const char* message, uint16_t hue = 0xFFFF);
     void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF);
 };
 
