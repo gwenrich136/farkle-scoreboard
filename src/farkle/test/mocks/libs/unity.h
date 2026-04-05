@@ -11,6 +11,9 @@
 
 #define TEST_ASSERT_EQUAL(expected, actual) do { if ((expected) != (actual)) { std::cerr << "Assertion failed: expected " << (expected) << ", but was " << (actual) << " at " << __FILE__ << ":" << __LINE__ << std::endl; exit(1); } } while(0)
 #define TEST_ASSERT_TRUE(condition) do { if (!(condition)) { std::cerr << "Assertion failed: condition is false at " << __FILE__ << ":" << __LINE__ << std::endl; exit(1); } } while(0)
+#define TEST_ASSERT_FALSE_MESSAGE(condition, message) do { if (condition) { std::cerr << "Assertion failed: " << message << " at " << __FILE__ << ":" << __LINE__ << std::endl; exit(1); } } while(0)
 #define TEST_ASSERT_EQUAL_STRING(expected, actual) do { if (std::string(expected) != std::string(actual)) { std::cerr << "Assertion failed: expected '" << (expected) << "', but was '" << (actual) << "' at " << __FILE__ << ":" << __LINE__ << std::endl; exit(1); } } while(0)
+#define TEST_ASSERT_EQUAL_CHAR(expected, actual) TEST_ASSERT_EQUAL((char)(expected), (char)(actual))
+#define TEST_ASSERT_EQUAL_INT(expected, actual) TEST_ASSERT_EQUAL((int)(expected), (int)(actual))
 
 #endif
