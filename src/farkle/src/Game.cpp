@@ -6,7 +6,7 @@ Game::Game() :
     scoreDisplay(10),        // csPin (Hardware SPI uses D11 for MOSI, D13 for SCK)
     grid(A0),                // NeoPixel Data Pin
     farkleLights(A1),        // Status Strip NeoPixel Pin
-    textDisplay(-1, A5, D7, D8), // cs, dc, res, blk
+    textDisplay(A4, A5, D7, D8), // cs, dc, res, blk
     currentPhase(nullptr),
     lastUpdateTime(0)
 {
