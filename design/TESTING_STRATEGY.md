@@ -116,6 +116,12 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PenaltyFarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_PenaltyFarklingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the PenaltyFarklingPhase.
 
+*   **`test_EndOfTurnPhase.cpp`**
+    *   **`test_EndOfTurnPhase_ManualAdvance`:** Verifies that a button press advances the turn and transitions to `WaitingPhase`.
+    *   **`test_EndOfTurnPhase_FinalRoundTrigger`:** Verifies that the phase correctly triggers final round if score condition met.
+    *   **`test_EndOfTurnPhase_DisplayClearsAtRisk`:** Verifies that the At-Risk display is cleared when the turn ends.
+    *   **`test_EndOfTurnPhase_WaitWithoutInput`:** Verifies that the phase properly waits and automatically advances after a 5-second timeout.
+
 *   **`test_TargetScoreSelectionPhase.cpp`**
     *   **`test_TargetScoreSelection_InitialState`**: Verifies that the phase starts with the default target score (10,000).
     *   **`test_TargetScoreSelection_Adjustment`**: Verifies that `rotationDelta` (Encoder) increments and decrements the target score correctly.
@@ -166,6 +172,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
     *   **`test_FullGame_TripleFarkle_ScoreLessThanPenalty`:** Verifies that player score does not go negative when triple farkled.
+    *   **`test_FullGame_AutoAdvanceTurn`:** Verifies that a full game can be completed solely via the 5-second automatic timeout for turn advancement.
     *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
 
 
