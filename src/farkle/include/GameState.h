@@ -31,7 +31,10 @@ struct GameState {
 
     mutable std::optional<uint16_t> prospectiveFirstHue;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt) {}
+    std::vector<int> rankedPlayerIndices;
+    int currentCompetitorRank;
+
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt), currentCompetitorRank(0) {}
 
     void reset() {
         players.clear();
@@ -40,6 +43,8 @@ struct GameState {
         finalRoundTriggered = false;
         scoresVersion++;
         prospectiveFirstHue = std::nullopt;
+        rankedPlayerIndices.clear();
+        currentCompetitorRank = 0;
     }
 
     uint16_t getNextPlayerHue(int playerCount) const {

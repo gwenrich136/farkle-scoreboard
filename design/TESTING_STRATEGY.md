@@ -80,6 +80,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_WaitingPhase.cpp`**
     *   **`test_WaitingPhase_ScoreAccumulation`:** Verifies that the `atRiskScore` correctly accumulates when score buttons are pressed.
+    *   **`test_WaitingPhase_LeaderboardScrolling`:** Verifies leaderboard scrolling behavior.
     *   **`test_WaitingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_WaitingPhase_ScoreCorrection`:** Verifies that the `atRiskScore` is cleared when the `CLEAR` button is pressed.
     *   **`test_WaitingPhase_TransitionToBanking`:** Verifies that the game transitions to the `BankingPhase` when the `BANK` button is pressed.
@@ -118,6 +119,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_EndOfTurnPhase.cpp`**
     *   **`test_EndOfTurnPhase_ManualAdvance`:** Verifies that a button press advances the turn and transitions to `WaitingPhase`.
+    *   **`test_EndOfTurnPhase_RotationAdvance`:** Verifies that a rotation advances the turn and transitions to WaitingPhase.
     *   **`test_EndOfTurnPhase_FinalRoundTrigger`:** Verifies that the phase correctly triggers final round if score condition met.
     *   **`test_EndOfTurnPhase_DisplayClearsAtRisk`:** Verifies that the At-Risk display is cleared when the turn ends.
     *   **`test_EndOfTurnPhase_WaitWithoutInput`:** Verifies that the phase properly waits and automatically advances after a 5-second timeout.

@@ -55,6 +55,25 @@ void test_EndOfTurnPhase_DisplayClearsAtRisk() {
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
+// Verifies that a rotation advances the turn and transitions to WaitingPhase
+void test_EndOfTurnPhase_RotationAdvance() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+    game.state.atRiskScore = 0;
+    game.state.currentPlayerIndex = 0;
+    game.currentPhase = game.getPhase<EndOfTurnPhase>();
+    game.currentPhase->onEnter(game.state);
+
+    simulateNoAction(game);
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
+    TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
+
+    simulateRotation(game, 1);
+
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
+    TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
+}
+
 // Verifies that the phase properly waits and automatically advances after timeout
 void test_EndOfTurnPhase_WaitWithoutInput() {
     Game game;
@@ -86,6 +105,7 @@ void test_EndOfTurnPhase_WaitWithoutInput() {
 
 void run_end_of_turn_phase_tests() {
     RUN_TEST(test_EndOfTurnPhase_ManualAdvance);
+    RUN_TEST(test_EndOfTurnPhase_RotationAdvance);
     RUN_TEST(test_EndOfTurnPhase_FinalRoundTrigger);
     RUN_TEST(test_EndOfTurnPhase_DisplayClearsAtRisk);
     RUN_TEST(test_EndOfTurnPhase_WaitWithoutInput);

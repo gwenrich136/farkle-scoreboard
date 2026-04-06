@@ -30,8 +30,12 @@ void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const 
 }
 
 void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {
-    int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
+    int competitorScore = 0;
+    if (!state.rankedPlayerIndices.empty() && state.currentCompetitorRank >= 0 && state.currentCompetitorRank < (int)state.rankedPlayerIndices.size()) {
+        int competitorIdx = state.rankedPlayerIndices[state.currentCompetitorRank];
+        competitorScore = state.players[competitorIdx].score;
+    }
+    displays.scoreDisplay.print_number(competitorScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
@@ -72,16 +76,27 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    if (state.players.empty()) return;
+    if (state.players.empty() || state.rankedPlayerIndices.empty()) return;
 
     int currentPlayerIdx = state.currentPlayerIndex;
-    int leaderIdx = getLeaderIndex(state);
 
-    // Fallback if leader is not found (shouldn't happen if players is not empty)
-    if (leaderIdx == -1) leaderIdx = currentPlayerIdx;
+    // Find the rank of the current player based on the rankedPlayerIndices list
+    // Rank is 1-based index of their position in the sorted array
+    int p1Rank = 1;
+    for (size_t i = 0; i < state.rankedPlayerIndices.size(); ++i) {
+        if (state.rankedPlayerIndices[i] == currentPlayerIdx) {
+            p1Rank = i + 1;
+            break;
+        }
+    }
 
-    int p1Rank = getPlayerRank(state, currentPlayerIdx);
-    int p2Rank = getPlayerRank(state, leaderIdx);
+    int compRankIdx = state.currentCompetitorRank;
+    if (compRankIdx < 0 || compRankIdx >= (int)state.rankedPlayerIndices.size()) {
+        compRankIdx = 0;
+    }
+
+    int competitorIdx = state.rankedPlayerIndices[compRankIdx];
+    int p2Rank = compRankIdx + 1; // 1-based index
 
     char p1Place[16];
     char p2Place[16];
@@ -93,36 +108,9 @@ void InGamePhase::updateTextDisplay(const GameState& state, const Displays& disp
         &state.players[currentPlayerIdx].name,
         state.players[currentPlayerIdx].hue,
         p2Place,
-        &state.players[leaderIdx].name,
-        state.players[leaderIdx].hue
+        &state.players[competitorIdx].name,
+        state.players[competitorIdx].hue
     );
-}
-
-int InGamePhase::getLeaderIndex(const GameState& state) {
-    int maxScore = -1;
-    int leaderIdx = -1;
-    for (size_t i = 0; i < state.players.size(); ++i) {
-        if (state.players[i].score > maxScore) {
-            maxScore = state.players[i].score;
-            leaderIdx = (int)i;
-        }
-    }
-    return leaderIdx;
-}
-
-int InGamePhase::getPlayerRank(const GameState& state, int playerIndex) {
-    if (playerIndex < 0 || playerIndex >= (int)state.players.size()) return 1;
-
-    int rank = 1;
-    int targetScore = state.players[playerIndex].score;
-
-    for (size_t i = 0; i < state.players.size(); ++i) {
-        // If someone has a strictly higher score, they push this player down in rank
-        if (state.players[i].score > targetScore) {
-            rank++;
-        }
-    }
-    return rank;
 }
 
 void InGamePhase::getOrdinalString(int rank, char* buffer, size_t bufferSize) {
@@ -139,16 +127,6 @@ void InGamePhase::getOrdinalString(int rank, char* buffer, size_t bufferSize) {
     }
 
     snprintf(buffer, bufferSize, "%d%s", rank, suffix);
-}
-
-int InGamePhase::calculateLeadingScore(const GameState& state) {
-    int maxScore = 0;
-    for (const auto& player : state.players) {
-        if (player.score > maxScore) {
-            maxScore = player.score;
-        }
-    }
-    return maxScore;
 }
 
 void InGamePhase::endTurn(GameState& state) {
