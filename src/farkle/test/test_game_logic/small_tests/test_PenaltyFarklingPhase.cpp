@@ -85,8 +85,8 @@ void test_PenaltyFarklingPhase_InputSpamming() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 }
 
-// Verifies that a button press transitions to the WaitingPhase after the animation is complete.
-void test_PenaltyFarklingPhase_ManualAdvance() {
+// Verifies that after THE_DRAIN completes, it transitions to the EndOfTurnPhase.
+void test_PenaltyFarklingPhase_TransitionsToEndOfTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
@@ -97,13 +97,12 @@ void test_PenaltyFarklingPhase_ManualAdvance() {
     simulateNoAction(game, 5010);
     // Advance past THE_DRAIN (100ms)
     simulateNoAction(game, 500);
+    // 1 more tick to let the next cycle return the phase transition
+    simulateNoAction(game, 10);
 
+    // It should now transition to EndOfTurnPhase
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
-
-    simulateButtonPress(game, ButtonAction::CLEAR);
-
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
 }
 
 // Verifies that the Competition Score display blinks during the final round in PenaltyFarklingPhase.
@@ -141,7 +140,7 @@ void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_BlinkParameter);
     RUN_TEST(test_PenaltyFarklingPhase_ZeroCeilingSafety);
     RUN_TEST(test_PenaltyFarklingPhase_InputSpamming);
-    RUN_TEST(test_PenaltyFarklingPhase_ManualAdvance);
+    RUN_TEST(test_PenaltyFarklingPhase_TransitionsToEndOfTurn);
     RUN_TEST(test_PenaltyFarklingPhase_FinalRoundBlinking);
     RUN_TEST(test_PenaltyFarklingPhase_GridAnimationScores);
 }

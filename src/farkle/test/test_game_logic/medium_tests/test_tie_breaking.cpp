@@ -31,6 +31,7 @@ void test_TieBreaking_Case1() {
 
     // Player 2 Farkles
     simulateButtonPress(game, ButtonAction::FARKLE); // Enter FarklingPhase
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     simulateButtonPress(game, ButtonAction::FARKLE); // Confirm Farkle and advance
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // Player 3's turn
 
