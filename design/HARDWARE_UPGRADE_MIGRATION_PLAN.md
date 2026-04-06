@@ -1,7 +1,7 @@
 # Hardware Upgrade Migration Plan
 
 > **Scope:** Roadmap for the V1 to V2 hardware transition, featuring the ST7789 Color IPS Display and a Hybrid Input Architecture.
-> **Status:** **LIVE STRATEGY** - Step 1 is DONE. Step 2 is the active target.
+> **Status:** **LIVE STRATEGY** - Step 2 is DONE. Step 3 is the active target.
 
 ---
 
@@ -33,10 +33,10 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | Pin | Component | Function | Status |
 | :--- | :--- | :--- | :--- |
 | **D0/D1** | **MP3 Player** | **Serial1** (Hardware Audio) | Pending |
-| **D2/D3** | **Encoder A/B** | **Interrupts 0/1** (Smooth Scroll) | Pending |
-| **D4** | **Encoder SW** | **Digital Input** (SELECT Button) | Pending |
-| **D5** | **BANK Button** | **Digital Input** (High Reliability) | **Active (V1)** |
-| **D6** | **FARKLE Button** | **Digital Input** (High Reliability) | **Active (V1)** |
+| **D2/D3** | **Encoder A/B** | **Interrupts 0/1** (Smooth Scroll) | **DONE (V2)** |
+| **D4** | **Encoder SW** | **Digital Input** (SELECT Button) | **DONE (V2)** |
+| **D5** | **BANK Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
+| **D6** | **FARKLE Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
 | **D7** | **LCD RES** | Hardware Reset for LCD | Pending |
 | **D8** | **LCD BLK** | PWM Backlight Control | Pending |
 | **D9** | **SD Card CS** | SPI Chip Select (Data) | Pending |
@@ -46,7 +46,7 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | **D13** | **SPI SCK** | Shared SPI Clock | **Active (V1)** |
 | **A0** | **LED Grid** | NeoPixel Data (8x8) | **Active (V1)** |
 | **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
-| **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | Pending |
+| **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | **DONE (V2)** |
 | **A3** | **Latching Switch** | **"Total Score" Toggle** | Pending |
 | **A4** | **LCD CS** | SPI Chip Select (LCD) | Pending |
 | **A5** | **LCD DC** | Data/Command (LCD) | Pending |
@@ -72,7 +72,7 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 ### **Phase 1: Input & Display Foundation**
 **Step 1: The Status Strip (A1) [DONE]**
 
-**Step 2: The Hybrid Input Refactor**
+**Step 2: The Hybrid Input Refactor [DONE]**
 *   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** (Encoder Push) to their target digital pins.
 *   **Software (ControlPad):** Implement **Interrupt-Safe Encoder** rotation logic and **Analog Ladder** stability (50ms window).
 *   **Software (Architecture):** Refactor the system to use the encapsulated `GameInput` struct (ButtonAction + rotationDelta) and update all `GamePhase::update()` signatures.

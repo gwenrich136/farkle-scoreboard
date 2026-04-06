@@ -70,15 +70,15 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 #### Setup & State Management
 -   **`LedProgressGrid(uint8_t pin)`**: Constructor. Initializes the NeoPixel strip for a hardcoded 8x8 grid (64 pixels).
 -   **`void reset()`**: Resets the component to its initial state, clearing all player configurations and turning off all LEDs, preparing for a new game.
--   **`int addPlayer()`**: Dynamically adds a player to the grid configuration.
-    -   Assigns a unique color (hue) to the new player. The first player gets a random hue, subsequent players get hues generated using the golden ratio for maximal distinction.
+-   **`int addPlayer(uint16_t hue)`**: Dynamically adds a player to the grid configuration.
+    -   Assigns the given `hue` to the new player. The `GameState` is responsible for generating and providing this color.
     -   Returns the `playerIndex` (0-indexed) of the newly added player.
 
 #### Display Modes
 
--   **`void displayPlayersPregame(bool isPlayerPending)`**: Displays the current player setup in a pre-game or player selection screen.
+-   **`void displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue)`**: Displays the current player setup in a pre-game or player selection screen.
     -   Illuminates all rows assigned to each existing player with their solid color.
-    -   If `isPlayerPending` is `true`: The rows that would be assigned to the *next* player (Player `_playerCount`) will blink with their prospective hue. If no players are added yet (`_playerCount == 0`), the middle four rows will blink.
+    -   If `pendingPlayerHue` has a value: The rows that will be assigned to the *next* player will blink with the provided prospective hue.
 
 -   **`void update(const std::vector<int>& scores, int currentPlayerIndex, int atRiskScore)`**: The primary method for rendering game scores during active gameplay. This should be called repeatedly in the main game loop.
     -   The `LedProgressGrid` internally calculates `maxScore` as the maximum of the `targetScore` and the highest potential score (banked + at-risk) among all players.
@@ -113,7 +113,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven by MAX7219 chips) to show various numerical scores from the game.
 
 ### API Design
--   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library with the appropriate pins for DIN, CLK, and CS, and performs basic setup for the three MAX7219 devices (wake up, set intensity, clear display).
+-   **`ScoreDisplay(int csPin)`**: Constructor. Initializes the hardware SPI directly. It uses the default SPI MOSI (D11) and SCK (D13) pins.
 -   **`void addDisplay(DisplayType type, int deviceIndex)`**: Maps a logical `DisplayType` to a physical `deviceIndex`.
 -   **`void print_number(int number, DisplayType type, bool blink = false)`**: Displays an integer `number` on the display mapped to the given `DisplayType`.
     -   The number will be right-aligned on the 5-digit display.
@@ -121,6 +121,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **`void clear(DisplayType type)`**: Clears all digits on the display mapped to the given `DisplayType`.
 
 ### Key Logic & Behavior
+-   **Shared SPI Bus**: To support the high-speed requirements of the IPS LCD, the `ScoreDisplay` is migrated to the hardware SPI bus (D11/D13). It shares these pins with the `TextDisplayV2` but is controlled by its dedicated **CS (D10)** line.
 -   **Three Dedicated Displays:** The component provides three independent 5-digit displays, logically identified by the `DisplayType` enum:
     -   `AT_RISK_SCORE`
     -   `CURRENT_PLAYER_SCORE`
@@ -128,7 +129,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
 -   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
 -   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
-- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only calls `LedControl` methods (`setIntensity`, `clearDisplay`, `setChar`) if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
+- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only writes to MAX7219 registers if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
 
 ---
 
@@ -168,3 +169,34 @@ The `TextDisplay` component acts as a versatile UI manager for the SH1106 128x64
 -   **State Caching**: The component caches the last rendered content and current mode using `std::string` comparison to prevent unnecessary screen refreshes, optimizing I2C bus usage.
 -   **I2C Communication**: Uses an SH1106 128x64 OLED display via I2C, with a confirmed address of `0x3C`.
 -   **Visual Styling**: Uses specific fonts for titles and main text to ensure hierarchy and readability.
+
+---
+
+## 6. TextDisplayV2 (IPS LCD)
+
+### Purpose
+The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 240x240 Color IPS LCD**. It is designed to be functionally equivalent to the original `TextDisplay` but utilizes the hardware SPI bus and is optimized for the larger color-capable resolution.
+
+### API Design
+
+#### Static Text Display Modes
+-   **`void print(const char* message, uint16_t hue = 0xFFFF)`**: Displays a single message centered on the 240x240 screen, optionally rendering the text in a specific `hue`.
+-   **`void displayTitle(const char* title)`**: Displays a single line of `title` text, centered horizontally and vertically.
+-   **`void displayTitleWithSubtitle(const char* title, const char* subtitle)`**: Displays a main `title` centered towards the top, with a smaller `subtitle` centered towards the bottom.
+-   **`void displayTitleWithSubtitles(const char* title, const char* leftSubtitle, const char* rightSubtitle)`**: Displays a main `title` centered towards the top, with two smaller subtitles at the bottom: one left-aligned (`leftSubtitle`) and one right-aligned (`rightSubtitle`).
+
+#### Interactive UI Modes
+-   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF)`**: Renders an interactive selection screen. The `selectionItem` can be rendered in a specific `hue` (defaulting to White) to highlight player identities during setup.
+-   **`void displayCharacterInput(const char* currentName, int activeIndex, uint16_t hue = 0xFFFF)`**: Renders an interactive screen for name input, with the active character highlighted in the provided `hue`.
+
+### Key Logic & Behavior
+-   **Unified Color Identity**: By accepting `uint16_t` hue values, the LCD can match the text and UI elements to the specific hue assigned to the current player on the LED grid, directly mapping standard color values to RGB565.
+-   **Hardware SPI Bus**: Uses the Uno R4's hardware SPI (D11/D13) for zero-latency UI updates. It shares this bus with the `ScoreDisplay` (MAX7219) but uses a dedicated **CS (A4)** pin.
+-   **Control Pins**:
+    -   **CS (A4)**: Chip Select.
+    -   **DC (A5)**: Data/Command.
+    -   **RES (D7)**: Hardware Reset.
+    -   **BLK (D8)**: Backlight Control (automatically set to 100% in `begin()`).
+-   **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
+-   **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
+-   **State Caching**: The component caches the last rendered content to skip redundant SPI updates.

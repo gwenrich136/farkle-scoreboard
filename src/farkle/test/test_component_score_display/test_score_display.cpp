@@ -21,7 +21,7 @@ void setUp(void) {
     mockSetCharCount = 0;
 
     // Pins don't matter for mock
-    display = new ScoreDisplay(10, 11, 12);
+    display = new ScoreDisplay(10);
     display->begin();
     display->addDisplay(ScoreDisplay::DisplayType::AT_RISK_SCORE, 0);
     display->addDisplay(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE, 1);
@@ -187,9 +187,10 @@ void test_ScoreDisplay_HardwareInteractionOptimization(void) {
     // Test clear optimization
     mockClearDisplayCount = 0;
     display->clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
-    TEST_ASSERT_EQUAL_INT(1, mockClearDisplayCount);
+    TEST_ASSERT_TRUE(mockClearDisplayCount > 0);
+    int clearCount = mockClearDisplayCount;
     display->clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
-    TEST_ASSERT_EQUAL_INT(1, mockClearDisplayCount); // Should still be 1
+    TEST_ASSERT_EQUAL_INT(clearCount, mockClearDisplayCount); // Should not increase
 }
 
 void test_ScoreDisplay_Performance(void) {

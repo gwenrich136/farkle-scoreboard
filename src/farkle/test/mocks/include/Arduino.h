@@ -15,6 +15,8 @@ const int A2 = 102;
 const int A3 = 103;
 const int A4 = 104;
 const int A5 = 105;
+const int D7 = 7;
+const int D8 = 8;
 
 // Pin modes
 const int INPUT = 0;
@@ -36,6 +38,7 @@ void delay(unsigned long ms);
 void advance_millis(unsigned long ms);
 
 void pinMode(int pin, int mode);
+void digitalWrite(int pin, int val);
 int digitalRead(int pin);
 int analogRead(int pin);
 

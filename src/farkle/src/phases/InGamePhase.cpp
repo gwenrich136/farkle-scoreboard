@@ -73,7 +73,7 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {
     // Basic turn indicator for now
-    displays.oled.print(state.players[state.currentPlayerIndex].name.c_str());
+    displays.textDisplay.print(state.players[state.currentPlayerIndex].name.c_str(), state.players[state.currentPlayerIndex].hue);
 }
 
 int InGamePhase::calculateLeadingScore(const GameState& state) {

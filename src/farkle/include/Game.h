@@ -20,7 +20,7 @@
 #include "ScoreDisplay.h"
 #include "LedProgressGrid.h"
 #include "FarkleWarningLights.h"
-#include "TextDisplay.h"
+#include "TextDisplayV2.h"
 
 class Game {
 public:
@@ -71,7 +71,7 @@ private:
     ScoreDisplay scoreDisplay;
     LedProgressGrid grid;
     FarkleWarningLights farkleLights;
-    TextDisplay oled;
+    TextDisplayV2 textDisplay;
 };
 
 #endif
