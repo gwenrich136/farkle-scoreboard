@@ -88,5 +88,5 @@ void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Dis
 
 void PenaltyFarklingPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
     // Show penalty quip throughout the sequence
-    displays.textDisplay.print("CATASTROPHIC FARKLE!");
+    displays.textDisplay.print("CATASTROPHIC FARKLE!", state.players[state.currentPlayerIndex].hue);
 }

@@ -32,7 +32,7 @@ GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, GameInput inpu
 
 void PostGamePhase_V1::display(const GameState& state, const Displays& displays) {
     // Display the winning player's name and freeze the grid/scores
-    displays.textDisplay.print(m_winnerMsg.c_str());
+    displays.textDisplay.print(m_winnerMsg.c_str(), state.players[m_winnerIdx].hue);
 
     // Update scores on the 7-segments one last time
     displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
