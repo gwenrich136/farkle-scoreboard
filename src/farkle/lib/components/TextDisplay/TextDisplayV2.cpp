@@ -4,9 +4,9 @@
 #include <cstring>
 
 // Arrow geometry
-#define ARROW_WIDTH 10
-#define ARROW_HEIGHT 6
-#define ARROW_SPACING 10
+#define ARROW_WIDTH 20
+#define ARROW_HEIGHT 12
+#define ARROW_SPACING 15
 
 TextDisplayV2::TextDisplayV2(int cs, int dc, int res, int blk)
     : _display(cs, dc, res), _blkPin(blk), _currentMode(DisplayModeV2::NONE), _lastHue(0xFFFF)
@@ -109,15 +109,20 @@ void TextDisplayV2::printSelectionScreen(const char* selectionTitle, const char*
 void TextDisplayV2::drawArrow(int x, int y, bool up, uint16_t color) {
     int halfW = ARROW_WIDTH / 2;
     int halfH = ARROW_HEIGHT / 2;
+    int thickness = 3;
 
     if (up) {
-        // Tip (x, y-halfH), Left (x-halfW, y+halfH), Right (x+halfW, y+halfH)
-        _display.drawLine(x - halfW, y + halfH, x, y - halfH, color);
-        _display.drawLine(x + halfW, y + halfH, x, y - halfH, color);
+        for (int i = 0; i < thickness; i++) {
+            // Tip (x, y-halfH+i), Left (x-halfW, y+halfH+i), Right (x+halfW, y+halfH+i)
+            _display.drawLine(x - halfW, y + halfH + i, x, y - halfH + i, color);
+            _display.drawLine(x + halfW, y + halfH + i, x, y - halfH + i, color);
+        }
     } else {
-        // Tip (x, y+halfH), Left (x-halfW, y-halfH), Right (x+halfW, y-halfH)
-        _display.drawLine(x - halfW, y - halfH, x, y + halfH, color);
-        _display.drawLine(x + halfW, y - halfH, x, y + halfH, color);
+        for (int i = 0; i < thickness; i++) {
+            // Tip (x, y+halfH-i), Left (x-halfW, y-halfH-i), Right (x+halfW, y-halfH-i)
+            _display.drawLine(x - halfW, y - halfH - i, x, y + halfH - i, color);
+            _display.drawLine(x + halfW, y - halfH - i, x, y + halfH - i, color);
+        }
     }
 }
 
