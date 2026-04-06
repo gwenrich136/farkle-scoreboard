@@ -70,6 +70,11 @@ protected:
     // Helper to calculate the highest score among all players
     int calculateLeadingScore(const GameState& state);
 
+    // Head-to-head text display helpers
+    int getLeaderIndex(const GameState& state);
+    int getPlayerRank(const GameState& state, int playerIndex);
+    void getOrdinalString(int rank, char* buffer, size_t bufferSize);
+
     // Helper to advance to the next player
     void endTurn(GameState& state);
 
