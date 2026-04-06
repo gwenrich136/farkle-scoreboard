@@ -6,11 +6,14 @@
 
 void WaitingPhase::onEnter(GameState& state) {
     // Recompute the ranking of all players
-    state.rankedPlayerIndices.clear();
-    for (size_t i = 0; i < state.players.size(); ++i) {
-        state.rankedPlayerIndices.push_back(i);
+    // Populate the list once if empty
+    if (state.rankedPlayerIndices.empty()) {
+        for (size_t i = 0; i < state.players.size(); ++i) {
+            state.rankedPlayerIndices.push_back(i);
+        }
     }
 
+    // Sort the list based on current scores
     std::sort(state.rankedPlayerIndices.begin(), state.rankedPlayerIndices.end(),
               [&state](int a, int b) {
                   return state.players[a].score > state.players[b].score;
@@ -35,12 +38,17 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
     if (input.rotationDelta != 0 && state.rankedPlayerIndices.size() > 1) {
         int listSize = state.rankedPlayerIndices.size();
 
-        // Find next valid competitor (skip current player)
-        int steps = (input.rotationDelta > 0) ? 1 : -1;
+        // Apply the full rotation delta
+        state.currentCompetitorRank = (state.currentCompetitorRank + input.rotationDelta) % listSize;
+        if (state.currentCompetitorRank < 0) {
+            state.currentCompetitorRank += listSize;
+        }
 
-        do {
-            state.currentCompetitorRank = (state.currentCompetitorRank + steps + listSize) % listSize;
-        } while (state.rankedPlayerIndices[state.currentCompetitorRank] == state.currentPlayerIndex);
+        // If we landed on the current player, step one more time in the direction of rotation
+        if (state.rankedPlayerIndices[state.currentCompetitorRank] == state.currentPlayerIndex) {
+            int step = (input.rotationDelta > 0) ? 1 : -1;
+            state.currentCompetitorRank = (state.currentCompetitorRank + step + listSize) % listSize;
+        }
     }
 
     switch (input.action) {
