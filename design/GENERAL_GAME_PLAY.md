@@ -60,16 +60,16 @@ The game begins by guiding players through setup and configuration.
     - The player's consecutive farkle count is also reset to zero at the beginning of this phase, causing the `FarkleWarningLights` to turn off immediately.
     -   **Note on Visuals:** The `LedProgressGrid` uses a logarithmic/exponential brightness curve for the "remainder" pixel. This ensures that the visual progression appears smooth and linear to the human eye, avoiding sudden jumps in brightness during these animations.
     -   Input is locked during this animation.
-    -   **Manual Advance:** Once the animation completes (at-risk score is 0), the game persists in its final state, showing the updated score. The game waits indefinitely until **any button** is pressed on the `ControlPad`.
-    -   **Transition:** Upon button press, the game advances to the next player's turn and returns to the `WaitingPhase`.
+    -   **Manual Advance:** Once the animation completes (at-risk score is 0), the game persists in its final state, showing the updated score. The game waits until **any button** is pressed on the `ControlPad`, or automatically advances after 5 seconds of inactivity.
+    -   **Transition:** Upon button press or timeout, the game advances to the next player's turn and returns to the `WaitingPhase`.
 -   **Standard Farkle Animation:**
     -   If a player farkles (but it's not their third consecutive farkle), their `atRisk` score slowly drains to zero.
     -   **No Harm, No Foul Rule:** If the player's Banked Score is 0, their consecutive farkle count does **not** increment. Warning lights do not turn on. You cannot get "strikes" if you have no points to lose.
     -   A witty quip related to farkling is displayed on the `TextDisplay`.
     -   The `FarkleWarningLights` update to reflect the new farkle count (if applicable).
     -   Input is locked during this animation.
-    -   **Manual Advance:** Once the animation completes, the game remains in this state (displaying the quip and updated lights) and waits for **any button** press.
-    -   **Transition:** Upon button press, the game advances to the next player's turn and returns to the `WaitingPhase`.
+    -   **Manual Advance:** Once the animation completes, the game remains in this state (displaying the quip and updated lights) and waits for **any button** press or automatically advances after 5 seconds of inactivity.
+    -   **Transition:** Upon button press or timeout, the game advances to the next player's turn and returns to the `WaitingPhase`.
 
 ### 2.3 Catastrophic Farkle (Third Consecutive Farkle)
 -   **Trigger:** When a player gets their third consecutive farkle in a turn (and has points to lose).
@@ -87,7 +87,7 @@ The game begins by guiding players through setup and configuration.
         *   The `FarkleWarningLights` **continue alternating** throughout this drain.
     3.  **The Aftermath:**
         *   Once the scores settle, the `FarkleWarningLights` turn **OFF**.
-        *   The game waits for a button press to advance.
+        *   The game waits for a button press or automatically advances after 5 seconds of inactivity.
     -   **Reset Logic:** The player's consecutive farkle count is internally reset to 0 immediately upon entering this phase, consistent with other phases. The lights alternate purely due to the phase state.
 
 ---

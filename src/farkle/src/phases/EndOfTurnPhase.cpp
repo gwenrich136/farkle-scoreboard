@@ -6,11 +6,15 @@ void EndOfTurnPhase::onEnter(GameState& state) {
     // Phase starts when animation is over.
     // Assert that the animation phase cleaned up the atRiskScore
     assert(state.atRiskScore == 0 && "atRiskScore must be 0 when entering EndOfTurnPhase");
+
+    m_elapsedTime = 0;
 }
 
 GamePhase* EndOfTurnPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    // Wait for user dismissal (any button press)
-    if (input.action != ButtonAction::NONE) {
+    m_elapsedTime += deltaTime;
+
+    // Wait for user dismissal (any button press) or timeout
+    if (input.action != ButtonAction::NONE || m_elapsedTime >= 5000) {
         // Check for Final Round Trigger
         if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
             state.finalRoundTriggered = true;

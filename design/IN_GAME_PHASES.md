@@ -15,7 +15,7 @@ This category handles user input for scoring, provides feedback through animatio
 - `WaitingPhase` -> `FarklingPhase` (on Farkle button)
 - `WaitingPhase` -> `PenaltyFarklingPhase` (on 3rd consecutive Farkle)
 - All animation phases (`BankingPhase`, `FarklingPhase`, `PenaltyFarklingPhase`) return to `EndOfTurnPhase` after animation completion.
-- `EndOfTurnPhase` returns to `WaitingPhase` after a button press.
+- `EndOfTurnPhase` returns to `WaitingPhase` after a button press or after 5 seconds of inactivity.
 - `WaitingPhase` transitions to `PostGamePhase_V1` when a player reaches the target score and the final round completes.
 
 ## 4. Technical Details
@@ -63,8 +63,8 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Why:** Implements a single unified state to wait for turn dismissal across all in-game scoring outcomes.
 *   **Defined in:** `src/farkle/include/phases/EndOfTurnPhase.h` & `src/farkle/src/phases/EndOfTurnPhase.cpp`
 *   **Implementation Details:**
-    1.  **Wait for Dismissal:** The `update()` method waits for any button press (`input.action != NONE`).
-    2.  **Finalize Turn:** Once a button is pressed:
+    1.  **Wait for Dismissal:** The `update()` method waits for any button press (`input.action != NONE`) or for a 5-second timeout (`m_elapsedTime >= 5000`).
+    2.  **Finalize Turn:** Once a button is pressed or the 5-second timeout occurs:
         a. Check if `!state.finalRoundTriggered` and if the current player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
         b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
         c. `return game.getPhase<WaitingPhase>();`.

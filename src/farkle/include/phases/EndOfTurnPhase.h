@@ -12,6 +12,9 @@ public:
 protected:
     virtual void updateAtRiskScoreDisplay(const GameState& state, const Displays& displays) override;
     virtual void updateTextDisplay(const GameState& state, const Displays& displays) override;
+
+private:
+    unsigned long m_elapsedTime = 0;
 };
 
 #endif
