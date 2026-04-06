@@ -179,12 +179,45 @@ void test_FullGame_FinalRoundBlinking() {
 }
 
 
+// Full Game With Score Toggle Simulation
+void test_FullGame_ScoreToggle() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    // Toggle switch to PENDING
+    game.controlPad.setToggleState(ScoreDisplayMode::PENDING);
+
+    // Player 1's turn
+    simulateButtonPress(game, ButtonAction::PLUS_500, 3); // Pending: 1500
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss EndOfTurnPhase
+
+    // Player 2's turn
+    simulateButtonPress(game, ButtonAction::PLUS_100, 4); // Pending: 400
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(400, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Switch to BANKED mid-turn
+    game.controlPad.setToggleState(ScoreDisplayMode::BANKED);
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(0, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss
+}
+
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
     RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
     RUN_TEST(test_FullGame_AutoAdvanceTurn);
     RUN_TEST(test_FullGame_FinalRoundBlinking);
+    RUN_TEST(test_FullGame_ScoreToggle);
 }
 
 // Helper function to advance turns until it is player 0's turn again.

@@ -20,6 +20,8 @@ struct Player {
     Player(const std::string& n, uint16_t h = 0) : name(n), score(0), farkle_count(0), hue(h) {}
 };
 
+#include "Input.h"
+
 struct GameState {
     std::vector<Player> players;
     int atRiskScore;
@@ -31,7 +33,9 @@ struct GameState {
 
     mutable std::optional<uint16_t> prospectiveFirstHue;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt) {}
+    ScoreDisplayMode currentPlayerScoreMode;
+
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt), currentPlayerScoreMode(ScoreDisplayMode::BANKED) {}
 
     void reset() {
         players.clear();
@@ -40,6 +44,7 @@ struct GameState {
         finalRoundTriggered = false;
         scoresVersion++;
         prospectiveFirstHue = std::nullopt;
+        currentPlayerScoreMode = ScoreDisplayMode::BANKED;
     }
 
     uint16_t getNextPlayerHue(int playerCount) const {

@@ -6,6 +6,7 @@
 
 // Constants for pins and timing
 #define ANALOG_INPUT_PIN A2
+#define CURRENT_PLAYER_TOGGLE_PIN A3
 #define ENCODER_PIN_A 2
 #define ENCODER_PIN_B 3
 #define BANK_PIN 5
