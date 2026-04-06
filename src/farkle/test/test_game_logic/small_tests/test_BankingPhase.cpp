@@ -122,6 +122,26 @@ void test_BankingPhase_GridAnimationScores() {
     TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
 }
 
+// Verifies that the score display updates correctly with toggle state.
+void test_BankingPhase_ToggleStateDisplay() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+    game.state.atRiskScore = 500;
+    game.state.players[0].score = 1000;
+    game.currentPhase = game.getPhase<BankingPhase>();
+
+    // Test PENDING
+    game.state.currentPlayerScoreMode = ScoreDisplayMode::PENDING;
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
+    game.currentPhase->display(game.state, displays);
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Test BANKED
+    game.state.currentPlayerScoreMode = ScoreDisplayMode::BANKED;
+    game.currentPhase->display(game.state, displays);
+    TEST_ASSERT_EQUAL_INT(1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+}
+
 void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_AnimationMath);
     RUN_TEST(test_BankingPhase_ZeroFloorSafety);
@@ -131,4 +151,5 @@ void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_LightsOffDuringAnimation);
     RUN_TEST(test_BankingPhase_FinalRoundBlinking);
     RUN_TEST(test_BankingPhase_GridAnimationScores);
+    RUN_TEST(test_BankingPhase_ToggleStateDisplay);
 }

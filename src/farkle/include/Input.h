@@ -12,9 +12,15 @@ enum class ButtonAction {
     PLUS_500
 };
 
+enum class ScoreDisplayMode {
+    BANKED,
+    PENDING
+};
+
 struct GameInput {
     ButtonAction action;
     int rotationDelta;
+    ScoreDisplayMode scoreDisplayMode;
 };
 
 #endif
