@@ -115,6 +115,33 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].score);
 }
 
+void test_FullGame_AutoAdvanceTurn() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    int turn = 0;
+    while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
+        simulateButtonPress(game, ButtonAction::PLUS_500, 3);
+
+        // Start banking
+        simulateButtonPress(game, ButtonAction::BANK);
+
+        while (game.state.atRiskScore > 0) {
+            simulateNoAction(game);
+        }
+
+        // Instead of pressing a button, wait for 5.1 seconds to auto advance
+        for (int i = 0; i < 51; i++) {
+            simulateNoAction(game, 100);
+        }
+
+        turn++;
+    }
+
+    TEST_ASSERT_LESS_THAN(100, turn); // Game should end in a reasonable number of turns
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
+}
+
 // Verifies that the Competition Score display begins blinking as soon as the final round is triggered.
 void test_FullGame_FinalRoundBlinking() {
     Game game;
@@ -156,6 +183,7 @@ void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
     RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
+    RUN_TEST(test_FullGame_AutoAdvanceTurn);
     RUN_TEST(test_FullGame_FinalRoundBlinking);
 }
 

@@ -55,7 +55,7 @@ void test_EndOfTurnPhase_DisplayClearsAtRisk() {
     TEST_ASSERT_TRUE(game.scoreDisplay.cleared_displays[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
 }
 
-// Verifies that the phase properly waits when no input is provided
+// Verifies that the phase properly waits and automatically advances after timeout
 void test_EndOfTurnPhase_WaitWithoutInput() {
     Game game;
     setupGameWithPlayers(game, 4);
@@ -63,11 +63,25 @@ void test_EndOfTurnPhase_WaitWithoutInput() {
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
     game.currentPhase->onEnter(game.state);
 
-    for (int i = 0; i < 50; i++) {
-        simulateNoAction(game);
+    int initialPlayerIndex = game.state.currentPlayerIndex;
+
+    // Simulate 4 seconds (400 calls of simulateNoAction which advances by 10ms each, wait we can just pass time directly)
+    for (int i = 0; i < 40; i++) {
+        simulateNoAction(game, 100);
     }
 
+    // Should still be in EndOfTurnPhase after 4 seconds
     TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
+    TEST_ASSERT_EQUAL_INT(initialPlayerIndex, game.state.currentPlayerIndex);
+
+    // Simulate 2 more seconds (total 6 seconds)
+    for (int i = 0; i < 20; i++) {
+        simulateNoAction(game, 100);
+    }
+
+    // Should have transitioned to WaitingPhase and advanced player index
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
+    TEST_ASSERT_NOT_EQUAL(initialPlayerIndex, game.state.currentPlayerIndex);
 }
 
 void run_end_of_turn_phase_tests() {
