@@ -29,7 +29,7 @@ class TextDisplayV2
     void begin();
     void print(const char* message, uint16_t hue = 0xFFFF);
     void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF);
-    void printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue);
+    void printHeadToHeadScreen(const char* p1Place, const std::string* p1Name, uint16_t p1Hue, const char* p2Place, const std::string* p2Name, uint16_t p2Hue);
 
     // Color conversion utility
     static uint16_t colorHSVtoRGB565(uint16_t hue);
@@ -47,10 +47,10 @@ class TextDisplayV2
 
     // Head-to-Head state tracking
     char _lastP1Place[16];
-    char _lastP1Name[32];
+    const std::string* _lastP1Name;
     uint16_t _lastP1Hue;
     char _lastP2Place[16];
-    char _lastP2Name[32];
+    const std::string* _lastP2Name;
     uint16_t _lastP2Hue;
 
     void eraseOldTextBoundingBox(const char* text);

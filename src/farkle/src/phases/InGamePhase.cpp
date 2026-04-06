@@ -90,10 +90,10 @@ void InGamePhase::updateTextDisplay(const GameState& state, const Displays& disp
 
     displays.textDisplay.printHeadToHeadScreen(
         p1Place,
-        state.players[currentPlayerIdx].name.c_str(),
+        &state.players[currentPlayerIdx].name,
         state.players[currentPlayerIdx].hue,
         p2Place,
-        state.players[leaderIdx].name.c_str(),
+        &state.players[leaderIdx].name,
         state.players[leaderIdx].hue
     );
 }

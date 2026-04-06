@@ -22,7 +22,7 @@ public:
     void begin();
     void print(const char* message, uint16_t hue = 0xFFFF);
     void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF);
-    void printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue);
+    void printHeadToHeadScreen(const char* p1Place, const std::string* p1Name, uint16_t p1Hue, const char* p2Place, const std::string* p2Name, uint16_t p2Hue);
 };
 
 #endif // MOCK_TEXT_DISPLAY_V2_H

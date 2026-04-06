@@ -17,10 +17,10 @@ TextDisplayV2::TextDisplayV2(int cs, int dc, int res, int blk)
     _lastTitle[0] = '\0';
     _lastItem[0] = '\0';
     _lastP1Place[0] = '\0';
-    _lastP1Name[0] = '\0';
+    _lastP1Name = nullptr;
     _lastP1Hue = 0xFFFF;
     _lastP2Place[0] = '\0';
-    _lastP2Name[0] = '\0';
+    _lastP2Name = nullptr;
     _lastP2Hue = 0xFFFF;
 }
 
@@ -115,30 +115,32 @@ void TextDisplayV2::printSelectionScreen(const char* selectionTitle, const char*
     }
 }
 
-void TextDisplayV2::printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue)
+void TextDisplayV2::printHeadToHeadScreen(const char* p1Place, const std::string* p1Name, uint16_t p1Hue, const char* p2Place, const std::string* p2Name, uint16_t p2Hue)
 {
+    if (!p1Name || !p2Name) return;
+
     if (_currentMode == DisplayModeV2::HEAD_TO_HEAD &&
         strcmp(_lastP1Place, p1Place) == 0 &&
-        strcmp(_lastP1Name, p1Name) == 0 &&
+        _lastP1Name == p1Name &&
         _lastP1Hue == p1Hue &&
         strcmp(_lastP2Place, p2Place) == 0 &&
-        strcmp(_lastP2Name, p2Name) == 0 &&
+        _lastP2Name == p2Name &&
         _lastP2Hue == p2Hue) {
         return;
     }
 
-    bool p1Changed = (strcmp(_lastP1Place, p1Place) != 0) || (strcmp(_lastP1Name, p1Name) != 0) || (_lastP1Hue != p1Hue);
-    bool p2Changed = (strcmp(_lastP2Place, p2Place) != 0) || (strcmp(_lastP2Name, p2Name) != 0) || (_lastP2Hue != p2Hue);
+    bool p1Changed = (strcmp(_lastP1Place, p1Place) != 0) || (_lastP1Name != p1Name) || (_lastP1Hue != p1Hue);
+    bool p2Changed = (strcmp(_lastP2Place, p2Place) != 0) || (_lastP2Name != p2Name) || (_lastP2Hue != p2Hue);
     bool modeChanged = _currentMode != DisplayModeV2::HEAD_TO_HEAD;
 
     if (modeChanged) {
         _display.fillScreen(ST77XX_BLACK);
     } else {
-        if (p1Changed) {
-            eraseAlignedPlaceAndNameBoundingBox(_lastP1Place, _lastP1Name, &FreeSans18pt7b, &FreeSans12pt7b, LCD_HEIGHT / 4);
+        if (p1Changed && _lastP1Name != nullptr) {
+            eraseAlignedPlaceAndNameBoundingBox(_lastP1Place, _lastP1Name->c_str(), &FreeSans18pt7b, &FreeSans12pt7b, LCD_HEIGHT / 4);
         }
-        if (p2Changed) {
-            eraseAlignedPlaceAndNameBoundingBox(_lastP2Place, _lastP2Name, &FreeSans12pt7b, &FreeSans9pt7b, (LCD_HEIGHT / 4) * 3);
+        if (p2Changed && _lastP2Name != nullptr) {
+            eraseAlignedPlaceAndNameBoundingBox(_lastP2Place, _lastP2Name->c_str(), &FreeSans12pt7b, &FreeSans9pt7b, (LCD_HEIGHT / 4) * 3);
             // Re-draw arrows when p2 changes because its bounding box erase might clip them
             // Or we just rely on drawSelectionArrows redrawing cleanly. Let's let the helper redraw it below.
         }
@@ -146,10 +148,10 @@ void TextDisplayV2::printHeadToHeadScreen(const char* p1Place, const char* p1Nam
 
     _currentMode = DisplayModeV2::HEAD_TO_HEAD;
     strncpy(_lastP1Place, p1Place, sizeof(_lastP1Place) - 1); _lastP1Place[sizeof(_lastP1Place) - 1] = '\0';
-    strncpy(_lastP1Name, p1Name, sizeof(_lastP1Name) - 1); _lastP1Name[sizeof(_lastP1Name) - 1] = '\0';
+    _lastP1Name = p1Name;
     _lastP1Hue = p1Hue;
     strncpy(_lastP2Place, p2Place, sizeof(_lastP2Place) - 1); _lastP2Place[sizeof(_lastP2Place) - 1] = '\0';
-    strncpy(_lastP2Name, p2Name, sizeof(_lastP2Name) - 1); _lastP2Name[sizeof(_lastP2Name) - 1] = '\0';
+    _lastP2Name = p2Name;
     _lastP2Hue = p2Hue;
 
     uint16_t c1 = (p1Hue == 0xFFFF) ? ST77XX_WHITE : colorHSVtoRGB565(p1Hue);
@@ -159,13 +161,13 @@ void TextDisplayV2::printHeadToHeadScreen(const char* p1Place, const char* p1Nam
     uint16_t dummyH;
 
     if (modeChanged || p1Changed) {
-        drawAlignedPlaceAndName(p1Place, p1Name, c1, &FreeSans18pt7b, &FreeSans12pt7b, LCD_HEIGHT / 4, dummyY, dummyH);
+        drawAlignedPlaceAndName(p1Place, p1Name->c_str(), c1, &FreeSans18pt7b, &FreeSans12pt7b, LCD_HEIGHT / 4, dummyY, dummyH);
     }
 
     if (modeChanged || p2Changed) {
         int16_t p2Y;
         uint16_t p2H;
-        drawAlignedPlaceAndName(p2Place, p2Name, c2, &FreeSans12pt7b, &FreeSans9pt7b, (LCD_HEIGHT / 4) * 3, p2Y, p2H);
+        drawAlignedPlaceAndName(p2Place, p2Name->c_str(), c2, &FreeSans12pt7b, &FreeSans9pt7b, (LCD_HEIGHT / 4) * 3, p2Y, p2H);
         drawSelectionArrows(p2Y, p2H);
     }
 }
