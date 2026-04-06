@@ -75,8 +75,8 @@ void test_printSelectionScreen(void) {
         TEST_ASSERT_EQUAL_STRING("Player 1", mockAdafruitPrintCalls[1].str.c_str());
     }
 
-    // Verify arrows (2 lines per arrow, 2 arrows = 4 lines)
-    TEST_ASSERT_EQUAL(4, mockAdafruitDrawLineCalls.size());
+    // Verify arrows (2 lines per arrow side, 3 thickness lines per side, 2 sides, 2 arrows = 12 lines)
+    TEST_ASSERT_EQUAL(12, mockAdafruitDrawLineCalls.size());
 }
 
 void test_mode_switching(void) {

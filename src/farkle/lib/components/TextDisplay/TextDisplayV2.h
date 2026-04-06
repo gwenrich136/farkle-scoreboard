@@ -43,6 +43,10 @@ class TextDisplayV2
     char _lastItem[32];
     uint16_t _lastHue;
 
+    void eraseOldTextBoundingBox(const char* text);
+    void drawSelectionTitle(const char* title);
+    void drawSelectionItem(const char* item, uint16_t color, int16_t& itemY, uint16_t& itemH);
+    void drawSelectionArrows(int16_t itemY, uint16_t itemH);
     void drawArrow(int x, int y, bool up, uint16_t color);
 };
 
