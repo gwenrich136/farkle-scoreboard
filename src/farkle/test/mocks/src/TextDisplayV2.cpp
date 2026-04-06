@@ -18,3 +18,12 @@ void TextDisplayV2::printSelectionScreen(const char* selectionTitle, const char*
     captured_item = selectionItem;
     captured_hue = hue;
 }
+
+void TextDisplayV2::printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue) {
+    captured_p1Place = p1Place;
+    captured_p1Name = p1Name;
+    captured_p1Hue = p1Hue;
+    captured_p2Place = p2Place;
+    captured_p2Name = p2Name;
+    captured_p2Hue = p2Hue;
+}

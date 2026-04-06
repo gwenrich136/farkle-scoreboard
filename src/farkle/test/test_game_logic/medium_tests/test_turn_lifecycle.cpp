@@ -52,7 +52,8 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     simulateButtonPress(game, ButtonAction::FARKLE);
 
     // Should be in WaitingPhase, showing first player (Coach)
-    TEST_ASSERT_EQUAL_STRING("Coach", game.textDisplay.captured_message.c_str());
+    TEST_ASSERT_EQUAL_STRING("Coach", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_STRING("1st", game.textDisplay.captured_p1Place.c_str());
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
 }
 
