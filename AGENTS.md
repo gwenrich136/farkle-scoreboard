@@ -26,6 +26,8 @@ When writing code:
 *   **Logic:** Resides strictly in `GamePhase` classes.
 *   **Context:** The `Game` class is a minimal Context that owns data (`GameState`) and hardware.
 *   **Memory Rule:** Strictly **NO Dynamic Allocation** (`new`, `malloc`) for phases or core logic. Use the `PhasePool` via `game.getPhase<T>()`.
+    *   **Guidance on Large Objects:** Do not dynamically allocate large objects like `GameState`.
+    *   **String/State Caching:** Avoid copying large strings (like C-style `strncpy` arrays) in UI component state caches. Instead, reference pointers to `std::string` objects already defined in long-lived state (e.g., `Player` objects) whenever possible.
 *   **Hardware Ownership:** The `Game` class owns the hardware. Phases only *borrow* it. Only `Game::setup()` initializes hardware.
 
 ### Commenting Style

@@ -101,8 +101,9 @@ void test_PlayerSelection_TransitionValidation() {
     // Now can start
     simulateButtonPress(game, ButtonAction::FARKLE);
 
-    // Should be in WaitingPhase (OLED shows player name)
-    TEST_ASSERT_EQUAL_STRING("Geewee", game.textDisplay.captured_message.c_str());
+    // Should be in WaitingPhase (OLED shows Head-to-Head info now instead of basic message)
+    TEST_ASSERT_EQUAL_STRING("Geewee", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_STRING("1st", game.textDisplay.captured_p1Place.c_str());
 }
 
 // Verifies that the phase respects the 8-player hardware limit and shows "ROSTER FULL" using a simple print.

@@ -72,8 +72,73 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    // Basic turn indicator for now
-    displays.textDisplay.print(state.players[state.currentPlayerIndex].name.c_str(), state.players[state.currentPlayerIndex].hue);
+    if (state.players.empty()) return;
+
+    int currentPlayerIdx = state.currentPlayerIndex;
+    int leaderIdx = getLeaderIndex(state);
+
+    // Fallback if leader is not found (shouldn't happen if players is not empty)
+    if (leaderIdx == -1) leaderIdx = currentPlayerIdx;
+
+    int p1Rank = getPlayerRank(state, currentPlayerIdx);
+    int p2Rank = getPlayerRank(state, leaderIdx);
+
+    char p1Place[16];
+    char p2Place[16];
+    getOrdinalString(p1Rank, p1Place, sizeof(p1Place));
+    getOrdinalString(p2Rank, p2Place, sizeof(p2Place));
+
+    displays.textDisplay.printHeadToHeadScreen(
+        p1Place,
+        &state.players[currentPlayerIdx].name,
+        state.players[currentPlayerIdx].hue,
+        p2Place,
+        &state.players[leaderIdx].name,
+        state.players[leaderIdx].hue
+    );
+}
+
+int InGamePhase::getLeaderIndex(const GameState& state) {
+    int maxScore = -1;
+    int leaderIdx = -1;
+    for (size_t i = 0; i < state.players.size(); ++i) {
+        if (state.players[i].score > maxScore) {
+            maxScore = state.players[i].score;
+            leaderIdx = (int)i;
+        }
+    }
+    return leaderIdx;
+}
+
+int InGamePhase::getPlayerRank(const GameState& state, int playerIndex) {
+    if (playerIndex < 0 || playerIndex >= (int)state.players.size()) return 1;
+
+    int rank = 1;
+    int targetScore = state.players[playerIndex].score;
+
+    for (size_t i = 0; i < state.players.size(); ++i) {
+        // If someone has a strictly higher score, they push this player down in rank
+        if (state.players[i].score > targetScore) {
+            rank++;
+        }
+    }
+    return rank;
+}
+
+void InGamePhase::getOrdinalString(int rank, char* buffer, size_t bufferSize) {
+    if (bufferSize < 5) return; // need at least "Nth\0"
+
+    const char* suffix = "th";
+    int lastDigit = rank % 10;
+    int lastTwoDigits = rank % 100;
+
+    if (lastTwoDigits < 11 || lastTwoDigits > 13) {
+        if (lastDigit == 1) suffix = "st";
+        else if (lastDigit == 2) suffix = "nd";
+        else if (lastDigit == 3) suffix = "rd";
+    }
+
+    snprintf(buffer, bufferSize, "%d%s", rank, suffix);
 }
 
 int InGamePhase::calculateLeadingScore(const GameState& state) {

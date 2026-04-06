@@ -187,6 +187,7 @@ The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 
 
 #### Interactive UI Modes
 -   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF)`**: Renders an interactive selection screen. The `selectionItem` can be rendered in a specific `hue` (defaulting to White) to highlight player identities during setup.
+-   **`void printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue)`**: Renders a split-screen "Leaderboard" or "Head-to-Head" display used during in-game phases. Displays the current player (P1) on the top half and the competitor/leader (P2) on the bottom half, including rank ordinal strings (e.g., "1st", "2nd") aligned to the left edge of the player names.
 -   **`void displayCharacterInput(const char* currentName, int activeIndex, uint16_t hue = 0xFFFF)`**: Renders an interactive screen for name input, with the active character highlighted in the provided `hue`.
 
 ### Key Logic & Behavior
