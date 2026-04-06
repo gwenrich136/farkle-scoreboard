@@ -96,7 +96,9 @@ graph TD
     D7\["Pin D7 (LCD RES)"\]
     D8\["Pin D8 (LCD BLK)"\]
     D9\["Pin D9 (SD CS)"\]
-    D10_D13\["D10-D13 (SPI BUS)"\]
+    D10\["Pin D10 (Score CS)"\]
+    D11\["Pin D11 (SPI MOSI)"\]
+    D13\["Pin D13 (SPI SCK)"\]
     A0\["Pin A0 (NeoPixel Grid)"\]  
     A1\["Pin A1 (Status Strip)"\]  
     A2\["Pin A2 (Ladder: Scoring/Clear)"\]  
@@ -107,7 +109,7 @@ graph TD
 
     subgraph Components  
     NEO\["8x8 NeoPixel Grid"\]  
-    MAX\["MAX7219 Drivers (Chain)"\]  
+    MAX\["MAX7219 Score Displays"\]  
     LCD\["ST7789 IPS LCD (SPI)"\]  
     SPK\["MP3 Player + Speaker"\]  
     BTNS\["Hybrid Control Pad"\]  
@@ -136,43 +138,49 @@ graph TD
     GND\_BUS \--\> STRIP  
     GND\_BUS \--\> SD
     
-    %% Signals  
+    %% Shared SPI Bus
+    D11 \--\> MAX
+    D11 \--\> LCD
+    D11 \--\> SD
+    D13 \--\> MAX
+    D13 \--\> LCD
+    D13 \--\> SD
+
+    %% Dedicated Control Signals  
     A0 \--\> NEO  
-    D10_D13 \--\> MAX  
-    D10_D13 \--\> LCD
-    D10_D13 \--\> SD
+    D10 \--\> MAX
+    A4 \--\> LCD
+    A5 \--\> LCD
+    D7 \--\> LCD
+    D8 \--\> LCD
+    D9 \--\> SD
     D4 \--\> BTNS
     D5 \--\> BTNS
     D6 \--\> BTNS
     A2 \--\> BTNS
     A3 \--\> BTNS
-    D2_D3 \--\> BTNS
+    D2\_D3 \--\> BTNS
     A1 \--\> STRIP  
-    A4 \--\> LCD
-    A5 \--\> LCD
-    D7 \--\> LCD
-    D8 \--\> LCD
 
 ## **Detailed Pin Map**
 
 ### **1. Shared SPI Bus (D9 - D13)**
+Both the **Score Displays** and the **IPS LCD** share the hardware SPI clock and data lines for maximum efficiency.
 
-| Arduino Pin | Signal | Component | CS Pin |
+| Arduino Pin | Signal | Component | Pin Label |
 | :---- | :---- | :---- | :---- |
-| **D11** | **MOSI (COPI)** | Shared Bus | - |
-| **D12** | **MISO (CIPO)** | Shared Bus | - |
-| **D13** | **SCK (Clock)** | Shared Bus | - |
-| **D10** | **CS** | **MAX7219 Grid** | D10 |
-| **A4** | **CS** | **ST7789 LCD** | A4 |
-| **D9** | **CS** | **SD Card** | D9 |
+| **D11** | **MOSI (COPI)** | Shared Bus | **DIN** (Score) / **SDA** (LCD) |
+| **D13** | **SCK (Clock)** | Shared Bus | **CLK** (Score) / **SCL** (LCD) |
+| **D10** | **CS (Load)** | **Score Display** | **CS** |
+| **A4** | **CS** | **ST7789 LCD** | **CS** (or GND if missing) |
+| **D9** | **CS** | **SD Card** | **CS** |
 
 ### **2. IPS Color LCD (ST7789)**
-
 | Arduino Pin | Signal | Notes |
 | :---- | :---- | :---- |
-| **A5** | **DC** | Data/Command |
-| **D7** | **RES** | Reset Line |
-| **D8** | **BLK** | Backlight Control (PWM) |
+| **A5** | **DC** | Data/Command Toggle |
+| **D7** | **RES** | Hardware Reset |
+| **D8** | **BLK** | Backlight PWM (Brightness) |
 
 ### **3. Hybrid Control Pad**
 
@@ -213,18 +221,20 @@ The ladder uses a pull-up resistor to create unique voltage zones for four butto
 
 Since you are using the Uno R4 WiFi, you can take advantage of the ArduinoLEDMatrix library if you were using the built-in grid, but for your external NeoPixels, stick to Adafruit\_NeoPixel.
 
-### **Setup Snippet**
+### Setup Snippet
 ```cpp
-// Action Buttons (Digital)
-const int BANK_PIN = 5;
-const int FARKLE_PIN = 6;
-const int SELECT_PIN = 4;
+// Score Display (Hardware SPI + D10 CS)
+// Pins: MOSI=11, SCK=13, CS=10
+const int SCORE_DATA_PIN = 11;
+const int SCORE_CLK_PIN = 13;
+const int SCORE_CS_PIN = 10;
 
-// Ladder (Analog)
-const int LADDER_PIN = A2;
-
-// Status Indicator Strip
-const int STATUS_STRIP_PIN = A1;
+// Text Display V2 (Hardware SPI + Control Pins)
+// Pins: MOSI=11, SCK=13, CS=A4, DC=A5, RES=7, BLK=8
+const int LCD_CS_PIN = A4;
+const int LCD_DC_PIN = A5;
+const int LCD_RES_PIN = 7;
+const int LCD_BLK_PIN = 8;
 
 void setup() {  
   // Initialize Digital Buttons
@@ -232,12 +242,15 @@ void setup() {
   pinMode(FARKLE_PIN, INPUT_PULLUP);
   pinMode(SELECT_PIN, INPUT_PULLUP);
 
-  // Note: Ladder Pin (A2) does not require pinMode for analogRead()
-  
-  // ... Initialize Status Strip (NeoPixel), LCD (SPI), etc ...  
+  // Initialize Backlight
+  pinMode(LCD_BLK_PIN, OUTPUT);
+  digitalWrite(LCD_BLK_PIN, HIGH); // Turn on screen
+
+  // ... Initialize Score Display (SPI), LCD (Adafruit_ST7789), etc ...
 }
 ```
 
+```cpp
 void loop() {  
   // Example Logic  
   // Update status strip based on game state

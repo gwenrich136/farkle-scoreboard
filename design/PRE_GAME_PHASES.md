@@ -53,5 +53,7 @@ The system follows this sequence:
     4.  **Starting Game (RED/FARKLE)**: 
         *   If `state.players.size() >= 1`, returns `game.getPhase<WaitingPhase>()`.
     5.  **Display Behavior (Hooks)**:
-        *   **`updateTextDisplay()`**: Calls `oled.printSelectionScreen("Add Player", currentSelection)`.
-        *   **`updateProgressGrid()`**: Calls `grid.displayPlayersPregame(isPlayerPending)`. `isPlayerPending` is true if the grid is not full.
+        *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Add Player", currentSelection, getNextPlayerColor(state.players.size()))`. The `currentSelection` is rendered in the specific color that will be assigned to this player index, providing immediate visual feedback of their "identity" before they are added.
+        *   **`updateProgressGrid()`**: Calls `grid.displayPlayersPregame(state.getNextPlayerHue(state.players.size()))`.
+            *   **Color Sovereignty:** The `GameState` acts as the single source of truth for player colors. It generates unique hues using a Golden Ratio approximation (`(index * 40503) % 65536`).
+            *   The phase queries the *prospective* hue for the next player from the `GameState` (using `std::optional` to safely manage the random seed for the first player) and passes it to the `LedProgressGrid` so the pending player's row can blink in their assigned color before confirmation.

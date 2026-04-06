@@ -88,15 +88,16 @@ The following files will be created or modified to implement the Game State Mach
 *   **`src/farkle/include/Displays.h`**
     *   **Why:** To group all display component objects into a single parameter object (struct), simplifying method signatures.
     *   **Implementation Details:**
-        *   `struct Displays`: Will contain references (`&`) to all display components: `ScoreDisplay& scoreDisplay;`, `LedProgressGrid& grid;`, `FarkleWarningLights& farkleLights;`, `TextDisplay& oled;`.
+        *   `struct Displays`: Will contain references (`&`) to all display components: `ScoreDisplay& scoreDisplay;`, `LedProgressGrid& grid;`, `FarkleWarningLights& farkleLights;`, `TextDisplayV2& textDisplay;`.
 
 #### New Files - Data Structures
 *   **`src/farkle/include/GameState.h`**
     *   **Why:** Defines the core data structures, keeping data separate from logic.
     *   **Implementation Details:**
-        *   `struct Player`: Will contain `std::string name;`, `int score;`, and `int farkle_count;`.
+        *   `struct Player`: Will contain `std::string name;`, `int score;`, `int farkle_count;`, and `uint16_t hue;` (stored as a 0-65535 value for easy color wheel math and unified hardware rendering).
         *   `struct GameState`: Will contain `std::vector<Player> players;`, `int atRiskScore;`, `int currentPlayerIndex;`, `bool finalRoundTriggered = false;`, `int targetScore = 10000;`, `uint32_t scoresVersion`.
         *   `void reset()`: Resets all flags, clears the player list, and increments `scoresVersion`.
+        *   **Color Management Utility**: A static or global helper function `uint16_t getNextPlayerHue(int playerCount)` will generate high-contrast "Golden Ratio" hues. This ensures the game engine defines the visual identity, while components handle the conversion to RGB/RGB565.
         *   `void updatePlayerScore(int playerIndex, int newScore)`: Helper to update score and increment `scoresVersion`.
         *   `void addPlayerScore(int playerIndex, int delta)`: Helper to add to score and increment `scoresVersion`.
 
@@ -109,7 +110,7 @@ The following files will be created or modified to implement the Game State Mach
         *   It will define the pure virtual interface:
             *   `virtual void onEnter(GameState& state) = 0;`
             *   `virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;`
-            *   `virtual void display(const GameState& state, const Displays& displays) = 0;`
+            *   `virtual void display(const GameState& state, const Displays& displays) = 0;` // Renders color-coded UI using state.currentPlayerIndex and grid colors.
         *   `class PreGamePhase : public GamePhase` will be an intermediate class.
             *   It will provide a concrete, shared implementation of the `display()` method that ensures `ScoreDisplay` (at-risk and current score) and `FarkleWarningLights` are explicitly cleared/OFF.
             *   It will ensure the `COMPETITION_SCORE` segment of the `ScoreDisplay` always shows `state.targetScore` for persistent goal feedback.

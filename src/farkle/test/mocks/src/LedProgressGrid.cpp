@@ -12,7 +12,7 @@ void LedProgressGrid::setTargetScore(int target) {
     captured_targetScore = target;
 }
 
-int LedProgressGrid::addPlayer() {
+int LedProgressGrid::addPlayer(uint16_t hue) {
     if (isMaxPlayersReached()) {
         return -1;
     }
@@ -41,6 +41,6 @@ void LedProgressGrid::update(const int* scores, int playerCount, int currentPlay
     captured_blinkingScore = blinkingScore;
 }
 
-void LedProgressGrid::displayPlayersPregame(bool isPlayerPending) {
+void LedProgressGrid::displayPlayersPregame(std::optional<uint16_t> pendingPlayerHue) {
     // Mock implementation for pregame
 }

@@ -101,7 +101,7 @@ void test_FarklingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<FarklingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -115,7 +115,7 @@ void test_FarklingPhase_GridAnimationScores() {
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<FarklingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's potential score (1500) falling back to base.

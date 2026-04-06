@@ -12,7 +12,7 @@ public:
     std::map<DisplayType, bool> cleared_displays;
     std::map<DisplayType, int> device_map;
 
-    ScoreDisplay(int dataPin, int clkPin, int csPin);
+    ScoreDisplay(int csPin);
     void begin();
     void addDisplay(DisplayType type, int deviceIndex);
     void print_number(int number, DisplayType type, bool blink = false);

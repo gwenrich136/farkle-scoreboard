@@ -184,7 +184,7 @@ To verify the performance and correctness of individual hardware components (lik
 ### 6.1 Strategy: "Double Mocking"
 We employ a two-layer mocking strategy to isolate different parts of the system:
 1.  **Game Logic Tests (`env:native`):** We mock the *Component* (e.g., `FakeScoreDisplay`). This assumes the component works and tests the game rules.
-2.  **Component Tests (`env:component_tests`):** We use the **REAL** component code (`ScoreDisplay.cpp`) but mock the **External Hardware Library** (e.g., `LedControl`).
+2.  **Component Tests (`env:component_tests`):** We use the **REAL** component code (`ScoreDisplay.cpp`, `TextDisplayV2.cpp`) but mock the **External Hardware Library** (e.g., `SPI.h`, `Adafruit_ST7789.h`).
 
 ### 6.2 Why this is needed
 *   **Hardware-Independent Correctness:** Verifies logic like "splitting a 5-digit number into characters" or "padding with spaces" works correctly before it touches a real chip.
@@ -199,23 +199,36 @@ pio test -e component_tests
 ### 6.4 Directory Structure
 *   `test/test_component_*/`: Contains the test suites for components (e.g., `test_component_score_display/`, `test_component_led_progress_grid/`).
     *   **Note on Subdirectories**: Individual components have their own test subdirectories to avoid linker conflicts. The Unity framework's `setUp`, `tearDown`, and `main` functions would otherwise cause multiple-definition errors when compiling all component tests into a single test runner.
-*   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `LedControl.h`, `Adafruit_NeoPixel.h`) used by components.
+*   `test/mocks/libs/`: Contains mocks for external libraries (e.g., `SPI.h`, `Adafruit_NeoPixel.h`, `Adafruit_ST7789.h`) used by components.
 
 ### 6.5 Example Test Cases: `ScoreDisplay`
 *   **`test_ScoreDisplay_Correctness_Overflow`**: Verifies that numbers greater than 99,999 are capped and displayed as "99999".
 *   **`test_ScoreDisplay_Blinking_Intensity`**: Verifies that when `blink` is enabled, calling `print_number` (which should be called every frame) results in the intensity toggling between `SCORE_BLINK_LOW` (2) and `SCORE_BLINK_HIGH` (12) as time advances.
+*   **`test_ScoreDisplay_HardwareInteractionOptimization`**: Verifies that the internal state caching prevents redundant hardware calls when the requested state (number, blink mode, intensity) has not changed.
+*   **`test_ScoreDisplay_Performance`**: Benchmarks the execution time of repeated display updates to ensure high-speed SPI transactions perform adequately in critical loops.
+*   **`test_ScoreDisplay_Security_InvalidType`**: Verifies that passing an invalid `DisplayType` enum value does not crash the system and is gracefully rejected.
+*   **`test_ScoreDisplay_Security_NegativeOverflow`**: Verifies that deeply negative numbers (e.g., -12345, which would require 6 digits including the sign) are clamped to `-9999` to prevent out-of-bounds memory writes when formatting the display segments.
 
-### 6.6 Example Test Cases: `ControlPad`
+### 6.6 Example Test Cases: `TextDisplayV2`
+*   **`test_begin`**: Verifies that the display initialization sequence correctly configures the Adafruit ST7789 library (init, setRotation, fillScreen).
+*   **`test_print`**: Verifies that `print()` passes the correct text content and mapped RGB565 color to the underlying Adafruit display graphics API.
+*   **`test_print_caching`**: Verifies that repeated calls to `print()` with the exact same text and color do not trigger redundant hardware rendering.
+*   **`test_printSelectionScreen`**: Verifies that the selection screen correctly renders both the title text and the item text, along with generating the geometric up/down arrow indicators.
+*   **`test_mode_switching`**: Verifies that transitioning between different display modes (e.g., MESSAGE to SELECTION) correctly invalidates the cache and forces a full screen redraw even if text overlaps.
+*   **`test_selection_screen_caching`**: Verifies that state caching works correctly for the interactive selection screen to optimize layout updates.
+*   **`test_colorHSVtoRGB565`**: Verifies that the custom, lightweight hue-to-RGB565 math correctly converts extreme inputs, mapping Hue 0 correctly to Red (0xF800).
+
+### 6.7 Example Test Cases: `ControlPad`
 *   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
 *   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
 *   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.
 
-### 6.7 Example Test Cases: `LedProgressGrid`
+### 6.8 Example Test Cases: `LedProgressGrid`
 *   **`test_LedProgressGrid_MaxScore_Exact`**: Verifies that `_maxScore` scales exactly to the highest score (if above target) rather than jumping by fixed increments.
 *   **`test_LedProgressGrid_MaxScore_IncludesAtRisk`**: Verifies that the dynamic grid maximum correctly incorporates the current player's at-risk points.
 *   **`test_LedProgressGrid_MaxScore_Shrinking`**: Verifies that the grid bounds can shrink back to the target score if a leading player farkles or a turn ends without banking.
 
-### 6.8 Example Test Cases: `FarkleWarningLights`
+### 6.9 Example Test Cases: `FarkleWarningLights`
 *   **`test_Update_SetsCorrectColorsAndBrightness`**: Verifies that the component correctly sets NeoPixel colors and brightness based on player status (Active/Idle) and farkle count (0: White/Off, 1: Yellow, 2+: Red).
 *   **`test_MultiLedMapping`**: Verifies that the component uses the shared `PlayerLayout` to map a single player to multiple LEDs when fewer than 8 players are present.
 *   **`test_BlinkLogic`**: Verifies that the active player's LEDs blink (toggle On/Off) based on the `isBlinking` parameter, while idle players remain solid.
