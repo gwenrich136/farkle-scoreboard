@@ -18,9 +18,11 @@ public:
     void press(ButtonAction action);
     void rotate(int delta);
     void simulate(GameInput input);
+    void setToggleState(ScoreDisplayMode mode);
 
 private:
     std::queue<GameInput> input_queue;
+    ScoreDisplayMode toggle_state = ScoreDisplayMode::BANKED;
 };
 
 #endif // MOCK_CONTROL_PAD_H

@@ -26,7 +26,11 @@ void InGamePhase::updateAtRiskScoreDisplay(const GameState& state, const Display
 }
 
 void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays) {
-    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+    int scoreToDisplay = state.players[state.currentPlayerIndex].score;
+    if (state.currentPlayerScoreMode == ScoreDisplayMode::PENDING) {
+        scoreToDisplay += state.atRiskScore;
+    }
+    displays.scoreDisplay.print_number(scoreToDisplay, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
 }
 
 void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {

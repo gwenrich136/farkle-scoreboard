@@ -165,6 +165,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
     *   **`test_DisplayLogic_InGamePhase_PassesAllFarkleCounts`:** Verifies that the game logic correctly passes all players' farkle counts (not just the current player's) to the `FarkleWarningLights` component, enabling system-wide status display.
     *   **`test_DisplayLogic_BankingPhase_NoBlinking`:** Verifies that during BankingPhase, blinkingPlayerIndex should be -1.
+    *   **`test_DisplayLogic_ScoreToggle`:** Verifies that toggling the score display mode between PENDING and BANKED correctly updates the current player's score display.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
@@ -176,6 +177,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FullGame_TripleFarkle_ScoreLessThanPenalty`:** Verifies that player score does not go negative when triple farkled.
     *   **`test_FullGame_AutoAdvanceTurn`:** Verifies that a full game can be completed solely via the 5-second automatic timeout for turn advancement.
     *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
+    *   **`test_FullGame_ScoreToggle`**: Verifies a full game loop incorporating the Total Score Toggle functionality, ensuring the display reads differently based on the switch state.
 
 
 ## 5. Implementation Steps

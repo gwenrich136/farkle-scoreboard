@@ -52,6 +52,7 @@ void Game::loop() {
 
     // 2. Read Input
     GameInput input = controlPad.read();
+    state.currentPlayerScoreMode = input.scoreDisplayMode;
 
     // 3. Construct Displays struct
     Displays displays(scoreDisplay, grid, farkleLights, textDisplay);
