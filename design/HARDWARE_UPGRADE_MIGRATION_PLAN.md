@@ -1,7 +1,7 @@
 # Hardware Upgrade Migration Plan
 
 > **Scope:** Roadmap for the V1 to V2 hardware transition, featuring the ST7789 Color IPS Display and a Hybrid Input Architecture.
-> **Status:** **LIVE STRATEGY** - Step 2 is DONE. Step 3 is the active target.
+> **Status:** **LIVE STRATEGY** - Step 5 is DONE. Step 6 is the active target.
 
 ---
 
@@ -37,8 +37,8 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | **D4** | **Encoder SW** | **Digital Input** (SELECT Button) | **DONE (V2)** |
 | **D5** | **BANK Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
 | **D6** | **FARKLE Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
-| **D7** | **LCD RES** | Hardware Reset for LCD | Pending |
-| **D8** | **LCD BLK** | PWM Backlight Control | Pending |
+| **D7** | **LCD RES** | Hardware Reset for LCD | **DONE (V2)** |
+| **D8** | **LCD BLK** | PWM Backlight Control | **DONE (V2)** |
 | **D9** | **SD Card CS** | SPI Chip Select (Data) | Pending |
 | **D10** | **MAX7219 CS** | SPI Chip Select (Displays) | **Active (V1)** |
 | **D11** | **SPI COPI** | Shared Data Out (MOSI) | **Active (V1)** |
@@ -48,8 +48,8 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
 | **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | **DONE (V2)** |
 | **A3** | **Latching Switch** | **"Total Score" Toggle** | **DONE (V2)** |
-| **A4** | **LCD CS** | SPI Chip Select (LCD) | Pending |
-| **A5** | **LCD DC** | Data/Command (LCD) | Pending |
+| **A4** | **LCD CS** | SPI Chip Select (LCD) | **DONE (V2)** |
+| **A5** | **LCD DC** | Data/Command (LCD) | **DONE (V2)** |
 
 ---
 
@@ -79,13 +79,13 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 *   **Software (Navigation):** Migrate menu scrolling (Target Score, Player Selection) to use the Encoder.
 *   **Verification:** Native tests for priority logic, stability windows, and "no-repeat" ladder logic.
 
-**Step 3: The IPS Color Upgrade (ST7789)**
+**Step 3: The IPS Color Upgrade (ST7789) [DONE]**
 *   **Hardware:** Connect ST7789 to SPI and Control Pins (A4, A5, D7, D8).
 *   **Software:** Swap `U8G2` for `Adafruit_ST7789`. Update UI for 240x240 and color-coded text.
 *   **Verification:** High-speed, color-accurate UI updates.
 
 ### **Phase 2: Navigation & Logic**
-**Step 4: Strategic Navigation (Encoder A/B)**
+**Step 4: Strategic Navigation (Encoder A/B) [DONE]**
 *   **Hardware:** Connect Encoder pulses to D2/D3.
 *   **Software:** Implement `encoder.getDelta()` for Competitor Preview and menu scrolling.
 
