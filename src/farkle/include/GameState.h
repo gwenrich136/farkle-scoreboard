@@ -9,7 +9,7 @@
 
 #define MAX_SCORE 99999
 #define HUE_MAX_16BIT 65536
-#define HUE_GOLDEN_RATIO_JUMP 40503
+#define IRRATIONAL_RATIO_JUMP 40698
 
 struct Player {
     std::string name;
@@ -58,7 +58,7 @@ struct GameState {
         if (playerCount == 0) {
             return *prospectiveFirstHue;
         } else {
-            return (*prospectiveFirstHue + (playerCount * HUE_GOLDEN_RATIO_JUMP)) % HUE_MAX_16BIT;
+            return (*prospectiveFirstHue + (playerCount * IRRATIONAL_RATIO_JUMP)) % HUE_MAX_16BIT;
         }
     }
 
