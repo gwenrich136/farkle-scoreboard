@@ -139,6 +139,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
 
+*   **`test_WaitingPhase.cpp`**
+    *   **`test_WaitingPhase_TieBreakerSorting`**: Verifies that players with identical scores are sorted by the tiebreaker (turns away from the current player) when updating the leaderboard list.
+
 *   **`test_multi_press.cpp`** (Test Utilities Verification)
     *   **`test_simulate_button_press_count`**: Verifies that `simulateButtonPress` correctly interprets the optional `count` parameter to trigger multiple button presses in sequence, ensuring the test utility functions as intended.
 
@@ -153,9 +156,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_TurnLifecycle_ClearButton`**: Verifies that the clear button resets the `atRiskScore` to 0.
 
 *   **`test_tie_breaking.cpp`**
-    *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins.
-    *   **`test_TieBreaking_Case2`**: Verifies that if multiple players reach the same score (above target), the first one who reached it in the rotation wins.
-    *   **`test_TieBreaking_Case3`**: Edge case verifying that "first" is calculated relative to the player who triggered the final round, even if the trigger happens late in the roster.
+    *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins. Also verifies the in-game ranked list logic during tiebreakers.
+    *   **`test_TieBreaking_Case2`**: Verifies that if multiple players reach the same score (above target), the first one who reached it in the rotation wins. Also verifies the in-game ranked list logic during tiebreakers.
+    *   **`test_TieBreaking_Case3`**: Edge case verifying that "first" is calculated relative to the player who triggered the final round, even if the trigger happens late in the roster. Also verifies the in-game ranked list logic during tiebreakers.
 
 *   **`test_conditional_at_risk_display.cpp`**
     *   **`test_DisplayLogic_PlayerSelection_DisplaysOff`**: Verifies that during the selection phase, `ScoreDisplay` segments and `FarkleWarningLights` are explicitly cleared (except `COMPETITION_SCORE` which shows the target score).
