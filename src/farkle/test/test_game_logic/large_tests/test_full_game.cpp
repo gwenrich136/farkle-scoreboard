@@ -42,12 +42,14 @@ void test_FullGame_TripleFarkle() {
 
     // --- First Farkle ---
     simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     TEST_ASSERT_EQUAL_INT(1, game.state.players[0].farkle_count);
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Second Farkle ---
     game.state.currentPlayerIndex = 0; // Go back to Player 1
     simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     TEST_ASSERT_EQUAL_INT(2, game.state.players[0].farkle_count);
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
@@ -61,12 +63,10 @@ void test_FullGame_TripleFarkle() {
 
     // --- Run the penalty animation ---
     // Needs to cover 5000ms PAIN + 1000ms DRAIN
-    GameInput noInput;
-    noInput.action = ButtonAction::NONE;
-    noInput.rotationDelta = 0;
-    for (int i = 0; i < 650; ++i) {
-        game.currentPhase->update(game, game.state, noInput, 10);
-    }
+    waitForScoreAnimation(game);
+    // Needs one more step to actually trigger the phase transition
+    simulateNoAction(game);
+
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score); // Final score is correct
 }
@@ -85,11 +85,13 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     // --- First Farkle ---
     advance_to_player_zero(game);
     simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Second Farkle ---
     advance_to_player_zero(game);
     simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss
 
     // --- Third Farkle - Trigger penalty ---
@@ -98,15 +100,46 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PenaltyFarklingPhase>(), game.currentPhase);
 
     // --- Run the penalty animation ---
+    // Needs to cover 5000ms PAIN + 1000ms DRAIN
     waitForScoreAnimation(game);
+    // Needs one more step to actually trigger the phase transition
+    simulateNoAction(game);
+
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
 
-    // --- Dismiss the penalty phase ---
+    // Simulate button press to dismiss the EndOfTurn phase that should be active now
     simulateButtonPress(game, ButtonAction::CLEAR);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
 
     // Score should be 0, not negative
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].score);
+}
+
+void test_FullGame_AutoAdvanceTurn() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    int turn = 0;
+    while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
+        simulateButtonPress(game, ButtonAction::PLUS_500, 3);
+
+        // Start banking
+        simulateButtonPress(game, ButtonAction::BANK);
+
+        while (game.state.atRiskScore > 0) {
+            simulateNoAction(game);
+        }
+
+        // Instead of pressing a button, wait for 5.1 seconds to auto advance
+        for (int i = 0; i < 51; i++) {
+            simulateNoAction(game, 100);
+        }
+
+        turn++;
+    }
+
+    TEST_ASSERT_LESS_THAN(100, turn); // Game should end in a reasonable number of turns
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
 }
 
 // Verifies that the Competition Score display begins blinking as soon as the final round is triggered.
@@ -128,11 +161,11 @@ void test_FullGame_FinalRoundBlinking() {
     waitForScoreAnimation(game);
 
     // Verify it is NOT blinking yet because finalRoundTriggered is set after banking is dismissed
-    game.loop();
+    simulateNoAction(game);
     TEST_ASSERT_FALSE(game.state.finalRoundTriggered);
     TEST_ASSERT_FALSE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
 
-    // Dismiss the banking phase
+    // Dismiss the EndOfTurn phase
     simulateButtonPress(game, ButtonAction::CLEAR);
 
     // Now finalRoundTriggered should be true
@@ -146,17 +179,52 @@ void test_FullGame_FinalRoundBlinking() {
 }
 
 
+// Full Game With Score Toggle Simulation
+void test_FullGame_ScoreToggle() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    // Toggle switch to PENDING
+    game.controlPad.setToggleState(ScoreDisplayMode::PENDING);
+
+    // Player 1's turn
+    simulateButtonPress(game, ButtonAction::PLUS_500, 3); // Pending: 1500
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss EndOfTurnPhase
+
+    // Player 2's turn
+    simulateButtonPress(game, ButtonAction::PLUS_100, 4); // Pending: 400
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(400, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Switch to BANKED mid-turn
+    game.controlPad.setToggleState(ScoreDisplayMode::BANKED);
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(0, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss
+}
+
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
     RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
+    RUN_TEST(test_FullGame_AutoAdvanceTurn);
     RUN_TEST(test_FullGame_FinalRoundBlinking);
+    RUN_TEST(test_FullGame_ScoreToggle);
 }
 
 // Helper function to advance turns until it is player 0's turn again.
 void advance_to_player_zero(Game& game) {
     while (game.state.currentPlayerIndex != 0) {
         simulateButtonPress(game, ButtonAction::FARKLE); // A simple action to advance the turn
+        simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
         simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss the phase to complete the turn
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);

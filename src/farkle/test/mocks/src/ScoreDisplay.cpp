@@ -1,6 +1,6 @@
 #include "ScoreDisplay.h"
 
-ScoreDisplay::ScoreDisplay(int dataPin, int clkPin, int csPin) {}
+ScoreDisplay::ScoreDisplay(int csPin) {}
 
 void ScoreDisplay::begin() {}
 

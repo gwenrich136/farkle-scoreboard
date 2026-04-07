@@ -18,12 +18,54 @@ void test_WaitingPhase_ScoreAccumulation() {
     simulateButtonPress(game, ButtonAction::PLUS_500);
     simulateButtonPress(game, ButtonAction::PLUS_100);
 
-    // Removed rotation test as per request "Waiting phase can entirely ignore scrolling, please update tests as well to not allow this"
-    // So we verify that rotation does NOTHING
+    // Rotation should not modify atRiskScore
     simulateRotation(game, 2); // 2 clicks
 
-    // Verify atRiskScore is 600 (not 700)
+    // Verify atRiskScore is 600
     TEST_ASSERT_EQUAL_INT(600, game.state.atRiskScore);
+}
+
+// Verifies leaderboard scrolling behavior
+void test_WaitingPhase_LeaderboardScrolling() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    // P0: 1000, P1: 2000, P2: 500, P3: 3000
+    // Expected rank: P3 (3000), P1 (2000), P0 (1000), P2 (500)
+    game.state.players[0].score = 1000;
+    game.state.players[1].score = 2000;
+    game.state.players[2].score = 500;
+    game.state.players[3].score = 3000;
+
+    game.state.currentPlayerIndex = 0; // P0 is playing
+    game.currentPhase = game.getPhase<WaitingPhase>();
+    game.currentPhase->onEnter(game.state);
+
+    // Initial state: P0 is current. Top competitor is P3.
+    TEST_ASSERT_EQUAL_INT(4, game.state.rankedPlayerIndices.size());
+    TEST_ASSERT_EQUAL_INT(3, game.state.rankedPlayerIndices[0]);
+    TEST_ASSERT_EQUAL_INT(1, game.state.rankedPlayerIndices[1]);
+    TEST_ASSERT_EQUAL_INT(0, game.state.rankedPlayerIndices[2]);
+    TEST_ASSERT_EQUAL_INT(2, game.state.rankedPlayerIndices[3]);
+
+    // Competitor should initially point to rank 0 (P3)
+    TEST_ASSERT_EQUAL_INT(0, game.state.currentCompetitorRank);
+
+    // Rotate +1. Next is rank 1 (P1).
+    simulateRotation(game, 1);
+    TEST_ASSERT_EQUAL_INT(1, game.state.currentCompetitorRank);
+
+    // Rotate +1. Next is rank 2 (P0, which is current player!). Should skip to rank 3 (P2).
+    simulateRotation(game, 1);
+    TEST_ASSERT_EQUAL_INT(3, game.state.currentCompetitorRank);
+
+    // Rotate +1. Wraps around to rank 0 (P3).
+    simulateRotation(game, 1);
+    TEST_ASSERT_EQUAL_INT(0, game.state.currentCompetitorRank);
+
+    // Rotate -1. Next is rank 3 (P2).
+    simulateRotation(game, -1);
+    TEST_ASSERT_EQUAL_INT(3, game.state.currentCompetitorRank);
 }
 
 // Verifies that the atRiskScore is cleared when the CLEAR button is pressed.
@@ -94,7 +136,7 @@ void test_WaitingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<WaitingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -108,7 +150,7 @@ void test_WaitingPhase_GridAnimationScores() {
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<WaitingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's base score.
@@ -119,6 +161,7 @@ void test_WaitingPhase_GridAnimationScores() {
 
 void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_ScoreAccumulation);
+    RUN_TEST(test_WaitingPhase_LeaderboardScrolling);
     RUN_TEST(test_WaitingPhase_ScoreCorrection);
     RUN_TEST(test_WaitingPhase_TransitionToBanking);
     RUN_TEST(test_WaitingPhase_TransitionToFarkling);

@@ -26,12 +26,20 @@ void InGamePhase::updateAtRiskScoreDisplay(const GameState& state, const Display
 }
 
 void InGamePhase::updateCurrentPlayerScoreDisplay(const GameState& state, const Displays& displays) {
-    displays.scoreDisplay.print_number(state.players[state.currentPlayerIndex].score, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+    int scoreToDisplay = state.players[state.currentPlayerIndex].score;
+    if (state.currentPlayerScoreMode == ScoreDisplayMode::PENDING) {
+        scoreToDisplay += state.atRiskScore;
+    }
+    displays.scoreDisplay.print_number(scoreToDisplay, ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
 }
 
 void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Displays& displays) {
-    int leadingScore = calculateLeadingScore(state);
-    displays.scoreDisplay.print_number(leadingScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
+    int competitorScore = 0;
+    if (!state.rankedPlayerIndices.empty() && state.currentCompetitorRank >= 0 && state.currentCompetitorRank < (int)state.rankedPlayerIndices.size()) {
+        int competitorIdx = state.rankedPlayerIndices[state.currentCompetitorRank];
+        competitorScore = state.players[competitorIdx].score;
+    }
+    displays.scoreDisplay.print_number(competitorScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, state.finalRoundTriggered);
 }
 
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
@@ -72,18 +80,57 @@ void InGamePhase::updateWarningLights(const GameState& state, const Displays& di
 }
 
 void InGamePhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    // Basic turn indicator for now
-    displays.oled.print(state.players[state.currentPlayerIndex].name.c_str());
-}
+    if (state.players.empty() || state.rankedPlayerIndices.empty()) return;
 
-int InGamePhase::calculateLeadingScore(const GameState& state) {
-    int maxScore = 0;
-    for (const auto& player : state.players) {
-        if (player.score > maxScore) {
-            maxScore = player.score;
+    int currentPlayerIdx = state.currentPlayerIndex;
+
+    // Find the rank of the current player based on the rankedPlayerIndices list
+    // Rank is 1-based index of their position in the sorted array
+    int p1Rank = 1;
+    for (size_t i = 0; i < state.rankedPlayerIndices.size(); ++i) {
+        if (state.rankedPlayerIndices[i] == currentPlayerIdx) {
+            p1Rank = i + 1;
+            break;
         }
     }
-    return maxScore;
+
+    int compRankIdx = state.currentCompetitorRank;
+    if (compRankIdx < 0 || compRankIdx >= (int)state.rankedPlayerIndices.size()) {
+        compRankIdx = 0;
+    }
+
+    int competitorIdx = state.rankedPlayerIndices[compRankIdx];
+    int p2Rank = compRankIdx + 1; // 1-based index
+
+    char p1Place[16];
+    char p2Place[16];
+    getOrdinalString(p1Rank, p1Place, sizeof(p1Place));
+    getOrdinalString(p2Rank, p2Place, sizeof(p2Place));
+
+    displays.textDisplay.printHeadToHeadScreen(
+        p1Place,
+        &state.players[currentPlayerIdx].name,
+        state.players[currentPlayerIdx].hue,
+        p2Place,
+        &state.players[competitorIdx].name,
+        state.players[competitorIdx].hue
+    );
+}
+
+void InGamePhase::getOrdinalString(int rank, char* buffer, size_t bufferSize) {
+    if (bufferSize < 5) return; // need at least "Nth\0"
+
+    const char* suffix = "th";
+    int lastDigit = rank % 10;
+    int lastTwoDigits = rank % 100;
+
+    if (lastTwoDigits < 11 || lastTwoDigits > 13) {
+        if (lastDigit == 1) suffix = "st";
+        else if (lastDigit == 2) suffix = "nd";
+        else if (lastDigit == 3) suffix = "rd";
+    }
+
+    snprintf(buffer, bufferSize, "%d%s", rank, suffix);
 }
 
 void InGamePhase::endTurn(GameState& state) {

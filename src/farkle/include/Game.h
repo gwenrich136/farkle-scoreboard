@@ -14,13 +14,14 @@
 #include "phases/FarklingPhase.h"
 #include "phases/PenaltyFarklingPhase.h"
 #include "phases/PostGamePhase_V1.h"
+#include "phases/EndOfTurnPhase.h"
 
 // Hardware Component Includes
 #include "ControlPad.h"
 #include "ScoreDisplay.h"
 #include "LedProgressGrid.h"
 #include "FarkleWarningLights.h"
-#include "TextDisplay.h"
+#include "TextDisplayV2.h"
 
 class Game {
 public:
@@ -38,6 +39,7 @@ public:
         if (std::is_same<T, FarklingPhase>::value) return (T*)&phasePool.farkling;
         if (std::is_same<T, PenaltyFarklingPhase>::value) return (T*)&phasePool.penaltyFarkling;
         if (std::is_same<T, PostGamePhase_V1>::value) return (T*)&phasePool.postGame;
+        if (std::is_same<T, EndOfTurnPhase>::value) return (T*)&phasePool.endOfTurn;
         return nullptr;
     }
 
@@ -59,6 +61,7 @@ private:
         FarklingPhase farkling;
         PenaltyFarklingPhase penaltyFarkling;
         PostGamePhase_V1 postGame;
+        EndOfTurnPhase endOfTurn;
     };
 
     PhasePool phasePool;
@@ -71,7 +74,7 @@ private:
     ScoreDisplay scoreDisplay;
     LedProgressGrid grid;
     FarkleWarningLights farkleLights;
-    TextDisplay oled;
+    TextDisplayV2 textDisplay;
 };
 
 #endif

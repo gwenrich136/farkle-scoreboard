@@ -77,8 +77,8 @@ void test_FarklingPhase_IncrementWithPoints() {
     TEST_ASSERT_EQUAL_INT(1, game.state.players[0].farkle_count);
 }
 
-// Verifies that a button press transitions to the WaitingPhase after the animation is complete.
-void test_FarklingPhase_ManualAdvance() {
+// Verifies that when atRiskScore reaches 0, it transitions to EndOfTurnPhase.
+void test_FarklingPhase_TransitionsToEndOfTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
@@ -87,11 +87,9 @@ void test_FarklingPhase_ManualAdvance() {
     game.state.currentPlayerIndex = 0;
 
     simulateNoAction(game);
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<FarklingPhase>(), game.currentPhase);
 
-    simulateButtonPress(game, ButtonAction::CLEAR);
-
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
+    // As soon as atRiskScore is 0 and it updates, it transitions to EndOfTurnPhase
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
 }
 
 // Verifies that the Competition Score display blinks during the final round in FarklingPhase.
@@ -101,7 +99,7 @@ void test_FarklingPhase_FinalRoundBlinking() {
     game.state.finalRoundTriggered = true;
     game.currentPhase = game.getPhase<FarklingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::COMPETITION_SCORE]);
@@ -115,7 +113,7 @@ void test_FarklingPhase_GridAnimationScores() {
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<FarklingPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.oled);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
     game.currentPhase->display(game.state, displays);
 
     // It should display the player's potential score (1500) falling back to base.
@@ -128,7 +126,7 @@ void run_farkling_phase_tests() {
     RUN_TEST(test_FarklingPhase_AnimationMath);
     RUN_TEST(test_FarklingPhase_ZeroFloorSafety);
     RUN_TEST(test_FarklingPhase_InputSpamming);
-    RUN_TEST(test_FarklingPhase_ManualAdvance);
+    RUN_TEST(test_FarklingPhase_TransitionsToEndOfTurn);
     RUN_TEST(test_FarklingPhase_NoHarmNoFoul_NoIncrement);
     RUN_TEST(test_FarklingPhase_IncrementWithPoints);
     RUN_TEST(test_FarklingPhase_FinalRoundBlinking);

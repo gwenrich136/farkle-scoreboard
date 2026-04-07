@@ -54,12 +54,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput 
             break;
 
         case PenaltyStage::THE_AFTERMATH:
-            // Wait for user dismissal
-            if (input.action != ButtonAction::NONE) {
-                this->endTurn(state);
-                return game.getPhase<WaitingPhase>();
-            }
-            break;
+            return game.getPhase<EndOfTurnPhase>();
     }
 
     return this;
@@ -69,11 +64,7 @@ void PenaltyFarklingPhase::updateAtRiskScoreDisplay(const GameState& state, cons
     // Use the blink parameter provided by the updated ScoreDisplay library
     bool shouldBlink = (currentStage == PenaltyStage::THE_PAIN);
 
-    if (state.atRiskScore == 0) {
-        displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
-    } else {
-        displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
-    }
+    displays.scoreDisplay.print_number(state.atRiskScore, ScoreDisplay::DisplayType::AT_RISK_SCORE, shouldBlink);
 }
 
 void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Displays& displays) {
@@ -88,5 +79,5 @@ void PenaltyFarklingPhase::updateWarningLights(const GameState& state, const Dis
 
 void PenaltyFarklingPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
     // Show penalty quip throughout the sequence
-    displays.oled.print("CATASTROPHIC FARKLE!");
+    displays.textDisplay.print("CATASTROPHIC FARKLE!", state.players[state.currentPlayerIndex].hue);
 }

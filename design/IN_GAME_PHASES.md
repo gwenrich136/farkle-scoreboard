@@ -14,7 +14,8 @@ This category handles user input for scoring, provides feedback through animatio
 - `WaitingPhase` -> `BankingPhase` (on Bank button)
 - `WaitingPhase` -> `FarklingPhase` (on Farkle button)
 - `WaitingPhase` -> `PenaltyFarklingPhase` (on 3rd consecutive Farkle)
-- All animation phases (`BankingPhase`, `FarklingPhase`, `PenaltyFarklingPhase`) return to `WaitingPhase` after completion and a button press.
+- All animation phases (`BankingPhase`, `FarklingPhase`, `PenaltyFarklingPhase`) return to `EndOfTurnPhase` after animation completion.
+- `EndOfTurnPhase` returns to `WaitingPhase` after a button press or after 5 seconds of inactivity.
 - `WaitingPhase` transitions to `PostGamePhase_V1` when a player reaches the target score and the final round completes.
 
 ## 4. Technical Details
@@ -34,11 +35,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     0.  **Reset Farkle Count:** The `onEnter()` method resets the current player's `farkle_count` to 0.
     1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
-    2.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, the animation is complete. The game persists in this state and waits for `input.action != NONE`. This allows players to review the final score.
-    3.  **Finalize Turn:** Once a button is pressed:
-        a. **Check for Final Round Trigger:** Check if `!state.finalRoundTriggered` and if any player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
-        b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        c. `return game.getPhase<WaitingPhase>();`.
+    2.  **Transition:** Once `state.atRiskScore == 0`, the animation is complete and returns `game.getPhase<EndOfTurnPhase>()`.
 
 ### FarklingPhase
 *   **Why:** Implements the farkle animation and the end-of-turn logic.
@@ -46,10 +43,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Implementation Details:**
     1.  **Increment Count:** The `onEnter()` method checks if `player.score > 0`. If true, it increments the `farkle_count`. If false (score is 0), the count is **not** incremented ("No Harm, No Foul").
     2.  **Animate Score Loss:** The `update()` method runs a time-based animation to drain `state.atRiskScore` to 0. It ignores input during the animation.
-    3.  **Wait for Dismissal:** Once `state.atRiskScore == 0`, wait for `input.action != NONE`.
-    3.  **Finalize Turn:** Upon button press:
-        a. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        b. `return game.getPhase<WaitingPhase>();`.
+    3.  **Transition:** Once `state.atRiskScore == 0`, the animation is complete and returns `game.getPhase<EndOfTurnPhase>()`.
 
 ### PenaltyFarklingPhase
 *   **Why:** Implements the catastrophic farkle penalty for a player's third consecutive farkle.
@@ -63,8 +57,17 @@ This category handles user input for scoring, provides feedback through animatio
     2.  **3-Stage Animation (`update()`):**
         *   **Stage 1: The Pain (0s - 5s):** No score changes. `atRisk` display is set to blink/flash. Warning lights alternate.
         *   **Stage 2: The Drain:** `atRisk` display stops blinking. Values animate: `atRisk` goes up to 0, Banked score goes down. Warning lights continue alternating.
-        *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Wait for button press.
-    3.  **Finalize Turn:** Upon button press, call `endTurn(state)` and `return game.getPhase<WaitingPhase>();`.
+        *   **Stage 3: The Wait:** Animation complete. Warning lights turn OFF. Transitions to `EndOfTurnPhase`.
+
+### EndOfTurnPhase
+*   **Why:** Implements a single unified state to wait for turn dismissal across all in-game scoring outcomes.
+*   **Defined in:** `src/farkle/include/phases/EndOfTurnPhase.h` & `src/farkle/src/phases/EndOfTurnPhase.cpp`
+*   **Implementation Details:**
+    1.  **Wait for Dismissal:** The `update()` method waits for any button press (`input.action != NONE`) or for a 5-second timeout (`m_elapsedTime >= 5000`).
+    2.  **Finalize Turn:** Once a button is pressed or the 5-second timeout occurs:
+        a. Check if `!state.finalRoundTriggered` and if the current player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
+        b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
+        c. `return game.getPhase<WaitingPhase>();`.
 
 *   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks:
     *   `updateWarningLights()`: Collects the `farkle_count` for all players and the `currentPlayerIndex`. It passes this data to the `FarkleWarningLights` component to update the entire 8-LED Status Strip (current player flashing, others dim/solid).
@@ -72,6 +75,7 @@ This category handles user input for scoring, provides feedback through animatio
 
 ### Visual Feedback
 -   **Unified Color Identity:** The `TextDisplayV2` renders the active player's name and critical turn information in the `Player.color` stored in the `GameState`. This matches the player's row on the `LedProgressGrid`, creating a cohesive visual link between the scoreboard and the high-resolution UI.
+-   **Head-to-Head Display:** During all `InGamePhase` subclasses, the `TextDisplayV2` shows a split-screen "Leaderboard" view. The top half displays the current player's name and rank (e.g., "1st", "2nd"), colored in their hue. The bottom half displays the current game leader's name and rank, wrapped in selection arrows to indicate that the user can theoretically scroll through the competition. Both players' ranks are aligned to the left edge of their respective names.
 -   **Turn Indicator (FarkleWarningLights):**
     -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
     -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.
@@ -87,3 +91,4 @@ This category handles user input for scoring, provides feedback through animatio
 - **WaitingPhase:** Overrides `updateAtRiskScoreDisplay` to show 0 even when `atRiskScore` is 0.
 - **Rationale:** This provides clear visual feedback of when a turn has truly ended and the next turn is ready to begin.
 - **Final Round Feedback:** In all `InGamePhase` subclasses, the `COMPETITION_SCORE` display (showing the leading score) will blink if `state.finalRoundTriggered` is true. This signals to the current player that they are in the "bell lap" and must catch the leader.
+- **Toggle Display:** The current player's score display changes based on the state of the physical toggle switch (`CURRENT_PLAYER_TOGGLE_PIN`). When the switch is set to "Pending", the display shows the sum of the player's banked score and the current `atRiskScore`. When set to "Banked", it shows only their banked score. This behavior applies across all in-game phases, meaning animations will appear differently based on the switch state.

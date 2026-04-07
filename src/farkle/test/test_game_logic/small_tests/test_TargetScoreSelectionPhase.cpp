@@ -11,8 +11,8 @@ void test_TargetScoreSelection_InitialState() {
     game.loop();
 
     // Should start in TargetScoreSelectionPhase
-    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
-    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
 }
 
@@ -24,12 +24,12 @@ void test_TargetScoreSelection_Adjustment() {
     // Increment (1 click = 1000)
     simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_INT(11000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("11,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("11,000", game.textDisplay.captured_item.c_str());
 
     // Decrement (1 click = 1000)
     simulateRotation(game, -1);
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("10,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
 }
 
 // Verifies that the target score is clamped between 1,000 and 20,000.
@@ -45,7 +45,7 @@ void test_TargetScoreSelection_Clamping() {
         simulateRotation(game, -1);
     }
     TEST_ASSERT_EQUAL_INT(1000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("1,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("1,000", game.textDisplay.captured_item.c_str());
 
     // Try to go below
     simulateRotation(game, -1);
@@ -58,7 +58,7 @@ void test_TargetScoreSelection_Clamping() {
     }
     // Should be clamped at 20000
     TEST_ASSERT_EQUAL_INT(20000, game.state.targetScore);
-    TEST_ASSERT_EQUAL_STRING("20,000", game.oled.captured_item.c_str());
+    TEST_ASSERT_EQUAL_STRING("20,000", game.textDisplay.captured_item.c_str());
 
     // Try to go above
     simulateRotation(game, 1);
@@ -78,17 +78,17 @@ void test_TargetScoreSelection_Transition() {
 
     // Transition with BANK should do nothing
     simulateButtonPress(game, ButtonAction::BANK);
-    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
 
     // Transition with FARKLE should do nothing
     simulateButtonPress(game, ButtonAction::FARKLE);
-    TEST_ASSERT_EQUAL_STRING("Target Score", game.oled.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
 
     // Transition with SELECT
     simulateButtonPress(game, ButtonAction::SELECT);
 
     // Should be in PlayerSelectionPhase
-    TEST_ASSERT_EQUAL_STRING("Add Player", game.oled.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
 }
 
 void run_target_score_selection_phase_tests() {

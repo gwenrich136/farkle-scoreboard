@@ -246,11 +246,11 @@ void setup() {
   pinMode(LCD_BLK_PIN, OUTPUT);
   digitalWrite(LCD_BLK_PIN, HIGH); // Turn on screen
 
-  // ... Initialize Score Display (LedControl), LCD (Adafruit_ST7789), etc ...  
+  // ... Initialize Score Display (SPI), LCD (Adafruit_ST7789), etc ...
 }
 ```
 
-
+```cpp
 void loop() {  
   // Example Logic  
   // Update status strip based on game state
