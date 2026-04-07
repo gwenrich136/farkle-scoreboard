@@ -47,7 +47,7 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | **A0** | **LED Grid** | NeoPixel Data (8x8) | **Active (V1)** |
 | **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
 | **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | **DONE (V2)** |
-| **A3** | **Latching Switch** | **"Total Score" Toggle** | Pending |
+| **A3** | **Latching Switch** | **"Total Score" Toggle** | **DONE (V2)** |
 | **A4** | **LCD CS** | SPI Chip Select (LCD) | Pending |
 | **A5** | **LCD DC** | Data/Command (LCD) | Pending |
 
@@ -89,7 +89,7 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 *   **Hardware:** Connect Encoder pulses to D2/D3.
 *   **Software:** Implement `encoder.getDelta()` for Competitor Preview and menu scrolling.
 
-**Step 5: The "Total Score" Toggle (A3)**
+**Step 5: The "Total Score" Toggle (A3) [DONE]**
 *   **Software:** Implement the latching switch logic to swap between Banked and Total scores.
 
 ### **Phase 3: Persistence & Audio**

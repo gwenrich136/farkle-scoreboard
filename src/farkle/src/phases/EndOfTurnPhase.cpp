@@ -13,8 +13,8 @@ void EndOfTurnPhase::onEnter(GameState& state) {
 GamePhase* EndOfTurnPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     m_elapsedTime += deltaTime;
 
-    // Wait for user dismissal (any button press) or timeout
-    if (input.action != ButtonAction::NONE || m_elapsedTime >= 5000) {
+    // Wait for user dismissal (any button press, or scroll) or timeout
+    if (input.action != ButtonAction::NONE || input.rotationDelta != 0 || m_elapsedTime >= 5000) {
         // Check for Final Round Trigger
         if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
             state.finalRoundTriggered = true;
