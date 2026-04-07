@@ -14,9 +14,16 @@ void WaitingPhase::onEnter(GameState& state) {
     }
 
     // Sort the list based on current scores
+    // Secondary tie-breaker: turns away from current player (ascending)
     std::sort(state.rankedPlayerIndices.begin(), state.rankedPlayerIndices.end(),
               [&state](int a, int b) {
-                  return state.players[a].score > state.players[b].score;
+                  if (state.players[a].score != state.players[b].score) {
+                      return state.players[a].score > state.players[b].score;
+                  }
+                  int numPlayers = (int)state.players.size();
+                  int turnsAwayA = (a - state.currentPlayerIndex + numPlayers) % numPlayers;
+                  int turnsAwayB = (b - state.currentPlayerIndex + numPlayers) % numPlayers;
+                  return turnsAwayA < turnsAwayB;
               });
 
     // Set competitor rank to 0, or 1 if 0 is the current player (assuming > 1 player)
