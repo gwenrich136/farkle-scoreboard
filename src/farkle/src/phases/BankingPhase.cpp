@@ -30,18 +30,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, u
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0; // Clean up any fractional remainder
-
-        // Wait for user dismissal (any button press)
-        if (input.action != ButtonAction::NONE) {
-            // Check for Final Round Trigger
-            if (!state.finalRoundTriggered && state.players[state.currentPlayerIndex].score >= state.targetScore) {
-                state.finalRoundTriggered = true;
-            }
-
-            // Advance turn and transition
-            this->endTurn(state);
-            return game.getPhase<WaitingPhase>();
-        }
+        return game.getPhase<EndOfTurnPhase>();
     }
 
     return this;

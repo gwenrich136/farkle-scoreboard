@@ -21,6 +21,8 @@ public:
     virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;
 
     // Called every loop to handle rendering
+    // Note: GameState provides player hues (e.g., state.players[i].hue)
+    // for rendering by specific phases (like PlayerSelectionPhase).
     virtual void display(const GameState& state, const Displays& displays) = 0;
 };
 
@@ -65,8 +67,8 @@ protected:
     virtual int getGridScoreForPlayer(const GameState& state, int playerIndex) const;
     virtual int getBlinkingScore(const GameState& state) const;
 
-    // Helper to calculate the highest score among all players
-    int calculateLeadingScore(const GameState& state);
+    // Head-to-head text display helpers
+    void getOrdinalString(int rank, char* buffer, size_t bufferSize);
 
     // Helper to advance to the next player
     void endTurn(GameState& state);

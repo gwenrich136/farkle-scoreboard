@@ -67,9 +67,13 @@ void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displ
     // However, we merge the conditions here as requested to simplify the logic.
     bool isRosterFull = state.players.size() >= MAX_PLAYERS;
     if (isRosterFull || m_availableNames.empty()) {
-        displays.oled.print("ROSTER FULL");
+        displays.textDisplay.print("ROSTER FULL");
     } else {
-        displays.oled.printSelectionScreen("Add Player", m_availableNames[m_selectionIndex].c_str());
+        displays.textDisplay.printSelectionScreen(
+            "Add Player",
+            m_availableNames[m_selectionIndex].c_str(),
+            state.getNextPlayerHue(state.players.size())
+        );
     }
 }
 

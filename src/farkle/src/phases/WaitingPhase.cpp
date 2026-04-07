@@ -2,9 +2,30 @@
 #include "Game.h"
 #include <Arduino.h>
 #include "GameConstants.h"
+#include <algorithm>
 
 void WaitingPhase::onEnter(GameState& state) {
-    // No specific local state to reset for WaitingPhase
+    // Recompute the ranking of all players
+    // Populate the list once if empty
+    if (state.rankedPlayerIndices.empty()) {
+        for (size_t i = 0; i < state.players.size(); ++i) {
+            state.rankedPlayerIndices.push_back(i);
+        }
+    }
+
+    // Sort the list based on current scores
+    std::sort(state.rankedPlayerIndices.begin(), state.rankedPlayerIndices.end(),
+              [&state](int a, int b) {
+                  return state.players[a].score > state.players[b].score;
+              });
+
+    // Set competitor rank to 0, or 1 if 0 is the current player (assuming > 1 player)
+    state.currentCompetitorRank = 0;
+    if (!state.rankedPlayerIndices.empty() && state.rankedPlayerIndices[0] == state.currentPlayerIndex) {
+        if (state.rankedPlayerIndices.size() > 1) {
+            state.currentCompetitorRank = 1;
+        }
+    }
 }
 
 GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
@@ -12,6 +33,22 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
     // If the final round was triggered and it's now back to a player who has reached the target score, the game ends.
     if (state.finalRoundTriggered && state.players.size() > 0 && state.players[state.currentPlayerIndex].score >= state.targetScore) {
         return game.getPhase<PostGamePhase_V1>();
+    }
+
+    if (input.rotationDelta != 0 && state.rankedPlayerIndices.size() > 1) {
+        int listSize = state.rankedPlayerIndices.size();
+
+        // Apply the full rotation delta
+        state.currentCompetitorRank = (state.currentCompetitorRank + input.rotationDelta) % listSize;
+        if (state.currentCompetitorRank < 0) {
+            state.currentCompetitorRank += listSize;
+        }
+
+        // If we landed on the current player, step one more time in the direction of rotation
+        if (state.rankedPlayerIndices[state.currentCompetitorRank] == state.currentPlayerIndex) {
+            int step = (input.rotationDelta > 0) ? 1 : -1;
+            state.currentCompetitorRank = (state.currentCompetitorRank + step + listSize) % listSize;
+        }
     }
 
     switch (input.action) {

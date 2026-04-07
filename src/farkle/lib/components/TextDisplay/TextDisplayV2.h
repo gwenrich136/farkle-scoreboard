@@ -18,7 +18,8 @@
 enum class DisplayModeV2 {
     NONE,
     MESSAGE,
-    SELECTION
+    SELECTION,
+    HEAD_TO_HEAD
 };
 
 class TextDisplayV2
@@ -26,8 +27,9 @@ class TextDisplayV2
   public:
     TextDisplayV2(int cs, int dc, int res, int blk);
     void begin();
-    void print(const char* message);
+    void print(const char* message, uint16_t hue = 0xFFFF);
     void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF);
+    void printHeadToHeadScreen(const char* p1Place, const std::string* p1Name, uint16_t p1Hue, const char* p2Place, const std::string* p2Name, uint16_t p2Hue);
 
     // Color conversion utility
     static uint16_t colorHSVtoRGB565(uint16_t hue);
@@ -43,6 +45,20 @@ class TextDisplayV2
     char _lastItem[32];
     uint16_t _lastHue;
 
+    // Head-to-Head state tracking
+    char _lastP1Place[16];
+    const std::string* _lastP1Name;
+    uint16_t _lastP1Hue;
+    char _lastP2Place[16];
+    const std::string* _lastP2Name;
+    uint16_t _lastP2Hue;
+
+    void eraseOldTextBoundingBox(const char* text);
+    void eraseAlignedPlaceAndNameBoundingBox(const char* place, const char* name, const GFXfont* nameFont, const GFXfont* placeFont, int16_t baseCenterY);
+    void drawAlignedPlaceAndName(const char* place, const char* name, uint16_t color, const GFXfont* nameFont, const GFXfont* placeFont, int16_t baseCenterY, int16_t& outY, uint16_t& outH);
+    void drawSelectionTitle(const char* title);
+    void drawSelectionItem(const char* item, uint16_t color, int16_t& itemY, uint16_t& itemH);
+    void drawSelectionArrows(int16_t itemY, uint16_t itemH);
     void drawArrow(int x, int y, bool up, uint16_t color);
 };
 

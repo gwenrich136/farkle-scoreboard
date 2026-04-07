@@ -113,7 +113,7 @@ The `LedProgressGrid` component manages an 8x8 NeoPixel grid to display player s
 The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven by MAX7219 chips) to show various numerical scores from the game.
 
 ### API Design
--   **`ScoreDisplay(int dataPin, int clkPin, int csPin)`**: Constructor. Initializes the `LedControl` library. In the Hardware SPI configuration (Step 3+), `dataPin` and `clkPin` must match the hardware SPI MOSI (D11) and SCK (D13) pins respectively.
+-   **`ScoreDisplay(int csPin)`**: Constructor. Initializes the hardware SPI directly. It uses the default SPI MOSI (D11) and SCK (D13) pins.
 -   **`void addDisplay(DisplayType type, int deviceIndex)`**: Maps a logical `DisplayType` to a physical `deviceIndex`.
 -   **`void print_number(int number, DisplayType type, bool blink = false)`**: Displays an integer `number` on the display mapped to the given `DisplayType`.
     -   The number will be right-aligned on the 5-digit display.
@@ -129,7 +129,7 @@ The `ScoreDisplay` component controls three 5-digit 7-segment displays (driven b
 -   **Score Overflow Handling:** If the input `number` exceeds 99,999, the display will show `99999`.
 -   **Blinking Capability:** When enabled via `print_number`, the component uses `millis()` to toggle the device's intensity between two levels (4 and 10 on a 0-15 scale) every 500ms. This is non-blocking and relies on `print_number` being called frequently in the main game loop to update the intensity state.
 -   **Memory-Efficient Implementation:** The digit extraction and formatting are implemented using stack-allocated character buffers and integer arithmetic to avoid dynamic memory allocation and `std::string` overhead on the embedded target.
-- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only calls `LedControl` methods (`setIntensity`, `clearDisplay`, `setChar`) if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
+- **Memory & Optimization:** To prevent unnecessary hardware communication, the component maintains a `State` "memory" for each of the three displays. It only writes to MAX7219 registers if the requested state (number, blink mode, or calculated intensity) has changed since the last update.
 
 ---
 
@@ -180,17 +180,18 @@ The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 
 ### API Design
 
 #### Static Text Display Modes
--   **`void print(const char* message)`**: Displays a single message centered on the 240x240 screen.
+-   **`void print(const char* message, uint16_t hue = 0xFFFF)`**: Displays a single message centered on the 240x240 screen, optionally rendering the text in a specific `hue`.
 -   **`void displayTitle(const char* title)`**: Displays a single line of `title` text, centered horizontally and vertically.
 -   **`void displayTitleWithSubtitle(const char* title, const char* subtitle)`**: Displays a main `title` centered towards the top, with a smaller `subtitle` centered towards the bottom.
 -   **`void displayTitleWithSubtitles(const char* title, const char* leftSubtitle, const char* rightSubtitle)`**: Displays a main `title` centered towards the top, with two smaller subtitles at the bottom: one left-aligned (`leftSubtitle`) and one right-aligned (`rightSubtitle`).
 
 #### Interactive UI Modes
--   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint32_t color = 0xFFFF)`**: Renders an interactive selection screen. The `selectionItem` can be rendered in a specific `color` (defaulting to White) to highlight player identities during setup.
--   **`void displayCharacterInput(const char* currentName, int activeIndex, uint32_t color = 0xFFFF)`**: Renders an interactive screen for name input, with the active character highlighted in the provided `color`.
+-   **`void printSelectionScreen(const char* selectionTitle, const char* selectionItem, uint16_t hue = 0xFFFF)`**: Renders an interactive selection screen. The `selectionItem` can be rendered in a specific `hue` (defaulting to White) to highlight player identities during setup.
+-   **`void printHeadToHeadScreen(const char* p1Place, const char* p1Name, uint16_t p1Hue, const char* p2Place, const char* p2Name, uint16_t p2Hue)`**: Renders a split-screen "Leaderboard" or "Head-to-Head" display used during in-game phases. Displays the current player (P1) on the top half and the competitor/leader (P2) on the bottom half, including rank ordinal strings (e.g., "1st", "2nd") aligned to the left edge of the player names.
+-   **`void displayCharacterInput(const char* currentName, int activeIndex, uint16_t hue = 0xFFFF)`**: Renders an interactive screen for name input, with the active character highlighted in the provided `hue`.
 
 ### Key Logic & Behavior
--   **Unified Color Identity**: By accepting `uint32_t` color values, the LCD can match the text and UI elements to the specific hue assigned to the current player on the LED grid.
+-   **Unified Color Identity**: By accepting `uint16_t` hue values, the LCD can match the text and UI elements to the specific hue assigned to the current player on the LED grid, directly mapping standard color values to RGB565.
 -   **Hardware SPI Bus**: Uses the Uno R4's hardware SPI (D11/D13) for zero-latency UI updates. It shares this bus with the `ScoreDisplay` (MAX7219) but uses a dedicated **CS (A4)** pin.
 -   **Control Pins**:
     -   **CS (A4)**: Chip Select.
