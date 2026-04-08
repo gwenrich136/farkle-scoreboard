@@ -15,13 +15,10 @@ The SD card is organized into three main areas: system configuration, the global
     └── active_id.txt      # 8-digit decimal ID of the current un-finalized game
 /partial/                  # Folders for games currently in progress
     └── [ID]/              # e.g., /partial/00000042/
-        ├── meta.csv       # Game configuration (Target, Players, Hues)
+        ├── meta.jsn       # Game configuration (Target, Players, Hues)
         └── journal.bin    # 32-bit raw binary turn records
-/completed/                # Folders for finished games (moved from /partial)
-    └── [ID]/
-        ├── meta.csv
-        ├── journal.bin
-        └── summary.csv    # (Optional) Human-readable turn-by-turn breakdown
+/archive/                  # Summaries for finished games (in-game files are deleted)
+    └── [ID].csv           # Human-readable turn-by-turn breakdown (e.g. 00000042.csv)
 ```
 
 ---
@@ -34,14 +31,20 @@ The SD card is organized into three main areas: system configuration, the global
 
 ---
 
-## 3. Game Metadata (`meta.csv`)
-Each game folder contains a `meta.csv` that defines the "rules" and "players" for that specific session. This ensures the game remains resume-able even if the global `players.txt` is modified.
-
-**Schema:**
-`TargetScore, PlayerCount, [Name1, Hue1], [Name2, Hue2] ...`
+## 3. Game Metadata (`meta.jsn`)
+Each game folder contains a `meta.jsn` that defines the "rules" and "players" for that specific session. This ensures the game remains resume-able even if the global `players.txt` is modified. It uses JSON for extensibility, but uses the `.jsn` extension to comply with the strict FAT32 8.3 file naming constraints (max 3 characters for the extension).
 
 **Example:**
-`10000, 3, "Sammy", 42000, "Coach", 12000, "Alex", 55000`
+```json
+{
+  "targetScore": 10000,
+  "players": [
+    { "name": "Sammy", "hue": 42000 },
+    { "name": "Coach", "hue": 12000 },
+    { "name": "Alex", "hue": 55000 }
+  ]
+}
+```
 
 ---
 
@@ -52,7 +55,7 @@ The `journal.bin` is an append-only file where every turn is recorded as a singl
 
 | Bits | Width | Field | Description |
 | :--- | :--- | :--- | :--- |
-| **0-19** | 20 | **Score** | Literal banked score (Max: 1,048,575). |
+| **0-19** | 20 | **Score** | Literal banked score (Max: 1,048,575). *Note: Farkle rules ensure total score cannot drop below zero.* |
 | **20-23** | 4 | **Player Index** | The 0-based index of the player (0-15). |
 | **24-25** | 2 | **Farkle Count** | Consecutive farkles at end of turn (0, 1, or 2). |
 | **26** | 1 | **Final Round** | Set to 1 if this turn triggered the Final Round. |
@@ -66,13 +69,13 @@ The `journal.bin` is an append-only file where every turn is recorded as a singl
     2. Truncate the file by exactly 4 bytes.
     3. Scan the `journal.bin` backwards to find the *most recent* previous record for that same player.
     4. Return that player's previous score and farkle count (or 0 if no prior records exist).
-- **Resume:** Read the file from start to finish. For each record, update the corresponding player's score and farkle count in `GameState`. The last record in the file determines whose turn was just completed; the *next* player in the `meta.csv` sequence is the current active player.
-- **Snapshot Preview:** Jump to the end of the file and read back `N` records (where `N` = PlayerCount) to determine the current score spread and the active player for the "Live Preview" UI.
+- **Resume:** Read the file from start to finish. For each record, update the corresponding player's score and farkle count in `GameState`. The last record in the file determines whose turn was just completed; the *next* player in the `meta.jsn` sequence is the current active player.
+- **Snapshot Preview:** Jump to the end of the file and read backwards 4 bytes at a time. Update the preview score for a player if they haven't been seen yet. Stop reading once a record for all `N` players has been found, or the beginning of the file is reached (handling early-game states where not everyone has taken a turn).
 
 ---
 
 ## 5. Data Integrity & Recovery
 - **Torn Write Protection:** On boot, the `MemoryCard` component checks if `journal.bin` size is a multiple of 4. If not, it truncates the file to the last 4-byte boundary.
-- **Atomic Finalization:** When a game is won, the `/partial/[ID]` folder is moved to `/completed/[ID]` and `sys/active_id.txt` is deleted.
+- **Atomic Finalization:** When a game is won, a summary is written to `/archive/[ID].csv`, the `/partial/[ID]/` folder and its contents are deleted, and `sys/active_id.txt` is deleted. This avoids the lack of atomic directory moves on SD libraries.
 - **Recovery Flow:** If `sys/active_id.txt` exists on boot, the `Game` should prompt to "Resume" that specific ID.
-- **Self-Healing:** If `/sys/next_id.txt` is missing, the component scans both `/partial` and `/completed` for the highest existing ID and increments from there.
+- **Self-Healing:** If `/sys/next_id.txt` is missing, the component scans both `/partial` and `/archive` for the highest existing ID and increments from there.
