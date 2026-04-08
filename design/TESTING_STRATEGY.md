@@ -255,7 +255,7 @@ With the move to the Hybrid Input Model, testing must ensure that digital action
 
 ### 7.1 Priority Matrix Testing
 Mocks must simulate simultaneous inputs to verify the following priority rules:
-1.  **Digital Dominance**: If `BANK`, `FARKLE`, or `SELECT` (Digital) is pressed, any simultaneous `PLUS_XXX` (Analog) or `Rotation` (Encoder) signals must be suppressed or ignored in the `GameInput` result for that frame.
+1.  **Digital Dominance**: If `BANK`, `FARKLE`, or `SELECT` (Digital) is pressed, any simultaneous `PLUS_50`, `PLUS_100`, `PLUS_500`, or `CLEAR` (Analog) or `Rotation` (Encoder) signals must be suppressed or ignored in the `GameInput` result for that frame.
 2.  **Exclusive Discrete Action**: The `read()` method must return only ONE `ButtonAction` per frame.
 
 ### 7.2 Temporal Stability (Analog Ladder)
