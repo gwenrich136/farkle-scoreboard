@@ -12,7 +12,7 @@ The SD card is organized into three main areas: system configuration, the global
 /players.txt               # Global pool of unique player names (one per line)
 /sys/
     ├── next_id.txt        # 8-digit decimal ID for the next game (e.g., 00000042)
-    └── last_active.txt    # 8-digit decimal ID of the most recent un-finalized game
+    └── active_id.txt      # 8-digit decimal ID of the current un-finalized game
 /partial/                  # Folders for games currently in progress
     └── [ID]/              # e.g., /partial/00000042/
         ├── meta.csv       # Game configuration (Target, Players, Hues)
@@ -61,13 +61,18 @@ The `journal.bin` is an append-only file where every turn is recorded as a singl
 
 ### Operations:
 - **Append:** Write 4 bytes to the end of the file.
-- **Undo:** Truncate the file by exactly 4 bytes.
-- **Resume:** Read the file from start to finish. For each record, update the corresponding player's score and farkle count in `GameState`. The last record in the file determines whose turn was just completed.
-- **Snapshot Preview:** Jump to the end of the file and read back `N` records (where `N` = PlayerCount) to determine the current score spread for the "Live Preview" UI.
+- **Undo:** 
+    1. Read the last 4-byte record to identify the player.
+    2. Truncate the file by exactly 4 bytes.
+    3. Scan the `journal.bin` backwards to find the *most recent* previous record for that same player.
+    4. Return that player's previous score and farkle count (or 0 if no prior records exist).
+- **Resume:** Read the file from start to finish. For each record, update the corresponding player's score and farkle count in `GameState`. The last record in the file determines whose turn was just completed; the *next* player in the `meta.csv` sequence is the current active player.
+- **Snapshot Preview:** Jump to the end of the file and read back `N` records (where `N` = PlayerCount) to determine the current score spread and the active player for the "Live Preview" UI.
 
 ---
 
 ## 5. Data Integrity & Recovery
 - **Torn Write Protection:** On boot, the `MemoryCard` component checks if `journal.bin` size is a multiple of 4. If not, it truncates the file to the last 4-byte boundary.
-- **Atomic Finalization:** When a game is won, the `/partial/[ID]` folder is moved to `/completed/[ID]` and `sys/last_active.txt` is updated or cleared.
+- **Atomic Finalization:** When a game is won, the `/partial/[ID]` folder is moved to `/completed/[ID]` and `sys/active_id.txt` is deleted.
+- **Recovery Flow:** If `sys/active_id.txt` exists on boot, the `Game` should prompt to "Resume" that specific ID.
 - **Self-Healing:** If `/sys/next_id.txt` is missing, the component scans both `/partial` and `/completed` for the highest existing ID and increments from there.

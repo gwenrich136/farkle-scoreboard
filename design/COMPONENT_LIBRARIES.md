@@ -223,18 +223,19 @@ The `MemoryCard` component provides a high-level, game-aware interface for the S
 - **`const char* getName(int poolIndex)`**: Returns a name from the RAM cache.
 
 #### Selection Helpers
-- **`int getNextAvailableIndex(int currentCursor, const std::vector<int>& excludedIndices)`**: A helper for the `PlayerSelectionPhase`. Increments the cursor, skipping any indices already present in the `excludedIndices` list (the current game roster).
-- **`int getPrevAvailableIndex(int currentCursor, const std::vector<int>& excludedIndices)`**: Decrements the cursor, skipping excluded indices.
+- **`int getNextAvailableIndex(int currentCursor, const std::vector<int>& rosterIndices)`**: A helper for the `PlayerSelectionPhase`. Increments the cursor, skipping any indices already present in the `rosterIndices` list (the current game roster).
+- **`int getPrevAvailableIndex(int currentCursor, const std::vector<int>& rosterIndices)`**: Decrements the cursor, skipping roster indices.
 
 #### Game Session Management
-- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and sets this game as the "last active". Returns the new Game ID.
+- **`struct UndoResult { uint8_t playerIndex; int score; uint8_t farkles; }`**: Data returned when a turn is reverted.
+- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and creates `sys/active_id.txt`. Returns the new Game ID.
 - **`void logTurn(uint8_t playerIndex, int score, uint8_t farkleCount, bool finalRound, bool penalty)`**: Appends a 32-bit packed record to the `journal.bin` of the active game.
-- **`void undoLastTurn()`**: Truncates the `journal.bin` by 4 bytes.
-- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/`.
+- **`UndoResult undoLastTurn()`**: Reverts the last record in `journal.bin` and returns the player's previous state (via "Scan Back" logic).
+- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/` and deletes `sys/active_id.txt`.
 
 #### Recovery & Preview
 - **`std::vector<uint32_t> getPartialGameIds()`**: Returns a list of IDs currently in the `/partial/` directory.
-- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, and their current scores by reading `meta.csv` and the end of `journal.bin`. This is used for "Live Previews" in the Main Menu.
+- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, their current scores, and the `currentPlayerIndex` by reading `meta.csv` and the end of `journal.bin`.
 
 ### Key Logic & Behavior
 - **32-Bit Journaling**: Uses a fixed-width binary format for turn logs. This is more compact than CSV and allows for deterministic "Undo" and "Recovery" by jumping to specific offsets in the file.
