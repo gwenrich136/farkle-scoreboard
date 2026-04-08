@@ -151,6 +151,44 @@ void test_DisplayLogic_BankingPhase_NoBlinking() {
     TEST_ASSERT_EQUAL_INT(-1, game.farkleLights.captured_blinkingPlayerIndex);
 }
 
+void test_DisplayLogic_ScoreToggle() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    // Initial state: P1 has 1000 banked, 500 pending
+    game.state.players[0].score = 1000;
+    game.state.atRiskScore = 500;
+
+    // Test BANKED mode (default)
+    game.controlPad.setToggleState(ScoreDisplayMode::BANKED);
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Test PENDING mode
+    game.controlPad.setToggleState(ScoreDisplayMode::PENDING);
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Simulate banking phase animation to ensure mode holds during animations
+    simulateButtonPress(game, ButtonAction::BANK);
+
+    // During banking, score moves from atRisk to banked
+    // With PENDING mode, the total displayed should remain 1500 during the transfer
+    game.loop();
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Switch mid-animation back to BANKED
+    game.controlPad.setToggleState(ScoreDisplayMode::BANKED);
+    game.loop();
+
+    // In BANKED mode mid-animation, it should show current banked score (which is now >= 1000 but < 1500)
+    // NOTE: If loop executed quickly, currentBanked might still be 1000. So we check >= instead of >
+    int currentBanked = game.state.players[0].score;
+    TEST_ASSERT_EQUAL_INT(currentBanked, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+    TEST_ASSERT_GREATER_OR_EQUAL(1000, currentBanked);
+    TEST_ASSERT_LESS_THAN(1500, currentBanked);
+}
+
 void run_display_logic_tests() {
     RUN_TEST(test_DisplayLogic_PlayerSelection_DisplaysOff);
     RUN_TEST(test_DisplayLogic_WaitingPhase_ShowsZero);
@@ -159,4 +197,5 @@ void run_display_logic_tests() {
     RUN_TEST(test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero);
     RUN_TEST(test_DisplayLogic_InGamePhase_PassesAllFarkleCounts);
     RUN_TEST(test_DisplayLogic_BankingPhase_NoBlinking);
+    RUN_TEST(test_DisplayLogic_ScoreToggle);
 }

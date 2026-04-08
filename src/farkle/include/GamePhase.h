@@ -67,8 +67,8 @@ protected:
     virtual int getGridScoreForPlayer(const GameState& state, int playerIndex) const;
     virtual int getBlinkingScore(const GameState& state) const;
 
-    // Helper to calculate the highest score among all players
-    int calculateLeadingScore(const GameState& state);
+    // Head-to-head text display helpers
+    void getOrdinalString(int rank, char* buffer, size_t bufferSize);
 
     // Helper to advance to the next player
     void endTurn(GameState& state);

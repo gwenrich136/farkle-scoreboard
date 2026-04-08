@@ -80,6 +80,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 
 *   **`test_WaitingPhase.cpp`**
     *   **`test_WaitingPhase_ScoreAccumulation`:** Verifies that the `atRiskScore` correctly accumulates when score buttons are pressed.
+    *   **`test_WaitingPhase_LeaderboardScrolling`:** Verifies leaderboard scrolling behavior.
     *   **`test_WaitingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_WaitingPhase_ScoreCorrection`:** Verifies that the `atRiskScore` is cleared when the `CLEAR` button is pressed.
     *   **`test_WaitingPhase_TransitionToBanking`:** Verifies that the game transitions to the `BankingPhase` when the `BANK` button is pressed.
@@ -116,6 +117,13 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PenaltyFarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_PenaltyFarklingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the PenaltyFarklingPhase.
 
+*   **`test_EndOfTurnPhase.cpp`**
+    *   **`test_EndOfTurnPhase_ManualAdvance`:** Verifies that a button press advances the turn and transitions to `WaitingPhase`.
+    *   **`test_EndOfTurnPhase_RotationAdvance`:** Verifies that a rotation advances the turn and transitions to WaitingPhase.
+    *   **`test_EndOfTurnPhase_FinalRoundTrigger`:** Verifies that the phase correctly triggers final round if score condition met.
+    *   **`test_EndOfTurnPhase_DisplayClearsAtRisk`:** Verifies that the At-Risk display is cleared when the turn ends.
+    *   **`test_EndOfTurnPhase_WaitWithoutInput`:** Verifies that the phase properly waits and automatically advances after a 5-second timeout.
+
 *   **`test_TargetScoreSelectionPhase.cpp`**
     *   **`test_TargetScoreSelection_InitialState`**: Verifies that the phase starts with the default target score (10,000).
     *   **`test_TargetScoreSelection_Adjustment`**: Verifies that `rotationDelta` (Encoder) increments and decrements the target score correctly.
@@ -131,6 +139,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
 
+*   **`test_WaitingPhase.cpp`**
+    *   **`test_WaitingPhase_TieBreakerSorting`**: Verifies that players with identical scores are sorted by the tiebreaker (turns away from the current player) when updating the leaderboard list.
+
 *   **`test_multi_press.cpp`** (Test Utilities Verification)
     *   **`test_simulate_button_press_count`**: Verifies that `simulateButtonPress` correctly interprets the optional `count` parameter to trigger multiple button presses in sequence, ensuring the test utility functions as intended.
 
@@ -145,9 +156,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_TurnLifecycle_ClearButton`**: Verifies that the clear button resets the `atRiskScore` to 0.
 
 *   **`test_tie_breaking.cpp`**
-    *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins.
-    *   **`test_TieBreaking_Case2`**: Verifies that if multiple players reach the same score (above target), the first one who reached it in the rotation wins.
-    *   **`test_TieBreaking_Case3`**: Edge case verifying that "first" is calculated relative to the player who triggered the final round, even if the trigger happens late in the roster.
+    *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins. Also verifies the in-game ranked list logic during tiebreakers.
+    *   **`test_TieBreaking_Case2`**: Verifies that if multiple players reach the same score (above target), the first one who reached it in the rotation wins. Also verifies the in-game ranked list logic during tiebreakers.
+    *   **`test_TieBreaking_Case3`**: Edge case verifying that "first" is calculated relative to the player who triggered the final round, even if the trigger happens late in the roster. Also verifies the in-game ranked list logic during tiebreakers.
 
 *   **`test_conditional_at_risk_display.cpp`**
     *   **`test_DisplayLogic_PlayerSelection_DisplaysOff`**: Verifies that during the selection phase, `ScoreDisplay` segments and `FarkleWarningLights` are explicitly cleared (except `COMPETITION_SCORE` which shows the target score).
@@ -157,6 +168,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_DisplayLogic_PenaltyFarklingPhase_ClearsOnlyAtZero`:** Verifies that in `PenaltyFarklingPhase`, the at-risk display remains visible while the score is negative (during "the pain" and "the drain" stages) and only turns off once the animation completes at exactly 0.
     *   **`test_DisplayLogic_InGamePhase_PassesAllFarkleCounts`:** Verifies that the game logic correctly passes all players' farkle counts (not just the current player's) to the `FarkleWarningLights` component, enabling system-wide status display.
     *   **`test_DisplayLogic_BankingPhase_NoBlinking`:** Verifies that during BankingPhase, blinkingPlayerIndex should be -1.
+    *   **`test_DisplayLogic_ScoreToggle`:** Verifies that toggling the score display mode between PENDING and BANKED correctly updates the current player's score display.
 
 ### 4.3 LARGE Tests (System / End-to-End Tests)
 **Focus:** The Macro Game Loop. Win conditions and game completion.
@@ -166,7 +178,9 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
     *   **`test_FullGame_TripleFarkle_ScoreLessThanPenalty`:** Verifies that player score does not go negative when triple farkled.
+    *   **`test_FullGame_AutoAdvanceTurn`:** Verifies that a full game can be completed solely via the 5-second automatic timeout for turn advancement.
     *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
+    *   **`test_FullGame_ScoreToggle`**: Verifies a full game loop incorporating the Total Score Toggle functionality, ensuring the display reads differently based on the switch state.
 
 
 ## 5. Implementation Steps

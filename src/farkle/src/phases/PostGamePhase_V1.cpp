@@ -2,19 +2,9 @@
 #include "Game.h"
 
 void PostGamePhase_V1::onEnter(GameState& state) {
-    // Determine winner and cache display data
-    // Tie-breaking: first person to reach the high score in the rotation wins.
-    // We start searching from the current player, who is the one who reached the target first.
-    m_highestScore = state.players[state.currentPlayerIndex].score;
-    m_winnerIdx = state.currentPlayerIndex;
-    int numPlayers = (int)state.players.size();
-
-    for (int i = (state.currentPlayerIndex + 1) % numPlayers; i != state.currentPlayerIndex; i = (i + 1) % numPlayers) {
-        if (state.players[i].score > m_highestScore) {
-            m_highestScore = state.players[i].score;
-            m_winnerIdx = i;
-        }
-    }
+    // Winner is already determined by the sorted rankedPlayerIndices list from the start of the turn.
+    m_winnerIdx = state.rankedPlayerIndices[0];
+    m_highestScore = state.players[m_winnerIdx].score;
 
     m_winnerMsg = state.players[m_winnerIdx].name + " WINS!";
 
@@ -32,7 +22,7 @@ GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, GameInput inpu
 
 void PostGamePhase_V1::display(const GameState& state, const Displays& displays) {
     // Display the winning player's name and freeze the grid/scores
-    displays.textDisplay.print(m_winnerMsg.c_str());
+    displays.textDisplay.print(m_winnerMsg.c_str(), state.players[m_winnerIdx].hue);
 
     // Update scores on the 7-segments one last time
     displays.scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);

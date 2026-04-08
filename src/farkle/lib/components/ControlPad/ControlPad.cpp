@@ -39,6 +39,7 @@ void ControlPad::initializeHardware() {
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
   pinMode(ANALOG_INPUT_PIN, INPUT);
+  pinMode(CURRENT_PLAYER_TOGGLE_PIN, INPUT_PULLUP);
 
   // Attach Interrupts
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), encoderInterruptHandler, CHANGE);
@@ -119,6 +120,12 @@ GameInput ControlPad::read() {
     GameInput input;
     input.action = ButtonAction::NONE;
     input.rotationDelta = 0;
+
+    if (digitalRead(CURRENT_PLAYER_TOGGLE_PIN) == LOW) {
+        input.scoreDisplayMode = ScoreDisplayMode::PENDING;
+    } else {
+        input.scoreDisplayMode = ScoreDisplayMode::BANKED;
+    }
 
     // 1. Check Digital Priority
     input.action = checkDigitalInput();

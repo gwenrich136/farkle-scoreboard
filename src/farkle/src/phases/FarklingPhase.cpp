@@ -30,12 +30,7 @@ GamePhase* FarklingPhase::update(Game& game, GameState& state, GameInput input, 
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0;
-
-        // Wait for user dismissal
-        if (input.action != ButtonAction::NONE) {
-            this->endTurn(state);
-            return game.getPhase<WaitingPhase>();
-        }
+        return game.getPhase<EndOfTurnPhase>();
     }
 
     return this;

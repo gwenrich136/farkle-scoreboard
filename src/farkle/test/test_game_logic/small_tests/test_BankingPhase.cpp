@@ -50,19 +50,17 @@ void test_BankingPhase_InputSpamming() {
     TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 }
 
-// Verifies that a button press transitions to the WaitingPhase after the banking animation is complete.
-void test_BankingPhase_ManualAdvance() {
+// Verifies that when atRiskScore reaches 0, it transitions to EndOfTurnPhase.
+void test_BankingPhase_TransitionsToEndOfTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<BankingPhase>();
 
     simulateNoAction(game);
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<BankingPhase>(), game.currentPhase);
 
-    simulateButtonPress(game, ButtonAction::BANK);
-
-    TEST_ASSERT_EQUAL_PTR(game.getPhase<WaitingPhase>(), game.currentPhase);
+    // As soon as atRiskScore is 0 and it updates, it transitions to EndOfTurnPhase
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
 }
 
 // Verifies that the farkle count is reset immediately upon entering the BankingPhase.
@@ -124,13 +122,34 @@ void test_BankingPhase_GridAnimationScores() {
     TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
 }
 
+// Verifies that the score display updates correctly with toggle state.
+void test_BankingPhase_ToggleStateDisplay() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+    game.state.atRiskScore = 500;
+    game.state.players[0].score = 1000;
+    game.currentPhase = game.getPhase<BankingPhase>();
+
+    // Test PENDING
+    game.state.currentPlayerScoreMode = ScoreDisplayMode::PENDING;
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
+    game.currentPhase->display(game.state, displays);
+    TEST_ASSERT_EQUAL_INT(1500, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+
+    // Test BANKED
+    game.state.currentPlayerScoreMode = ScoreDisplayMode::BANKED;
+    game.currentPhase->display(game.state, displays);
+    TEST_ASSERT_EQUAL_INT(1000, game.scoreDisplay.captured_numbers[ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE]);
+}
+
 void run_banking_phase_tests() {
     RUN_TEST(test_BankingPhase_AnimationMath);
     RUN_TEST(test_BankingPhase_ZeroFloorSafety);
     RUN_TEST(test_BankingPhase_InputSpamming);
-    RUN_TEST(test_BankingPhase_ManualAdvance);
+    RUN_TEST(test_BankingPhase_TransitionsToEndOfTurn);
     RUN_TEST(test_BankingPhase_FarkleResetOnEnter);
     RUN_TEST(test_BankingPhase_LightsOffDuringAnimation);
     RUN_TEST(test_BankingPhase_FinalRoundBlinking);
     RUN_TEST(test_BankingPhase_GridAnimationScores);
+    RUN_TEST(test_BankingPhase_ToggleStateDisplay);
 }

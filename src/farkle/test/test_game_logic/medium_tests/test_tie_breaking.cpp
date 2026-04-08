@@ -31,6 +31,7 @@ void test_TieBreaking_Case1() {
 
     // Player 2 Farkles
     simulateButtonPress(game, ButtonAction::FARKLE); // Enter FarklingPhase
+    simulateNoAction(game); // Process FarklingPhase and transition to EndOfTurn
     simulateButtonPress(game, ButtonAction::FARKLE); // Confirm Farkle and advance
     TEST_ASSERT_EQUAL_INT(2, game.state.currentPlayerIndex); // Player 3's turn
 
@@ -43,6 +44,15 @@ void test_TieBreaking_Case1() {
 
     TEST_ASSERT_EQUAL_INT(3000, game.state.players[2].score);
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex); // Back to Player 1
+
+    // Verify ranked list right before game ends.
+    // Player 1 (index 0): 3000, turnsAway=0
+    // Player 2 (index 1): 0, turnsAway=1
+    // Player 3 (index 2): 3000, turnsAway=2
+    // Rank logic expects: Player 1, Player 3, Player 2
+    TEST_ASSERT_EQUAL_INT(0, game.state.rankedPlayerIndices[0]);
+    TEST_ASSERT_EQUAL_INT(2, game.state.rankedPlayerIndices[1]);
+    TEST_ASSERT_EQUAL_INT(1, game.state.rankedPlayerIndices[2]);
 
     // One more loop to trigger the game end transition in WaitingPhase
     simulateNoAction(game);
@@ -84,6 +94,16 @@ void test_TieBreaking_Case2() {
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
+
+    // Current player is back to P1 (index 0)
+    // P1 (index 0): 3000, turnsAway=0
+    // P2 (index 1): 4000, turnsAway=1
+    // P3 (index 2): 4000, turnsAway=2
+    // Tiebreaker: P2 has turnsAway 1, P3 has turnsAway 2. P2 > P3.
+    // Order: P2, P3, P1
+    TEST_ASSERT_EQUAL_INT(1, game.state.rankedPlayerIndices[0]);
+    TEST_ASSERT_EQUAL_INT(2, game.state.rankedPlayerIndices[1]);
+    TEST_ASSERT_EQUAL_INT(0, game.state.rankedPlayerIndices[2]);
 
     // One more loop to trigger the game end transition in WaitingPhase
     simulateNoAction(game);
@@ -138,6 +158,17 @@ void test_TieBreaking_Case3() {
     simulateButtonPress(game, ButtonAction::BANK);
     waitForScoreAnimation(game);
     simulateButtonPress(game, ButtonAction::BANK);
+
+    // Current player is P2 (index 1) since P1's turn ended.
+    // Scores: P1=3000, P2=3000, P3=3000
+    // Turns away from P2 (index 1):
+    // P2 (idx 1): 0
+    // P3 (idx 2): 1
+    // P1 (idx 0): 2
+    // Order: P2, P3, P1
+    TEST_ASSERT_EQUAL_INT(1, game.state.rankedPlayerIndices[0]);
+    TEST_ASSERT_EQUAL_INT(2, game.state.rankedPlayerIndices[1]);
+    TEST_ASSERT_EQUAL_INT(0, game.state.rankedPlayerIndices[2]);
 
     // One more loop to trigger transition
     simulateNoAction(game);
