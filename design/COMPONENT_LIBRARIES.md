@@ -202,6 +202,44 @@ The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 
     -   **DC (A5)**: Data/Command.
     -   **RES (D7)**: Hardware Reset.
     -   **BLK (D8)**: Backlight Control (automatically set to 100% in `begin()`).
--   **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
--   **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
--   **State Caching**: The component caches the last rendered content to skip redundant SPI updates.
+- **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
+- **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
+- **State Caching**: The component caches the last rendered content to skip redundant SPI updates.
+
+---
+
+## 7. MemoryCard
+
+### Purpose
+The `MemoryCard` component provides a high-level, game-aware interface for the SD card. It manages the global player name pool, tracks multiple game sessions (partial and completed), and provides "Live Snapshot" capabilities for game recovery and previews.
+
+### API Design
+
+#### Initialization & Pool Management
+- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/completed`). Loads the `players.txt` name pool into an internal RAM cache.
+- **`bool addName(const char* name)`**: Appends a new name to the global pool. Checks for uniqueness.
+- **`bool deleteName(int poolIndex)`**: Removes a name from the global pool (RAM and Disk).
+- **`int getNameCount()`**: Returns the number of names in the global pool.
+- **`const char* getName(int poolIndex)`**: Returns a name from the RAM cache.
+
+#### Selection Helpers
+- **`int getNextAvailableIndex(int currentCursor, const std::vector<int>& excludedIndices)`**: A helper for the `PlayerSelectionPhase`. Increments the cursor, skipping any indices already present in the `excludedIndices` list (the current game roster).
+- **`int getPrevAvailableIndex(int currentCursor, const std::vector<int>& excludedIndices)`**: Decrements the cursor, skipping excluded indices.
+
+#### Game Session Management
+- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and sets this game as the "last active". Returns the new Game ID.
+- **`void logTurn(uint8_t playerIndex, int score, uint8_t farkleCount, bool finalRound, bool penalty)`**: Appends a 32-bit packed record to the `journal.bin` of the active game.
+- **`void undoLastTurn()`**: Truncates the `journal.bin` by 4 bytes.
+- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/`.
+
+#### Recovery & Preview
+- **`std::vector<uint32_t> getPartialGameIds()`**: Returns a list of IDs currently in the `/partial/` directory.
+- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, and their current scores by reading `meta.csv` and the end of `journal.bin`. This is used for "Live Previews" in the Main Menu.
+
+### Key Logic & Behavior
+- **32-Bit Journaling**: Uses a fixed-width binary format for turn logs. This is more compact than CSV and allows for deterministic "Undo" and "Recovery" by jumping to specific offsets in the file.
+- **RAM Caching**: To ensure the UI remains responsive during scrolling (e.g., using a rotary encoder), the global player names are cached in RAM.
+- **Self-Healing**: The component automatically reconstructs the `next_id.txt` by scanning the file system if system files are corrupted or missing.
+- **Stateless Selection**: The selection API uses integer indices to avoid expensive string comparisons while allowing the Game logic to maintain the "Roster" state.
+- **Power-Loss Recovery**: By logging at the end of every turn (`EndOfTurnPhase`), the game minimizes data loss to at most the current turn's unsaved progress.
+
