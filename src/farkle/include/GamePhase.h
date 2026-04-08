@@ -73,8 +73,9 @@ protected:
     // Helper to advance to the next player
     void endTurn(GameState& state);
 
-    // Reusable vector for scores to avoid repeated allocations
-    std::vector<int> m_scores;
+    // Reusable array for scores to avoid repeated allocations
+    int m_scores[MAX_PLAYERS];
+    int m_scoresCount = 0;
     uint32_t m_lastScoresVersion = 0;
 };
 
