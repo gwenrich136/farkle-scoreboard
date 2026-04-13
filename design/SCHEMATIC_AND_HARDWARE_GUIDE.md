@@ -91,8 +91,8 @@ graph TD
     A\_GND\[GND Pin\]  
     D2\_D3\["D2/D3 (Encoder A/B)"\]
     D4\["Pin D4 (SELECT)"\]
-    D5\["Pin D5 (BANK)"\]
-    D6\["Pin D6 (FARKLE)"\]
+    D5\["Pin D5 (Bus Bit 2)"\]
+    D6\["Pin D6 (Bus Bit 1)"\]
     D7\["Pin D7 (LCD RES)"\]
     D8\["Pin D8 (LCD BLK)"\]
     D9\["Pin D9 (SD CS)"\]
@@ -101,7 +101,7 @@ graph TD
     D13\["Pin D13 (SPI SCK)"\]
     A0\["Pin A0 (NeoPixel Grid)"\]  
     A1\["Pin A1 (Status Strip)"\]  
-    A2\["Pin A2 (Ladder: Scoring/Clear)"\]  
+    A2\["Pin A2 (Bus Bit 0)"\]
     A3\["Pin A3 (Latching Switch)"\]
     A4\["Pin A4 (LCD CS)"\]
     A5\["Pin A5 (LCD DC)"\]
@@ -112,7 +112,7 @@ graph TD
     MAX\["MAX7219 Score Displays"\]  
     LCD\["ST7789 IPS LCD (SPI)"\]  
     SPK\["MP3 Player + Speaker"\]  
-    BTNS\["Hybrid Control Pad"\]  
+    BTNS\["3-Bit Bus Control Pad"\]
     STRIP\["8-LED Status Strip"\]  
     SD\["SD Card Module"\]
     end
@@ -182,16 +182,16 @@ Both the **Score Displays** and the **IPS LCD** share the hardware SPI clock and
 | **D7** | **RES** | Hardware Reset |
 | **D8** | **BLK** | Backlight PWM (Brightness) |
 
-### **3. Hybrid Control Pad**
+### **3. 3-Bit Bus Control Pad**
 
 | Input Type | Pin | Action | Rationale |
 | :---- | :---- | :---- | :---- |
 | **Digital** | **D2/D3** | **Encoder A/B** | High-speed rotation interrupts. |
 | **Digital** | **D4** | **SELECT** | Encoder Push Button (Reliable during rotation). |
-| **Digital** | **D5** | **BANK** | Dedicated high-priority action. |
-| **Digital** | **D6** | **FARKLE** | Dedicated high-priority action. |
-| **Digital (A3)** | **A3** | **Latching SW** | Static state (Total Score toggle). |
-| **Analog** | **A2** | **Ladder** | **+50, +100, +500, CLEAR**. |
+| **Digital** | **D5** | **Bus Bit 2** | MSB of the 3-bit binary input bus. |
+| **Digital** | **D6** | **Bus Bit 1** | Middle bit of the 3-bit binary input bus. |
+| **Digital (A2)**| **A2** | **Bus Bit 0** | LSB of the 3-bit binary input bus. |
+| **Digital (A3)**| **A3** | **Latching SW**| Static state (Total Score toggle). |
 
 ### **4. LED & Audio**
 
@@ -201,21 +201,20 @@ Both the **Score Displays** and the **IPS LCD** share the hardware SPI clock and
 | **A1** | **Status Strip** | Turn pointers & danger levels. |
 | **D0/D1** | **MP3 Module** | Serial1 UART for audio events. |
 
-## **Hybrid Resistor Ladder (A2)**
+## **3-Bit Binary Input Mapping**
 
-The ladder uses a pull-up resistor to create unique voltage zones for four buttons.
+We deprecate the analog ladder due to noise. We use a 3-pin digital bus (A2, D6, D5). These are pulled HIGH by `INPUT_PULLUP` and read active-LOW (pressing a button pulls the corresponding bits to GND, evaluated as a binary '1' in software).
 
-*   **VCC \-\> 10kΩ Resistor \-\> A2**
-*   **A2 \-\> Button \-\> R\_Zone \-\> GND**
-
-| Button | R\_Zone | Approx. ADC (10-bit) |
-| :--- | :--- | :--- |
-| **CLEAR** | 0Ω (Direct) | 0 (\~0V) |
-| **+50** | 1kΩ | \~93 (\~0.45V) |
-| **+100** | 4.7kΩ | \~328 (\~1.6V) |
-| **+500** | 10kΩ | \~512 (\~2.5V) |
-| **NONE** | Open | 1023 (\~5.0V) |
-
+| State (Decimal) | Binary (Bit2, Bit1, Bit0) | Button Mapping | Notes |
+| :--- | :--- | :--- | :--- |
+| 0 | 000 | **NONE** | Default unpressed state. |
+| 1 | 001 | **CLEAR** | Bit 0 (A2) pulled LOW. |
+| 2 | 010 | **FARKLE** | Bit 1 (D6) pulled LOW. |
+| 3 | 011 | **+500** | Bits 1,0 (D6,A2) pulled LOW. |
+| 4 | 100 | **BANK** | Bit 2 (D5) pulled LOW. |
+| 5 | 101 | **UNDO** (Ghost) | Bank + Clear pressed simultaneously. Valid only when turn score is 0. |
+| 6 | 110 | **+100** | Bits 2,1 (D5,D6) pulled LOW. |
+| 7 | 111 | **+50** | Bits 2,1,0 (D5,D6,A2) pulled LOW. |
 
 ## **Updated Code Concepts for Uno R4**
 
@@ -237,9 +236,10 @@ const int LCD_RES_PIN = 7;
 const int LCD_BLK_PIN = 8;
 
 void setup() {  
-  // Initialize Digital Buttons
-  pinMode(BANK_PIN, INPUT_PULLUP);
-  pinMode(FARKLE_PIN, INPUT_PULLUP);
+  // Initialize 3-Bit Bus
+  pinMode(CONTROL_PAD_BUS_0_PIN, INPUT_PULLUP); // A2
+  pinMode(CONTROL_PAD_BUS_1_PIN, INPUT_PULLUP); // 6
+  pinMode(CONTROL_PAD_BUS_2_PIN, INPUT_PULLUP); // 5
   pinMode(SELECT_PIN, INPUT_PULLUP);
 
   // Initialize Backlight

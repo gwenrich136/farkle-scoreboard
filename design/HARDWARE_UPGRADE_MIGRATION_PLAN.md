@@ -28,15 +28,15 @@ The **8-LED NeoPixel Strip** provides a "Danger Map" of the table.
 
 ## 2. The Target State: Pin Map
 
-To accommodate the increased pin cost of the SPI LCD while preserving hardware encapsulation, we employ a "Hybrid Input" model.
+To accommodate the increased pin cost of the SPI LCD while preserving hardware encapsulation, we employ a "3-Bit Digital Bus" model.
 
 | Pin | Component | Function | Status |
 | :--- | :--- | :--- | :--- |
 | **D0/D1** | **MP3 Player** | **Serial1** (Hardware Audio) | Pending |
 | **D2/D3** | **Encoder A/B** | **Interrupts 0/1** (Smooth Scroll) | **DONE (V2)** |
 | **D4** | **Encoder SW** | **Digital Input** (SELECT Button) | **DONE (V2)** |
-| **D5** | **BANK Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
-| **D6** | **FARKLE Button** | **Digital Input** (High Reliability) | **DONE (V2)** |
+| **D5** | **BUS BIT 2** | **Digital Input** (3-Bit Bus) | **DONE (V2)** |
+| **D6** | **BUS BIT 1** | **Digital Input** (3-Bit Bus) | **DONE (V2)** |
 | **D7** | **LCD RES** | Hardware Reset for LCD | **DONE (V2)** |
 | **D8** | **LCD BLK** | PWM Backlight Control | **DONE (V2)** |
 | **D9** | **SD Card CS** | SPI Chip Select (Data) | Pending |
@@ -46,7 +46,7 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 | **D13** | **SPI SCK** | Shared SPI Clock | **Active (V1)** |
 | **A0** | **LED Grid** | NeoPixel Data (8x8) | **Active (V1)** |
 | **A1** | **Status Strip** | NeoPixel Data (8-LED) | **DONE (V2)** |
-| **A2** | **Scoring Ladder** | **Analog Ladder (+50, +100, +500, CLEAR)** | **DONE (V2)** |
+| **A2** | **BUS BIT 0** | **Digital Input** (3-Bit Bus) | **DONE (V2)** |
 | **A3** | **Latching Switch** | **"Total Score" Toggle** | **DONE (V2)** |
 | **A4** | **LCD CS** | SPI Chip Select (LCD) | **DONE (V2)** |
 | **A5** | **LCD DC** | Data/Command (LCD) | **DONE (V2)** |
@@ -55,15 +55,14 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 
 ## 3. Rationale & Trade-off Analysis
 
-### 3.1 Why the "Hybrid" Resistor Ladder?
+### 3.1 Why the 3-Bit Digital Bus?
 *   **Constraint:** The ST7789 IPS display requires 4 dedicated pins (CS, DC, RES, BLK) beyond the SPI bus.
-*   **Alternative Considered:** **Full Button Ladder (8 buttons).** Rejected due to "Ground Bounce" noise from the NeoPixel grid causing potential misreads on critical "Game Ender" buttons (BANK/FARKLE).
-*   **Alternative Considered:** **Daisy-Chaining LEDs.** Rejected to maintain strict software encapsulation between the `LedProgressGrid` and `FarkleWarningLights` components.
-*   **Decision:** Place the 4 "Utility/Scoring" buttons on an Analog Ladder (**A2**). Keep **BANK**, **FARKLE**, and **SELECT** (Encoder) on digital pins for 100% reliability and concurrent "Press-and-Turn" support.
+*   **Alternative Considered:** **Hybrid Resistor Ladder.** Rejected because the analog input proved too finicky and unreliable with the noisy power signal (even with capacitors) when trying to consolidate to a single power source.
+*   **Decision:** Move to a 3-Bit Binary Digital Bus (D5, D6, A2 used as digital). This completely resolves the analog noise issues while providing 7 distinct button states, easily covering our 6 physical buttons and introducing the "Ghost Undo" capability without requiring another physical pin or button.
 
 ### 3.2 Handling Noise
-*   **Challenge:** Large NeoPixel current spikes create high-frequency noise on the analog rail.
-*   **Solution:** We implement **Analog Hysteresis** (Dead Zones) in the `ControlPad` library and recommend a **0.1µF capacitor** across the A2-GND pins to smooth the signal.
+*   **Challenge:** Large NeoPixel current spikes create high-frequency noise that disrupted the analog rail.
+*   **Solution:** By converting the analog A2 to a pure digital input and using a digital binary bus, we inherently increase resistance to signal noise. The software implements standard digital debouncing on the combined 3-bit value.
 
 ---
 
@@ -72,12 +71,11 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 ### **Phase 1: Input & Display Foundation**
 **Step 1: The Status Strip (A1) [DONE]**
 
-**Step 2: The Hybrid Input Refactor [DONE]**
-*   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** (Encoder Push) to their target digital pins.
-*   **Software (ControlPad):** Implement **Interrupt-Safe Encoder** rotation logic and **Analog Ladder** stability (50ms window).
-*   **Software (Architecture):** Refactor the system to use the encapsulated `GameInput` struct (ButtonAction + rotationDelta) and update all `GamePhase::update()` signatures.
-*   **Software (Navigation):** Migrate menu scrolling (Target Score, Player Selection) to use the Encoder.
-*   **Verification:** Native tests for priority logic, stability windows, and "no-repeat" ladder logic.
+**Step 2: The 3-Bit Bus Input Refactor [DONE]**
+*   **Hardware:** Rip out the analog resistor ladder. Wire the buttons into a 3-bit bus encoder circuit feeding into **A2 (Bit 0)**, **D6 (Bit 1)**, and **D5 (Bit 2)**.
+*   **Software (ControlPad):** Strip out `analogRead` and hysteresis. Implement bitwise polling that translates the inverted `INPUT_PULLUP` pins into a decimal value (0-7), mapping directly to button actions, including a Ghost Undo.
+*   **Software (Architecture):** Refactor system to use `GameInput` struct, ensuring smooth transition from the failed analog approach.
+*   **Verification:** Native tests for digital stability over the 3-bit value and proper parsing of all button states.
 
 **Step 3: The IPS Color Upgrade (ST7789) [DONE]**
 *   **Hardware:** Connect ST7789 to SPI and Control Pins (A4, A5, D7, D8).
