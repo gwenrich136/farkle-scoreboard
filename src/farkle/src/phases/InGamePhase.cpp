@@ -45,13 +45,13 @@ void InGamePhase::updateCompetitionScoreDisplay(const GameState& state, const Di
 void InGamePhase::updateProgressGrid(const GameState& state, const Displays& displays) {
     // Rebuild the m_scores array every frame because animation phases (like FarklingPhase)
     // drain atRiskScore continuously, and atRiskScore is not tracked by scoresVersion.
-    m_scores.clear();
-    for (size_t i = 0; i < state.players.size(); ++i) {
-        m_scores.push_back(getGridScoreForPlayer(state, i));
+    m_scoresCount = 0;
+    for (size_t i = 0; i < state.players.size() && m_scoresCount < MAX_PLAYERS; ++i) {
+        m_scores[m_scoresCount++] = getGridScoreForPlayer(state, i);
     }
     m_lastScoresVersion = state.scoresVersion;
 
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), state.currentPlayerIndex, getBlinkingScore(state));
+    displays.grid.update(m_scores, m_scoresCount, state.currentPlayerIndex, getBlinkingScore(state));
 }
 
 int InGamePhase::getGridScoreForPlayer(const GameState& state, int playerIndex) const {

@@ -9,9 +9,11 @@ void PostGamePhase_V1::onEnter(GameState& state) {
     m_winnerMsg = state.players[m_winnerIdx].name + " WINS!";
 
     // Update cached scores
-    m_scores.clear();
+    m_scoresCount = 0;
     for (const auto& player : state.players) {
-        m_scores.push_back(player.score);
+        if (m_scoresCount < MAX_PLAYERS) {
+            m_scores[m_scoresCount++] = player.score;
+        }
     }
 }
 
@@ -30,5 +32,5 @@ void PostGamePhase_V1::display(const GameState& state, const Displays& displays)
     displays.scoreDisplay.print_number(m_highestScore, ScoreDisplay::DisplayType::COMPETITION_SCORE, true); // High score (flashes for celebration)
 
     // Update the grid with final scores
-    displays.grid.update(m_scores.data(), (int)m_scores.size(), m_winnerIdx, 0);
+    displays.grid.update(m_scores, m_scoresCount, m_winnerIdx, 0);
 }

@@ -15,7 +15,8 @@ private:
     int m_winnerIdx;
     int m_highestScore;
     std::string m_winnerMsg;
-    std::vector<int> m_scores;
+    int m_scores[MAX_PLAYERS];
+    int m_scoresCount = 0;
 };
 
 #endif
