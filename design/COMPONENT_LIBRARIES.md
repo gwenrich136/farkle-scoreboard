@@ -10,23 +10,27 @@ This document outlines the design and intended functionality of the custom compo
 ## 1. ControlPad
 
 ### Purpose
-The `ControlPad` component is responsible for managing both digital and analog inputs, translating them into logical game actions and navigation. It handles debouncing, analog ladder stability, and high-precision encoder rotation.
+The `ControlPad` component acts as a unified input manager, abstracting away the complex hardware interactions of the rotary encoder, the physical switches, and the 3-bit binary input bus into a single `GameInput` structure. It handles debouncing, bus stability, and prioritizing simultaneous inputs according to a digital dominance rule.
 
 ### API Design
 -   **`ControlPad()`**: Constructor.
--   **`GameInput read()`**: Scans all inputs (Digital pins, Analog ladder, and Encoder buffer). Returns a `GameInput` struct containing the current discrete `ButtonAction` and any `rotationDelta` from the encoder.
-    -   **Digital Priority**: If a digital button (BANK, FARKLE, SELECT) is pressed simultaneously with an analog ladder button (PLUS_50, etc.), the digital action takes priority.
+-   **`GameInput read()`**: Scans all inputs (Select Button, 3-Bit Bus, and Encoder buffer). Returns a `GameInput` struct containing the current discrete `ButtonAction` (`NONE`, `BANK`, `FARKLE`, `SELECT`, `CLEAR`, `PLUS_50`, `PLUS_100`, `PLUS_500`, `UNDO`), any `rotationDelta` from the encoder, and the `scoreDisplayMode`.
+    -   **Digital Priority**: The independent SELECT button is checked first.
     -   **Single Action per Press**: Discrete buttons return their action only once per distinct press/release cycle (no auto-repeat).
 -   **`bool isToggled()`**: Returns the current state of the latching switch (A3), used for system-wide mode toggles (e.g., "Total Score" view).
 
 ### Key Logic & Behavior
--   **Hybrid Input Model**:
-    -   **Digital (D4, D5, D6)**: High-reliability interrupts/polling for core actions (SELECT, BANK, FARKLE).
-    -   **Analog Ladder (A2)**: Interprets voltage levels to trigger CLEAR, PLUS_50, PLUS_100, or PLUS_500. Requires a **50ms stability window** to filter NeoPixel power noise.
+-   **3-Bit Digital Bus**:
+    -   All primary game buttons (BANK, FARKLE, CLEAR, +50, +100, +500, and UNDO) are wired onto a 3-bit binary bus (using pins D5, D6, and A2 as digital inputs).
+    -   The pins use `INPUT_PULLUP` (active-low). A pressed button pulls the pin to GND.
+    -   The software reads these, inverts them (so pressed = 1), and calculates a 3-bit integer (0-7).
+    -   A **50ms stability window** debounces the complete 3-bit value before an action is emitted.
+    -   **Ghost Undo**: Pressing Bank (100) and Clear (001) simultaneously produces the bus value 101 (5), which maps to the secret `UNDO` action.
 -   **Encoder Rotation (D2, D3)**:
     -   Uses **Interrupts (ISR)** to ensure no pulses are missed during display updates.
     -   Maintains an **Atomic Rotation Buffer** that tracks net displacement (ticks).
     -   The `read()` method consumes this buffer, populating `GameInput.rotationDelta` and resetting the buffer to zero.
+-   **Select Button Independence**: The rotary encoder's built-in push button (`SELECT`) is wired to an independent digital pin (D4). This allows for reliable "Press-and-Turn" interactions without signal conflict.
 -   **Input Data Structures**: The `GameInput` struct and `ButtonAction` enum are defined in `src/farkle/include/Input.h`.
 
 ---

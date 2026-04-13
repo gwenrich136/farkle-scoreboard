@@ -233,9 +233,10 @@ pio test -e component_tests
 *   **`test_colorHSVtoRGB565`**: Verifies that the custom, lightweight hue-to-RGB565 math correctly converts extreme inputs, mapping Hue 0 correctly to Red (0xF800).
 
 ### 6.7 Example Test Cases: `ControlPad`
-*   **`test_add_valid_button`**: Verifies that adding a button with a valid pin correctly configures the pin mode to `INPUT_PULLUP`.
-*   **`test_add_invalid_pin_negative`**: Verifies that adding a button with a negative pin index is ignored and does not corrupt memory or configure hardware.
-*   **`test_read_valid_button`**: Verifies that reading the control pad correctly detects a button press (LOW state) and returns the associated action.
+*   **`test_bus_stability_check`**: Verifies that the 3-bit bus enforces a 50ms stability window before emitting a new action, preventing noisy transitions from causing false button presses.
+*   **`test_ghost_undo`**: Verifies that the simultaneous bus state for Bank + Clear (101 binary, 5 decimal) correctly maps to the secret `UNDO` action.
+*   **`test_input_priority`**: Verifies that the independent SELECT button takes precedence over the 3-bit bus and encoder rotations in the same frame.
+*   **`test_no_auto_repeat`**: Verifies that holding down a bus combination emits the corresponding action exactly once, requiring a return to 0 (NONE) to trigger again.
 
 ### 6.8 Example Test Cases: `LedProgressGrid`
 *   **`test_LedProgressGrid_MaxScore_Exact`**: Verifies that `_maxScore` scales exactly to the highest score (if above target) rather than jumping by fixed increments.
@@ -249,24 +250,24 @@ pio test -e component_tests
 *   **`test_Alternate_SmoothTransition`**: Verifies that the warning light smoothly transitions between Red and Yellow over a 1000ms cycle during the catastrophic penalty phase.
 
 
-## 7. Hybrid Input & Parallel Architecture (v2)
+## 7. 3-Bit Bus Input & Parallel Architecture (v2.1)
 
-With the move to the Hybrid Input Model, testing must ensure that digital actions, analog ladder values, and encoder rotations are resolved correctly.
+With the move from the analog ladder to the 3-Bit Digital Bus, testing must ensure that digital bus values, the select button, and encoder rotations are resolved correctly.
 
 ### 7.1 Priority Matrix Testing
 Mocks must simulate simultaneous inputs to verify the following priority rules:
-1.  **Digital Dominance**: If `BANK`, `FARKLE`, or `SELECT` (Digital) is pressed, any simultaneous `PLUS_50`, `PLUS_100`, `PLUS_500`, or `CLEAR` (Analog) or `Rotation` (Encoder) signals must be suppressed or ignored in the `GameInput` result for that frame.
+1.  **Select Button Dominance**: If `SELECT` is pressed, any simultaneous bus activity (e.g., `PLUS_50`, `BANK`) or `Rotation` (Encoder) signals must be suppressed or ignored in the `GameInput` result for that frame.
 2.  **Exclusive Discrete Action**: The `read()` method must return only ONE `ButtonAction` per frame.
 
-### 7.2 Temporal Stability (Analog Ladder)
-To filter noise from NeoPixel power draw, the Analog Ladder (A2) requires temporal validation:
-*   **Stability Window**: An ADC value must remain within a specific zone (e.g., the `PLUS_50` zone) for **exactly 50ms** before a `ButtonAction` is emitted.
-*   **Noise Rejection**: Mocks must verify that a 40ms pulse in an ADC zone is ignored.
+### 7.2 Temporal Stability (3-Bit Bus)
+To prevent phantom inputs when pressing multiple buttons on the bus (like the Ghost Undo), the bus requires temporal validation:
+*   **Stability Window**: The combined 3-bit value must remain stable for **exactly 50ms** before a `ButtonAction` is emitted.
+*   **Noise Rejection**: Mocks must verify that a 40ms transient bus state is ignored.
 
 ### 7.3 Encoder & Buffer Validation
 *   **Atomic Consumption**: Verify that `read()` returns the *full* `rotationDelta` accumulated since the last call and resets the internal atomic buffer to zero.
 *   **Directionality**: Ensure `rotationDelta` correctly reflects positive (clockwise) and negative (counter-clockwise) ticks.
 
 ### 7.4 No-Repeat & Undefined States
-*   **Single Trigger**: Holding an analog button (e.g., `PLUS_50`) must result in exactly one action. A return to the "Neutral" ADC zone is required before another action can be triggered.
-*   **Dead Zones**: Verify that ADC values between defined zones return `ButtonAction::NONE`.
+*   **Single Trigger**: Holding a bus button (e.g., `PLUS_50`) must result in exactly one action. A return to the "Neutral" bus state (0) is required before another action can be triggered.
+*   **Undefined States**: Ensure that any unmapped decimal bus values default gracefully to `ButtonAction::NONE`.
