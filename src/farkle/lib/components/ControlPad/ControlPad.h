@@ -5,15 +5,14 @@
 #include "Input.h"
 
 // Constants for pins and timing
-#define ANALOG_INPUT_PIN A2
+#define CONTROL_PAD_BUS_0_PIN A2
 #define CURRENT_PLAYER_TOGGLE_PIN A3
 #define ENCODER_PIN_A 2
 #define ENCODER_PIN_B 3
-#define BANK_PIN 5
-#define FARKLE_PIN 6
+#define CONTROL_PAD_BUS_2_PIN 5
+#define CONTROL_PAD_BUS_1_PIN 6
 #define SELECT_PIN 4
 
-#define ANALOG_STABILITY_THRESHOLD_MS 50
 #define DEBOUNCE_DELAY 50
 
 class ControlPad {
@@ -32,19 +31,19 @@ private:
   volatile int _encoderDelta;
   uint8_t _old_AB;
 
-  // Analog Input state
-  int _lastAnalogValue;
-  unsigned long _analogStableStartTime;
-  ButtonAction _currentAnalogAction;
+  // Bus Input state
+  uint8_t _lastBusState;
+  uint8_t _stableBusState;
+  unsigned long _lastBusDebounceTime;
 
-  // Digital state
-  unsigned long _lastDebounceTime[20]; // Simple array for debouncing digital pins (using pin number as index)
-  int _buttonState[20];
-  int _lastButtonState[20];
+  // Select Button state
+  int _selectButtonState;
+  int _lastSelectButtonState;
+  unsigned long _lastSelectDebounceTime;
 
-  ButtonAction checkAnalogInput();
-  ButtonAction checkDigitalInput();
-  ButtonAction mapAnalogValueToAction(int val);
+  ButtonAction checkBusInput();
+  ButtonAction checkSelectInput();
+  ButtonAction mapBusStateToAction(uint8_t state);
   void initializeHardware();
 };
 

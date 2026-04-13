@@ -54,6 +54,7 @@ The game begins by guiding players through setup and configuration.
     -   **Toggle View:** A physical latching switch on the device allows the current player to toggle their main score display between "Banked" (showing only their banked score) and "Pending" (showing their banked score + their current atRisk score). This allows players to easily see what their final score would be if they were to bank immediately, and it changes how the display updates during animations.
     -   **Visual Feedback Rule:** If the `atRiskScore` is 0, it is only displayed as "0" on the `ScoreDisplay` during the `WaitingPhase`. In all other phases (such as during animations in the `BankingPhase` or `FarklingPhase`), an `atRiskScore` of 0 is treated as an empty display. This helps visually distinguish between an active turn and the transition between turns.
     -   **Correction:** Pressing `CLEAR` resets the `atRisk` score to 0 for the current roll, allowing the player to re-enter their score.
+    -   **Ghost Undo:** To save space and complexity, the scoreboard uses a "Ghost Undo" button. Pressing `BANK` and `CLEAR` simultaneously issues an `UNDO` command. Because both `BANK` and `CLEAR` are inert when the turn score is 0, this mapping works perfectly, allowing for a secret button combination to undo actions without adding a physical button. This action is currently defined but reserved for future implementation.
 
 ### 2.2 Score Animations
 -   **Banking Animation:**
