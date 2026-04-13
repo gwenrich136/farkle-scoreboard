@@ -86,11 +86,6 @@ graph TD
     GND\_BUS\[Common Ground Bus\]  
     end
 
-    subgraph Level_Shifter ["Logic Level Converter (5V to 3.3V)"]
-    LV_5V[5V Side]
-    LV_3V[3.3V Side]
-    end
-
     subgraph Arduino \["Arduino Uno R4 WiFi"\]  
     A\_5V\[5V Pin\]  
     A\_GND\[GND Pin\]  
@@ -119,7 +114,7 @@ graph TD
     SPK\["MP3 Player + Speaker"\]  
     BTNS\["Hybrid Control Pad"\]  
     STRIP\["8-LED Status Strip"\]  
-    SD["SD Card Module (3.3V Logic)"]
+    SD\["SD Card Module (5V Native)"\]
     end
 
     %% USB Connection  
@@ -146,12 +141,10 @@ graph TD
     %% Shared SPI Bus
     D11 \--\> MAX
     D11 \--\> LCD
-    D11 --> LV_5V
-    LV_3V --> SD
+    D11 \--\> SD
     D13 \--\> MAX
     D13 \--\> LCD
-    D13 --> LV_5V
-    LV_3V --> SD
+    D13 \--\> SD
 
     %% Dedicated Control Signals  
     A0 \--\> NEO  
@@ -160,8 +153,7 @@ graph TD
     A5 \--\> LCD
     D7 \--\> LCD
     D8 \--\> LCD
-    D9 --> LV_5V
-    LV_3V --> SD
+    D9 \--\> SD
     D4 \--\> BTNS
     D5 \--\> BTNS
     D6 \--\> BTNS
@@ -181,9 +173,9 @@ Both the **Score Displays** and the **IPS LCD** share the hardware SPI clock and
 | **D13** | **SCK (Clock)** | Shared Bus | **CLK** (Score) / **SCL** (LCD) |
 | **D10** | **CS (Load)** | **Score Display** | **CS** |
 | **A4** | **CS** | **ST7789 LCD** | **CS** (or GND if missing) |
-| **D9** | **CS** | **SD Card** | **CS** (via Level Shifter) |
+| **D9** | **CS** | **SD Card** | **CS** |
 
-> **⚠️ CRITICAL LOGIC LEVEL WARNING:** The Arduino Uno R4 WiFi uses **5V logic**, while standard SD Card modules often operate on **3.3V logic**. Connecting 5V SPI signals (MOSI, SCK, CS) directly to a 3.3V SD card module will fry the card and the module. You **must** use a 5V-to-3.3V Logic Level Converter inline on pins D9, D11, and D13, or purchase an SD Card module that explicitly features built-in level shifting.
+> **⚠️ CRITICAL HARDWARE REQUIREMENT:** The Arduino Uno R4 WiFi operates on **5V logic**. You **MUST** use an SD Card module that explicitly features a built-in logic level shifter and 5V voltage regulator (e.g., those built with LVC125A or similar chips). Do not use bare 3.3V SD card modules directly on the SPI bus.
 
 ### **2. IPS Color LCD (ST7789)**
 | Arduino Pin | Signal | Notes |
