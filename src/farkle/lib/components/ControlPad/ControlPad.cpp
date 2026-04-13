@@ -17,15 +17,14 @@ ControlPad::ControlPad() {
   _lastAction = ButtonAction::NONE;
   _encoderDelta = 0;
   _old_AB = 0x03; // Default HIGH/HIGH
-  _lastAnalogValue = -1;
-  _analogStableStartTime = 0;
-  _currentAnalogAction = ButtonAction::NONE;
 
-  for (int i = 0; i < 20; i++) {
-      _lastDebounceTime[i] = 0;
-      _buttonState[i] = HIGH;
-      _lastButtonState[i] = HIGH;
-  }
+  _lastBusState = 0;
+  _stableBusState = 0;
+  _lastBusDebounceTime = 0;
+
+  _selectButtonState = HIGH;
+  _lastSelectButtonState = HIGH;
+  _lastSelectDebounceTime = 0;
 }
 
 void ControlPad::begin() {
@@ -33,12 +32,12 @@ void ControlPad::begin() {
 }
 
 void ControlPad::initializeHardware() {
-  pinMode(BANK_PIN, INPUT_PULLUP);
-  pinMode(FARKLE_PIN, INPUT_PULLUP);
+  pinMode(CONTROL_PAD_BUS_0_PIN, INPUT_PULLUP);
+  pinMode(CONTROL_PAD_BUS_1_PIN, INPUT_PULLUP);
+  pinMode(CONTROL_PAD_BUS_2_PIN, INPUT_PULLUP);
   pinMode(SELECT_PIN, INPUT_PULLUP);
   pinMode(ENCODER_PIN_A, INPUT_PULLUP);
   pinMode(ENCODER_PIN_B, INPUT_PULLUP);
-  pinMode(ANALOG_INPUT_PIN, INPUT);
   pinMode(CURRENT_PLAYER_TOGGLE_PIN, INPUT_PULLUP);
 
   // Attach Interrupts
@@ -59,61 +58,63 @@ void ControlPad::handleInterrupt() {
   _encoderDelta += KNOB_DIR[_old_AB & 0x0F];
 }
 
-ButtonAction ControlPad::mapAnalogValueToAction(int val) {
-    // 0 (CLEAR), 93 (+50), 328 (+100), 512 (+500)
-    if (val < 46) return ButtonAction::CLEAR;
-    if (val < 210) return ButtonAction::PLUS_50;
-    if (val < 420) return ButtonAction::PLUS_100;
-    if (val < 700) return ButtonAction::PLUS_500;
-    return ButtonAction::NONE;
+ButtonAction ControlPad::mapBusStateToAction(uint8_t state) {
+    switch (state) {
+        case 1: return ButtonAction::CLEAR;
+        case 2: return ButtonAction::FARKLE;
+        case 3: return ButtonAction::PLUS_500;
+        case 4: return ButtonAction::BANK;
+        case 5: return ButtonAction::UNDO;
+        case 6: return ButtonAction::PLUS_100;
+        case 7: return ButtonAction::PLUS_50;
+        case 0:
+        default:
+            return ButtonAction::NONE;
+    }
 }
 
-ButtonAction ControlPad::checkAnalogInput() {
-    int val = analogRead(ANALOG_INPUT_PIN);
+ButtonAction ControlPad::checkBusInput() {
+    uint8_t bit0 = digitalRead(CONTROL_PAD_BUS_0_PIN) == LOW ? 1 : 0;
+    uint8_t bit1 = digitalRead(CONTROL_PAD_BUS_1_PIN) == LOW ? 1 : 0;
+    uint8_t bit2 = digitalRead(CONTROL_PAD_BUS_2_PIN) == LOW ? 1 : 0;
 
-    // Stability check (tolerance +/- 5)
-    if (abs(val - _lastAnalogValue) > 5) {
-        _lastAnalogValue = val;
-        _analogStableStartTime = millis();
-        return ButtonAction::NONE; // Unstable
+    uint8_t currentBusState = (bit2 << 2) | (bit1 << 1) | bit0;
+
+    if (currentBusState != _lastBusState) {
+        _lastBusDebounceTime = millis();
     }
 
-    // Stable
-    if (millis() - _analogStableStartTime > ANALOG_STABILITY_THRESHOLD_MS) {
-        return mapAnalogValueToAction(val);
+    if ((millis() - _lastBusDebounceTime) > DEBOUNCE_DELAY) {
+        if (currentBusState != _stableBusState) {
+            _stableBusState = currentBusState;
+        }
+    }
+
+    _lastBusState = currentBusState;
+
+    return mapBusStateToAction(_stableBusState);
+}
+
+ButtonAction ControlPad::checkSelectInput() {
+    int reading = digitalRead(SELECT_PIN);
+
+    if (reading != _lastSelectButtonState) {
+        _lastSelectDebounceTime = millis();
+    }
+
+    if ((millis() - _lastSelectDebounceTime) > DEBOUNCE_DELAY) {
+        if (reading != _selectButtonState) {
+            _selectButtonState = reading;
+        }
+    }
+
+    _lastSelectButtonState = reading;
+
+    if (_selectButtonState == LOW) {
+        return ButtonAction::SELECT;
     }
 
     return ButtonAction::NONE;
-}
-
-ButtonAction ControlPad::checkDigitalInput() {
-    // Check BANK, FARKLE, and SELECT
-    int pins[] = {BANK_PIN, FARKLE_PIN, SELECT_PIN};
-    ButtonAction actions[] = {ButtonAction::BANK, ButtonAction::FARKLE, ButtonAction::SELECT};
-    ButtonAction result = ButtonAction::NONE;
-
-    for (int i = 0; i < 3; i++) {
-        int pin = pins[i];
-        int reading = digitalRead(pin);
-
-        if (reading != _lastButtonState[pin]) {
-            _lastDebounceTime[pin] = millis();
-        }
-
-        if ((millis() - _lastDebounceTime[pin]) > DEBOUNCE_DELAY) {
-            if (reading != _buttonState[pin]) {
-                _buttonState[pin] = reading;
-            }
-        }
-
-        _lastButtonState[pin] = reading;
-
-        // Collect the first pressed button detected in the loop
-        if (_buttonState[pin] == LOW && result == ButtonAction::NONE) {
-            result = actions[i];
-        }
-    }
-    return result;
 }
 
 GameInput ControlPad::read() {
@@ -127,12 +128,12 @@ GameInput ControlPad::read() {
         input.scoreDisplayMode = ScoreDisplayMode::BANKED;
     }
 
-    // 1. Check Digital Priority
-    input.action = checkDigitalInput();
+    // 1. Check Select Button Priority
+    input.action = checkSelectInput();
 
-    // 2. Check Analog Input (if no digital action)
+    // 2. Check Bus Input (if no select action)
     if (input.action == ButtonAction::NONE) {
-        input.action = checkAnalogInput();
+        input.action = checkBusInput();
     }
 
     // 3. Process Action or Rotation

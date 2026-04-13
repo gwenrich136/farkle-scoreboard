@@ -9,7 +9,8 @@ enum class ButtonAction {
     CLEAR,
     PLUS_50,
     PLUS_100,
-    PLUS_500
+    PLUS_500,
+    UNDO
 };
 
 enum class ScoreDisplayMode {
