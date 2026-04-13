@@ -94,6 +94,8 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 
 ### **Phase 3: Persistence & Audio**
 **Step 6: SD Card Storage (D9)**
+*   **Hardware Requirement:** The SD Card module **MUST** natively support 5V operation. Because the Arduino Uno R4 WiFi uses 5V logic for its SPI bus, utilizing a bare 3.3V SD module will cause damage or data corruption. Ensure the module has a built-in logic level shifter.
+
 **Step 7: MP3 Audio (D0/D1)**
 
 ---
