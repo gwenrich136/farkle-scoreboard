@@ -71,11 +71,13 @@ To accommodate the increased pin cost of the SPI LCD while preserving hardware e
 ### **Phase 1: Input & Display Foundation**
 **Step 1: The Status Strip (A1) [DONE]**
 
-**Step 2: The 3-Bit Bus Input Refactor [DONE]**
-*   **Hardware:** Rip out the analog resistor ladder. Wire the buttons into a 3-bit bus encoder circuit feeding into **A2 (Bit 0)**, **D6 (Bit 1)**, and **D5 (Bit 2)**.
-*   **Software (ControlPad):** Strip out `analogRead` and hysteresis. Implement bitwise polling that translates the inverted `INPUT_PULLUP` pins into a decimal value (0-7), mapping directly to button actions, including a Ghost Undo.
-*   **Software (Architecture):** Refactor system to use `GameInput` struct, ensuring smooth transition from the failed analog approach.
-*   **Verification:** Native tests for digital stability over the 3-bit value and proper parsing of all button states.
+**Step 2: The Hybrid Input Refactor [DONE] [DEFUNCT]**
+*   **Note:** Since implementing the analog resistor ladder as initially planned, we have moved on to a purely digital binary encoding scheme (3-Bit Digital Bus) to eliminate finicky analog power noise. The steps below are retained for historical context.
+*   **Hardware:** Build the 4-button resistor ladder on **A2** (+50, +100, +500, CLEAR). Move **BANK**, **FARKLE**, and **SELECT** (Encoder Push) to their target digital pins.
+*   **Software (ControlPad):** Implement **Interrupt-Safe Encoder** rotation logic and **Analog Ladder** stability (50ms window).
+*   **Software (Architecture):** Refactor the system to use the encapsulated `GameInput` struct (ButtonAction + rotationDelta) and update all `GamePhase::update()` signatures.
+*   **Software (Navigation):** Migrate menu scrolling (Target Score, Player Selection) to use the Encoder.
+*   **Verification:** Native tests for priority logic, stability windows, and "no-repeat" ladder logic.
 
 **Step 3: The IPS Color Upgrade (ST7789) [DONE]**
 *   **Hardware:** Connect ST7789 to SPI and Control Pins (A4, A5, D7, D8).
