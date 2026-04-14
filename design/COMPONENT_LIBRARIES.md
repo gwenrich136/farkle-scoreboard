@@ -216,15 +216,21 @@ The `MemoryCard` component provides a high-level, game-aware interface for the S
 ### API Design
 
 #### Initialization & Pool Management
-- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/completed`). Loads the `players.txt` name pool into an internal RAM cache.
-- **`bool addName(const char* name)`**: Appends a new name to the global pool. Checks for uniqueness.
-- **`bool deleteName(int poolIndex)`**: Removes a name from the global pool (RAM and Disk).
-- **`int getNameCount()`**: Returns the number of names in the global pool.
-- **`const char* getName(int poolIndex)`**: Returns a name from the RAM cache.
+- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/completed`).
+    - Reserves a fixed-size memory allocation (buffer) for up to 50 players to hold their `Name` (max 12 chars), `PlayerState` enum (`AVAILABLE`, `UNUSED`, `SELECTED`, `DELETED`), and `Frequency` (integer).
+    - Reads the `players.csv` pool into this memory and self-sorts the pool in descending order based on frequency.
+- **`bool addName(const char* name)`**: Appends a new name to the first `UNUSED` slot in the internal pool, setting its state to `AVAILABLE` and frequency to 0. Checks for uniqueness.
+- **`bool deleteName(int poolIndex)`**: Marks a player at the given index as `DELETED`.
 
 #### Selection Helpers
-- **`int getNextAvailableIndex(int currentCursor, const std::vector<int>& rosterIndices)`**: A helper for the `PlayerSelectionPhase`. Increments the cursor, skipping any indices already present in the `rosterIndices` list (the current game roster).
-- **`int getPrevAvailableIndex(int currentCursor, const std::vector<int>& rosterIndices)`**: Decrements the cursor, skipping roster indices.
+- **`const char* reservePlayer(int poolIndex)`**: Marks the player at the given index as `SELECTED` and returns a pointer to their name string in the MemoryCard's allocation. The calling game logic must immediately copy this string into its own fixed `char[13]` allocation, as the MemoryCard's allocation will be cleared once the game starts.
+- **`void unreservePlayer(int poolIndex)`**: Marks a previously `SELECTED` player back to `AVAILABLE`.
+- **`int getNextAvailableIndex(int currentCursor)`**: A helper for the `PlayerSelectionPhase`. Increments the cursor, skipping any indices that are not explicitly marked as `AVAILABLE` (e.g., skips `SELECTED`, `DELETED`, or `UNUSED`).
+- **`int getPrevAvailableIndex(int currentCursor)`**: Decrements the cursor, skipping indices not marked as `AVAILABLE`.
+- **`void finalizeSelection()`**: Called at the end of the `PlayerSelectionPhase`.
+    - Iterates through the memory pool and collects all names marked `AVAILABLE` and `SELECTED` (skipping `DELETED` and `UNUSED`).
+    - Increments the frequency counter for all `SELECTED` players.
+    - Rewrites `players.csv` from scratch with the retained players, keeping them in sorted order (descending by frequency).
 
 #### Game Session Management
 - **`struct UndoResult { uint8_t playerIndex; int score; uint8_t farkles; }`**: Data returned when a turn is reverted.
@@ -239,8 +245,9 @@ The `MemoryCard` component provides a high-level, game-aware interface for the S
 
 ### Key Logic & Behavior
 - **32-Bit Journaling**: Uses a fixed-width binary format for turn logs. This is more compact than CSV and allows for deterministic "Undo" and "Recovery" by jumping to specific offsets in the file.
-- **RAM Caching**: To ensure the UI remains responsive during scrolling (e.g., using a rotary encoder), the global player names are cached in RAM.
+- **Fixed Memory Allocation & String Ownership**: To ensure the UI remains responsive during scrolling, global player names and metadata are loaded into a fixed-size RAM buffer at boot. The `MemoryCard` strictly owns these strings during the pre-game phases. Once selection is complete, the `Game` must copy the selected names into its own storage, as the `MemoryCard`'s RAM buffer will be wiped when the main game starts to conserve memory.
+- **Self-Sorting Roster**: Players are automatically sorted by play frequency (highest first) when loaded from `players.csv`, reducing the amount of scrolling needed for common players.
+- **State-Based Selection**: The selection API uses a `PlayerState` enum to manage selection instead of maintaining a separate list of roster indices. This simplifies the scrolling logic to just skip any slot not marked `AVAILABLE`.
 - **Self-Healing**: The component automatically reconstructs the `next_id.txt` by scanning the file system if system files are corrupted or missing.
-- **Stateless Selection**: The selection API uses integer indices to avoid expensive string comparisons while allowing the Game logic to maintain the "Roster" state.
 - **Power-Loss Recovery**: By logging at the end of every turn (`EndOfTurnPhase`), the game minimizes data loss to at most the current turn's unsaved progress.
 
