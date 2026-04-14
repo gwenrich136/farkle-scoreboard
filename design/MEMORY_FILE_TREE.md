@@ -9,7 +9,7 @@ This document defines the file structure and binary data formats used by the `Me
 The SD card is organized into three main areas: system configuration, the global player pool, and game-specific data folders.
 
 ```text
-/players.txt               # Global pool of unique player names (one per line)
+/players.csv               # Global pool of player names and their play frequencies
 /sys/
     ├── next_id.txt        # 8-digit decimal ID for the next game (e.g., 00000042)
     └── active_id.txt      # 8-digit decimal ID of the current un-finalized game
@@ -23,16 +23,17 @@ The SD card is organized into three main areas: system configuration, the global
 
 ---
 
-## 2. Global Player Pool (`players.txt`)
-- **Format:** Plain text, UTF-8.
-- **Content:** One name per line.
-- **Constraints:** Max 50 names, max 12 characters per name.
-- **Indexing:** The `MemoryCard` loads these into RAM and refers to them by their 0-based line index.
+## 2. Global Player Pool (`players.csv`)
+- **Format:** Plain text, comma-separated values (CSV), UTF-8.
+- **Content:** `<Name>,<Frequency>` (e.g., `Sammy,14`).
+- **Constraints:** Max 50 records. Name must be max 12 characters. Frequency is an unsigned integer.
+- **Sorting:** The `MemoryCard` loads these into a fixed-size RAM buffer and sorts them in descending order based on `Frequency` so that the most frequently played names appear first.
+- **Indexing:** While in the selection phase, the system uses a `PlayerState` enum (`AVAILABLE`, `SELECTED`, `UNUSED`, `DELETED`) rather than manipulating the pool index to support reserving and skipping names easily.
 
 ---
 
 ## 3. Game Metadata (`meta.jsn`)
-Each game folder contains a `meta.jsn` that defines the "rules" and "players" for that specific session. This ensures the game remains resume-able even if the global `players.txt` is modified. It uses JSON for extensibility, but uses the `.jsn` extension to comply with the strict FAT32 8.3 file naming constraints (max 3 characters for the extension).
+Each game folder contains a `meta.jsn` that defines the "rules" and "players" for that specific session. This ensures the game remains resume-able even if the global `players.csv` is modified. It uses JSON for extensibility, but uses the `.jsn` extension to comply with the strict FAT32 8.3 file naming constraints (max 3 characters for the extension).
 
 **Example:**
 ```json
