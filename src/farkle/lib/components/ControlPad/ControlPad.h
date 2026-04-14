@@ -45,6 +45,9 @@ private:
   ButtonAction checkSelectInput();
   ButtonAction mapBusStateToAction(uint8_t state);
   void initializeHardware();
+  ScoreDisplayMode readScoreDisplayMode();
+  int processEncoderRotation();
+  ButtonAction applyAutoRepeatFilter(ButtonAction currentAction);
 };
 
 #endif
