@@ -117,16 +117,49 @@ ButtonAction ControlPad::checkSelectInput() {
     return ButtonAction::NONE;
 }
 
+ScoreDisplayMode ControlPad::readScoreDisplayMode() {
+    if (digitalRead(CURRENT_PLAYER_TOGGLE_PIN) == LOW) {
+        return ScoreDisplayMode::PENDING;
+    }
+    return ScoreDisplayMode::BANKED;
+}
+
+int ControlPad::processEncoderRotation() {
+    noInterrupts();
+    int rawDelta = _encoderDelta;
+    _encoderDelta = 0;
+    interrupts();
+
+    // Standard encoders (KY-040) have 4 pulses per physical click (detent)
+    int rotationDelta = rawDelta / 4;
+
+    // If we didn't reach a full click, we need to preserve the remainder
+    // to prevent "dead zones" where slow turning does nothing.
+    static int fractionalPulses = 0;
+    fractionalPulses += (rawDelta % 4);
+
+    if (abs(fractionalPulses) >= 4) {
+        rotationDelta += (fractionalPulses / 4);
+        fractionalPulses %= 4;
+    }
+
+    return rotationDelta;
+}
+
+ButtonAction ControlPad::applyAutoRepeatFilter(ButtonAction currentAction) {
+    if (_lastAction == currentAction) {
+        return ButtonAction::NONE;
+    }
+    _lastAction = currentAction;
+    return currentAction;
+}
+
 GameInput ControlPad::read() {
     GameInput input;
     input.action = ButtonAction::NONE;
     input.rotationDelta = 0;
 
-    if (digitalRead(CURRENT_PLAYER_TOGGLE_PIN) == LOW) {
-        input.scoreDisplayMode = ScoreDisplayMode::PENDING;
-    } else {
-        input.scoreDisplayMode = ScoreDisplayMode::BANKED;
-    }
+    input.scoreDisplayMode = readScoreDisplayMode();
 
     // 1. Check Select Button Priority
     input.action = checkSelectInput();
@@ -145,30 +178,10 @@ GameInput ControlPad::read() {
         input.rotationDelta = 0;
 
         // Auto-repeat filtering
-        if (_lastAction == input.action) {
-            input.action = ButtonAction::NONE;
-        } else {
-            _lastAction = input.action;
-        }
+        input.action = applyAutoRepeatFilter(input.action);
     } else {
         // No action, process rotation
-        noInterrupts();
-        int rawDelta = _encoderDelta;
-        _encoderDelta = 0;
-        interrupts();
-
-        // Standard encoders (KY-040) have 4 pulses per physical click (detent)
-        input.rotationDelta = rawDelta / 4;
-        
-        // If we didn't reach a full click, we need to preserve the remainder
-        // to prevent "dead zones" where slow turning does nothing.
-        static int fractionalPulses = 0;
-        fractionalPulses += (rawDelta % 4);
-        
-        if (abs(fractionalPulses) >= 4) {
-            input.rotationDelta += (fractionalPulses / 4);
-            fractionalPulses %= 4;
-        }
+        input.rotationDelta = processEncoderRotation();
 
         // Reset last action if button released (meaning no action detected this frame)
         _lastAction = ButtonAction::NONE;
