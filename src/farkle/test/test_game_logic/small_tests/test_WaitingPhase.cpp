@@ -55,7 +55,11 @@ void test_WaitingPhase_LeaderboardScrolling() {
     simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_INT(1, game.state.currentCompetitorRank);
 
-    // Rotate +1. Next is rank 2 (P0, which is current player!). Should skip to rank 3 (P2).
+    // Rotate +1. Next is rank 2 (P0, which is current player!). It should NOT skip it anymore.
+    simulateRotation(game, 1);
+    TEST_ASSERT_EQUAL_INT(2, game.state.currentCompetitorRank);
+
+    // Rotate +1. Next is rank 3 (P2).
     simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_INT(3, game.state.currentCompetitorRank);
 
