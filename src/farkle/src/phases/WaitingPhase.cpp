@@ -51,11 +51,6 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
             state.currentCompetitorRank += listSize;
         }
 
-        // If we landed on the current player, step one more time in the direction of rotation
-        if (state.rankedPlayerIndices[state.currentCompetitorRank] == state.currentPlayerIndex) {
-            int step = (input.rotationDelta > 0) ? 1 : -1;
-            state.currentCompetitorRank = (state.currentCompetitorRank + step + listSize) % listSize;
-        }
     }
 
     switch (input.action) {
