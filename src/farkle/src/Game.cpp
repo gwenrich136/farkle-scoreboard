@@ -13,6 +13,9 @@ Game::Game() :
 }
 
 void Game::setup() {
+    // Seed the random number generator using analog noise and time
+    randomSeed(analogRead(A0) + analogRead(A1) + analogRead(A2) + millis());
+
     Serial.println("GAME: Initializing hardware...");
     
     // 1. Initialize Hardware

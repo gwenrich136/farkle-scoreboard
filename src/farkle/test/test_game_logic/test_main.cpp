@@ -1,4 +1,7 @@
 #include <unity.h>
+
+int unity_fail_count = 0;
+
 #include "small_tests/test_TargetScoreSelectionPhase.h"
 #include "small_tests/test_PlayerSelectionPhase.h"
 #include "small_tests/test_WaitingPhase.h"
@@ -6,6 +9,7 @@
 #include "small_tests/test_PenaltyFarklingPhase.h"
 #include "small_tests/test_BankingPhase.h"
 #include "small_tests/test_EndOfTurnPhase.h"
+#include "small_tests/test_Security.h"
 #include "large_tests/test_full_game.h"
 #include "medium_tests/test_turn_lifecycle.h"
 #include "medium_tests/test_conditional_at_risk_display.h"
@@ -28,6 +32,7 @@ void test_runner() {
     run_penalty_farkling_phase_tests();
     run_banking_phase_tests();
     run_end_of_turn_phase_tests();
+    run_security_tests();
     run_full_game_tests();
     run_turn_lifecycle_tests();
     run_display_logic_tests();
