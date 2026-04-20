@@ -54,6 +54,9 @@ int getMockPinMode(int pin);
 void triggerInterrupt(int pin);
 void resetMockPins();
 
+void randomSeed(unsigned long seed);
+extern unsigned long lastRandomSeed;
+
 long random(long max);
 long random(long min, long max);
 long map(long x, long in_min, long in_max, long out_min, long out_max);

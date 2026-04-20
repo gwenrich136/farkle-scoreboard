@@ -8,6 +8,13 @@ static std::map<int, int> mockPinStates;
 static std::map<int, int> mockAnalogStates;
 static std::map<int, void (*)(void)> mockInterrupts;
 
+unsigned long lastRandomSeed = 0;
+
+void randomSeed(unsigned long seed) {
+    lastRandomSeed = seed;
+    srand(seed);
+}
+
 unsigned long millis() {
     return mocked_millis;
 }
