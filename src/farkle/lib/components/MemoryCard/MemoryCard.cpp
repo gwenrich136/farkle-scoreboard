@@ -10,11 +10,7 @@ const char* const DEFAULT_NAMES[] = {
 };
 
 MemoryCard::MemoryCard(int csPin) : _csPin(csPin), _currentIndex(START_OF_LIST) {
-    for (int i = 0; i < MAX_POOL_SIZE; ++i) {
-        _pool[i].name[0] = '\0';
-        _pool[i].state = PlayerState::UNUSED;
-        _pool[i].frequency = 0;
-    }
+    clearPool();
 }
 
 bool MemoryCard::begin() {
@@ -49,12 +45,16 @@ void MemoryCard::resetCursor() {
     _currentIndex = START_OF_LIST;
 }
 
-void MemoryCard::loadPlayersFromCSV() {
+void MemoryCard::clearPool() {
     for (int i = 0; i < MAX_POOL_SIZE; ++i) {
         _pool[i].name[0] = '\0';
         _pool[i].state = PlayerState::UNUSED;
         _pool[i].frequency = 0;
     }
+}
+
+void MemoryCard::loadPlayersFromCSV() {
+    clearPool();
 
     File file = SD.open("players.csv", FILE_READ);
     if (!file) {
@@ -143,12 +143,11 @@ void MemoryCard::reservePlayer(char* locationToCopy) {
             _pool[_currentIndex].state = PlayerState::SELECTED;
             strncpy(locationToCopy, _pool[_currentIndex].name, MAX_NAME_LEN);
             locationToCopy[MAX_NAME_LEN] = '\0';
-        } else {
-            locationToCopy[0] = '\0';
+            return;
         }
-    } else {
-        locationToCopy[0] = '\0';
     }
+
+    locationToCopy[0] = '\0';
 }
 
 void MemoryCard::savePlayersToCSV() {

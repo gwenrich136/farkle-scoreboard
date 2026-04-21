@@ -49,6 +49,7 @@ private:
     void loadPlayersFromCSV();
     void savePlayersToCSV();
     void sortPool();
+    void clearPool();
 };
 
 #endif
