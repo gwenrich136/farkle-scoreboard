@@ -11,6 +11,7 @@ void test_PlayerSelection_InitialState() {
 
     // Transition to PlayerSelectionPhase
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop(); // Run one extra loop to allow MemoryCard to initialize
 
     // Should be in PlayerSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
@@ -23,6 +24,7 @@ void test_PlayerSelection_Cycling() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // Next name
     simulateRotation(game, 1);
@@ -46,6 +48,7 @@ void test_PlayerSelection_AddPlayer() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // Navigate to Sammy (index 1)
     simulateRotation(game, 1);
@@ -69,6 +72,7 @@ void test_PlayerSelection_Filtering() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // Add Geewee (index 0)
     simulateButtonPress(game, ButtonAction::SELECT);
@@ -111,6 +115,7 @@ void test_PlayerSelection_MaxPlayers() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // Add 8 players
     simulateButtonPress(game, ButtonAction::SELECT, 8);
@@ -129,6 +134,7 @@ void test_PlayerSelection_AddLastPlayerWraps() {
     Game game;
     game.setup();
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // Pool size is 9. Add first 8 players one by one, but always selecting the LAST one.
     // names: 0, 1, 2, 3, 4, 5, 6, 7, 8
@@ -137,9 +143,21 @@ void test_PlayerSelection_AddLastPlayerWraps() {
     for(int i=0; i<8; ++i) simulateRotation(game, 1);
     TEST_ASSERT_EQUAL_STRING("Andrea", game.textDisplay.captured_item.c_str());
 
-    // Add Andrea. List size becomes 8. Index 8 is out of bounds. Should wrap to 0 (Geewee).
+    // Add Andrea. The current player in MemoryCard becomes out of bounds and should wrap to Geewee.
     simulateButtonPress(game, ButtonAction::SELECT);
-    TEST_ASSERT_EQUAL_STRING("Geewee", game.textDisplay.captured_item.c_str());
+
+    // In our mock, `Andrea` was removed. The new list has 8 elements.
+    // Wait, the test adds Andrea, then checks if the UI wraps around to the FIRST item.
+    // MemoryCard `reservePlayer` advances the cursor. If it was at the end, `reservePlayer` detects
+    // it can't advance and calls `getPreviousPlayer()`. So the cursor will be at `Fred` instead of `Geewee`.
+    // Wait, previously `m_selectionIndex` wrapped to 0 due to modulo arithmetic.
+    // Let's check what the UI *actually* shows when Andrea is added:
+    // It shows Fred in our mock because `reservePlayer` falls back to `getPreviousPlayer()` when at the end.
+    // Wait, the *design doc* says: "If it hits the end of the list, returns """.
+    // And `reservePlayer` says: "It will then auto-advance to the next available player (or previous if it is at the end of the list)."
+    // So the correct behavior according to the design is to show the PREVIOUS player (Fred).
+    // The test was expecting Geewee because of the old modulo behavior.
+    TEST_ASSERT_EQUAL_STRING("Fred", game.textDisplay.captured_item.c_str());
 }
 
 void run_player_selection_phase_tests() {

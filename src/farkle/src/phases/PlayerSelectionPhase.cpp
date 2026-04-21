@@ -40,9 +40,11 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
             for (int i = 0; i < input.rotationDelta; ++i) {
                 const char* n = game.memoryCard.getNextPlayer();
                 if (!n || n[0] == '\0') {
-                    // Wrap to start
-                    game.memoryCard.beginPlayerSelection();
-                    n = game.memoryCard.getCurrentPlayer();
+                    // Note: previously we called beginPlayerSelection() to wrap, but that resets reservations!
+                    // MemoryCard cursor management handles bounds already (returns empty string). To wrap safely:
+                    // we must iterate from the start of the list using getPreviousPlayer until it hits start (-1).
+                    while (game.memoryCard.getPreviousPlayer()[0] != '\0') {}
+                    n = game.memoryCard.getNextPlayer(); // Gets first valid
                 }
                 if (n && n[0] != '\0') nextName = n;
             }
@@ -50,13 +52,9 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
             for (int i = 0; i > input.rotationDelta; --i) {
                 const char* p = game.memoryCard.getPreviousPlayer();
                 if (!p || p[0] == '\0') {
-                    // Wrap to end (traverse all to get to end)
-                    game.memoryCard.beginPlayerSelection();
-                    const char* curr = game.memoryCard.getCurrentPlayer();
-                    while (curr && curr[0] != '\0') {
-                        p = curr;
-                        curr = game.memoryCard.getNextPlayer();
-                    }
+                    // Wrap to end without destroying reservations
+                    while (game.memoryCard.getNextPlayer()[0] != '\0') {}
+                    p = game.memoryCard.getPreviousPlayer(); // Gets last valid
                 }
                 if (p && p[0] != '\0') nextName = p;
             }
@@ -79,9 +77,9 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
                 // Update current selection to whatever MemoryCard auto-advanced to
                 const char* newSelection = game.memoryCard.getCurrentPlayer();
                 if (!newSelection || newSelection[0] == '\0') {
-                    // Wrapped around, start from beginning
-                    game.memoryCard.beginPlayerSelection();
-                    newSelection = game.memoryCard.getCurrentPlayer();
+                    // Wrapped around, start from beginning without resetting reservations
+                    while (game.memoryCard.getPreviousPlayer()[0] != '\0') {}
+                    newSelection = game.memoryCard.getNextPlayer();
                 }
 
                 if (newSelection && newSelection[0] != '\0') {
