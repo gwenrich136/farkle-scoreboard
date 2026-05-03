@@ -48,6 +48,7 @@ public:
     bool canAddPlayer();
     void resetGame();
     void setTargetScore(int target);
+    MemoryCard& getMemoryCard() { return memoryCard; }
 
 #ifdef UNIT_TEST
 public:

@@ -4,8 +4,7 @@
 #include <iostream>
 #include <string>
 
-// Make sure variable is defined globally here instead of externally so tests compile without unity.cpp
-inline int unity_fail_count = 0;
+extern int unity_fail_count;
 
 #define UNITY_BEGIN() do { unity_fail_count = 0; std::cout << "Starting tests..." << std::endl; } while(0)
 #define UNITY_END() (std::cout << "Tests finished. Failures: " << unity_fail_count << std::endl, unity_fail_count)

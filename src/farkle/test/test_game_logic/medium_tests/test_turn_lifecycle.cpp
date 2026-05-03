@@ -26,6 +26,7 @@ void test_TurnLifecycle_FullSetupAndTurn() {
 
     // Transition to Player Selection
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // 2. Initial selection state (Geewee selected)
     TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());

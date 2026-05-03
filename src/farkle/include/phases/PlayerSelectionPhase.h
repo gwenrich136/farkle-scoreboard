@@ -29,7 +29,7 @@ protected:
     virtual void updateTextDisplay(const GameState& state, const Displays& displays) override;
 
 private:
-    char m_currentSelection[13];
+    const char* m_currentSelection;
 };
 
 #endif

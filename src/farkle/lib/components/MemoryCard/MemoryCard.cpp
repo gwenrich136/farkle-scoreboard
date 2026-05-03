@@ -49,7 +49,11 @@ void MemoryCard::_readPlayersFile() {
 
     int index = 0;
     while (f.available() && index < MAX_POOL_PLAYERS) {
+#ifdef UNIT_TEST
         std::string line = f.readStringUntil('\n');
+#else
+        std::string line = f.readStringUntil('\n').c_str();
+#endif
 
         // Basic trim (Windows CRLF issue handling)
         if (!line.empty() && line.back() == '\r') {
@@ -165,12 +169,9 @@ void MemoryCard::reservePlayer(char* dest) {
 }
 
 void MemoryCard::finalizeSelection() {
-    File f = SD.open("players.csv", FILE_WRITE); // Mock FILE_WRITE appends, wait we need to TRUNCATE
-    // Wait, the mock FILE_WRITE might not truncate. We should use remove then write.
-    f.close();
     SD.remove("players.csv");
 
-    f = SD.open("players.csv", FILE_WRITE);
+    File f = SD.open("players.csv", FILE_WRITE);
     if (!f) return;
 
     // Re-collect active players

@@ -1,7 +1,5 @@
 #include <unity.h>
 
-int unity_fail_count = 0;
-
 #include "small_tests/test_TargetScoreSelectionPhase.h"
 #include "small_tests/test_PlayerSelectionPhase.h"
 #include "small_tests/test_WaitingPhase.h"
