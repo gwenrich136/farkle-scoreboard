@@ -22,6 +22,7 @@
 #include "LedProgressGrid.h"
 #include "FarkleWarningLights.h"
 #include "TextDisplayV2.h"
+#include "MemoryCard.h"
 
 class Game {
 public:
@@ -43,7 +44,7 @@ public:
         return nullptr;
     }
 
-    void addPlayer(const std::string& name);
+    void addPlayer(const char* name);
     bool canAddPlayer();
     void resetGame();
     void setTargetScore(int target);
@@ -75,6 +76,7 @@ private:
     LedProgressGrid grid;
     FarkleWarningLights farkleLights;
     TextDisplayV2 textDisplay;
+    MemoryCard memoryCard;
 };
 
 #endif

@@ -7,6 +7,7 @@ Game::Game() :
     grid(A0),                // NeoPixel Data Pin
     farkleLights(A1),        // Status Strip NeoPixel Pin
     textDisplay(A4, A5, D7, D8), // cs, dc, res, blk
+    memoryCard(9),           // SD Card CS Pin
     currentPhase(nullptr),
     lastUpdateTime(0)
 {
@@ -37,6 +38,9 @@ void Game::setup() {
     Serial.println("GAME: Init FarkleLights...");
     farkleLights.begin();
     
+    Serial.println("GAME: Init MemoryCard...");
+    memoryCard.begin();
+
     // 2. Reset Game to clean state
     resetGame();
 
@@ -73,7 +77,7 @@ void Game::loop() {
     currentPhase->display(state, displays);
 }
 
-void Game::addPlayer(const std::string& name) {
+void Game::addPlayer(const char* name) {
     if (!canAddPlayer()) return;
     uint16_t hue = state.getNextPlayerHue(state.players.size());
     state.players.push_back(Player(name, hue));

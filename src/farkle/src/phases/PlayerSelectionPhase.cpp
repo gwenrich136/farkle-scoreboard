@@ -2,21 +2,32 @@
 #include "Game.h"
 #include <algorithm>
 #include "GameConstants.h"
-
-const std::vector<std::string> PlayerSelectionPhase::s_namePool = {
-    "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"
-};
+#include <string.h>
 
 void PlayerSelectionPhase::onEnter(GameState& state) {
-    m_selectionIndex = 0;
-    updateAvailableNames(state);
+    m_currentSelection[0] = '\0';
 }
 
 GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    updateAvailableNames(state);
+    // Lazy initialization on first frame
+    if (m_currentSelection[0] == '\0') {
+        game.memoryCard.beginPlayerSelection();
+        const char* firstPlayer = game.memoryCard.getCurrentPlayer();
+        if (firstPlayer && firstPlayer[0] != '\0') {
+            strncpy(m_currentSelection, firstPlayer, 12);
+            m_currentSelection[12] = '\0';
+        } else {
+            // Fallback if list is empty but we just entered
+            strcpy(m_currentSelection, "NO PLAYERS");
+        }
 
-    if (m_availableNames.empty()) {
+        // Return this frame so the display logic has a chance to run with the new selection
+        return this;
+    }
+
+    if (m_currentSelection[0] == '\0' || strcmp(m_currentSelection, "NO PLAYERS") == 0) {
         if (input.action == ButtonAction::FARKLE && state.players.size() >= 1) {
+            game.memoryCard.finalizeSelection();
             return game.getPhase<WaitingPhase>();
         }
         return this;
@@ -24,28 +35,64 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
 
     // Handle rotation for selection
     if (input.action == ButtonAction::NONE && input.rotationDelta != 0) {
-        int size = (int)m_availableNames.size();
-        if (size > 0) {
-            m_selectionIndex = (m_selectionIndex + input.rotationDelta) % size;
-            if (m_selectionIndex < 0) m_selectionIndex += size;
+        const char* nextName = m_currentSelection;
+        if (input.rotationDelta > 0) {
+            for (int i = 0; i < input.rotationDelta; ++i) {
+                const char* n = game.memoryCard.getNextPlayer();
+                if (!n || n[0] == '\0') {
+                    // Note: previously we called beginPlayerSelection() to wrap, but that resets reservations!
+                    // MemoryCard cursor management handles bounds already (returns empty string). To wrap safely:
+                    // we must iterate from the start of the list using getPreviousPlayer until it hits start (-1).
+                    while (game.memoryCard.getPreviousPlayer()[0] != '\0') {}
+                    n = game.memoryCard.getNextPlayer(); // Gets first valid
+                }
+                if (n && n[0] != '\0') nextName = n;
+            }
+        } else if (input.rotationDelta < 0) {
+            for (int i = 0; i > input.rotationDelta; --i) {
+                const char* p = game.memoryCard.getPreviousPlayer();
+                if (!p || p[0] == '\0') {
+                    // Wrap to end without destroying reservations
+                    while (game.memoryCard.getNextPlayer()[0] != '\0') {}
+                    p = game.memoryCard.getPreviousPlayer(); // Gets last valid
+                }
+                if (p && p[0] != '\0') nextName = p;
+            }
+        }
+
+        if (nextName) {
+            strncpy(m_currentSelection, nextName, 12);
+            m_currentSelection[12] = '\0';
         }
     }
 
     // Handle actions
     if (input.action == ButtonAction::SELECT) {
         if (game.canAddPlayer()) {
-            if (m_availableNames.size() > 0) {
-                game.addPlayer(m_availableNames[m_selectionIndex]);
-                updateAvailableNames(state); // Update immediately to reflect changes
+            if (m_currentSelection[0] != '\0') {
+                char reservedName[13];
+                game.memoryCard.reservePlayer(reservedName);
+                game.addPlayer(reservedName);
 
-                // Adjust index if it's now out of bounds due to the smaller list
-                if (!m_availableNames.empty() && m_selectionIndex >= (int)m_availableNames.size()) {
-                    m_selectionIndex = 0;
+                // Update current selection to whatever MemoryCard auto-advanced to
+                const char* newSelection = game.memoryCard.getCurrentPlayer();
+                if (!newSelection || newSelection[0] == '\0') {
+                    // Wrapped around, start from beginning without resetting reservations
+                    while (game.memoryCard.getPreviousPlayer()[0] != '\0') {}
+                    newSelection = game.memoryCard.getNextPlayer();
+                }
+
+                if (newSelection && newSelection[0] != '\0') {
+                    strncpy(m_currentSelection, newSelection, 12);
+                    m_currentSelection[12] = '\0';
+                } else {
+                    m_currentSelection[0] = '\0';
                 }
             }
         }
     } else if (input.action == ButtonAction::FARKLE) {
         if (state.players.size() >= 1) {
+            game.memoryCard.finalizeSelection();
             return game.getPhase<WaitingPhase>();
         }
     }
@@ -63,32 +110,14 @@ void PlayerSelectionPhase::updateProgressGrid(const GameState& state, const Disp
 }
 
 void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    // In the current configuration (pool=9, max=8), the list will never be empty before the roster is full.
-    // However, we merge the conditions here as requested to simplify the logic.
     bool isRosterFull = state.players.size() >= MAX_PLAYERS;
-    if (isRosterFull || m_availableNames.empty()) {
+    if (isRosterFull || m_currentSelection[0] == '\0' || strcmp(m_currentSelection, "NO PLAYERS") == 0) {
         displays.textDisplay.print("ROSTER FULL");
     } else {
         displays.textDisplay.printSelectionScreen(
             "Add Player",
-            m_availableNames[m_selectionIndex].c_str(),
+            m_currentSelection,
             state.getNextPlayerHue(state.players.size())
         );
-    }
-}
-
-void PlayerSelectionPhase::updateAvailableNames(const GameState& state) {
-    m_availableNames.clear();
-    for (const auto& name : s_namePool) {
-        bool alreadyAdded = false;
-        for (const auto& player : state.players) {
-            if (player.name == name) {
-                alreadyAdded = true;
-                break;
-            }
-        }
-        if (!alreadyAdded) {
-            m_availableNames.push_back(name);
-        }
     }
 }

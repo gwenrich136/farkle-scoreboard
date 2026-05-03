@@ -29,13 +29,7 @@ protected:
     virtual void updateTextDisplay(const GameState& state, const Displays& displays) override;
 
 private:
-    int m_selectionIndex;
-    static const std::vector<std::string> s_namePool;
-
-    // Persistent vector for available names to avoid repeated allocations
-    std::vector<std::string> m_availableNames;
-
-    void updateAvailableNames(const GameState& state);
+    char m_currentSelection[13];
 };
 
 #endif
