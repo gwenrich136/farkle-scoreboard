@@ -16,6 +16,7 @@ void PenaltyFarklingPhase::onEnter(GameState& state) {
 
     // Reset the farkle count immediately
     state.players[state.currentPlayerIndex].farkle_count = 0;
+    state.penaltyAppliedThisTurn = true;
 }
 
 GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {

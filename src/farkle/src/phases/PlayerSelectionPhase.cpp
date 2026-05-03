@@ -43,6 +43,12 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
     } else if (input.action == ButtonAction::FARKLE) {
         if (state.players.size() >= 1) {
             game.getMemoryCard().finalizeSelection();
+
+            uint32_t gameId = game.getMemoryCard().getOrGenerateNextGameId();
+            game.getMemoryCard().setActiveGameId(gameId);
+            game.getMemoryCard().initializeGameDirectory(gameId);
+            game.getMemoryCard().writeGameMetadata(gameId, state);
+
             return game.getPhase<WaitingPhase>();
         }
     }

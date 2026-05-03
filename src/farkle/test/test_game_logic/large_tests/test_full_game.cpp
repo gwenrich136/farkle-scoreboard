@@ -32,6 +32,41 @@ void test_FullGame_StandardGame() {
 
     TEST_ASSERT_LESS_THAN(100, turn); // Game should end in a reasonable number of turns
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
+
+    // finalizeGame should have been called exactly once on the first update of PostGamePhase_V1
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_finalizeGame_called);
+}
+
+// Verifies that finalizeGame is called exactly once regardless of how many loops run in PostGamePhase_V1
+void test_PostGame_FinalizeCalledOnce() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+
+    // Get player 0 to 9500 points
+    game.state.players[0].score = 9500;
+
+    // Player 0's turn: bank 500 to cross 10,000 and trigger the final round
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn -> triggers final round
+    TEST_ASSERT_TRUE(game.state.finalRoundTriggered);
+
+    // Player 1's turn: take any turn to complete the final round
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Run FarklingPhase animation
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn
+
+    // Now back to player 0 whose score >= targetScore -> game ends on WaitingPhase update
+    simulateNoAction(game); // WaitingPhase.onEnter() + first update triggers PostGamePhase_V1
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
+
+    // Run multiple loops to confirm finalizeGame is only called once
+    simulateNoAction(game);
+    simulateNoAction(game);
+    simulateNoAction(game);
+
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_finalizeGame_called);
 }
 
 // Test function to verify the triple farkle penalty and reset behavior
@@ -218,6 +253,7 @@ void run_full_game_tests() {
     RUN_TEST(test_FullGame_AutoAdvanceTurn);
     RUN_TEST(test_FullGame_FinalRoundBlinking);
     RUN_TEST(test_FullGame_ScoreToggle);
+    RUN_TEST(test_PostGame_FinalizeCalledOnce);
 }
 
 // Helper function to advance turns until it is player 0's turn again.

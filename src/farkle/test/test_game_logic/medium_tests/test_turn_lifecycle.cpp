@@ -78,6 +78,11 @@ void test_TurnLifecycle_StandardTurn() {
     TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score);
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
+
+    // Verify journal append
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_appendTurnRecord_called);
+    TEST_ASSERT_EQUAL_INT(1, game.getMemoryCard().mock_appendTurnRecord_args.size());
+    TEST_ASSERT_EQUAL_UINT32(1500, game.getMemoryCard().mock_appendTurnRecord_args[0]);
 }
 
 // Verifies that the game correctly cycles through all players.

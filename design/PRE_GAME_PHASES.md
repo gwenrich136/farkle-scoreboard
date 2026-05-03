@@ -43,15 +43,18 @@ The system follows this sequence:
 *   **Inherits From:** `PreGamePhase`
 *   **Defined in:** `src/farkle/include/phases/PlayerSelectionPhase.h` & `src/farkle/src/phases/PlayerSelectionPhase.cpp`
 *   **Implementation Details:**
-    1.  **Name Pool**: Maintains a static list of available names: "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", and "Andrea".
+    1.  **Name Pool**: The list of available names is managed by the `MemoryCard` component, which reads from `players.csv` and sorts by play frequency.
     2.  **Navigation**: 
-        *   **Encoder Rotation**: Increments or decrements the selection index.
-        *   The list of available names is filtered in real-time to exclude names already present in `state.players`.
+        *   **Encoder Rotation**: Increments or decrements the selection by calling `MemoryCard::getNextPlayer()` and `MemoryCard::getPreviousPlayer()`.
     3.  **Adding Players (SELECT)**:
         *   Checks `game.canAddPlayer()` (which queries `grid.isMaxPlayersReached()`).
-        *   If allowed, calls `game.addPlayer(selectedName)`. This updates both the `GameState` and the hardware (color assignment in `LedProgressGrid`).
+        *   If allowed, calls `MemoryCard::reservePlayer()` to pull the name from the pool, then calls `game.addPlayer(reservedName)`. This updates both the `GameState` and the hardware (color assignment).
     4.  **Starting Game (RED/FARKLE)**: 
-        *   If `state.players.size() >= 1`, returns `game.getPhase<WaitingPhase>()`.
+        *   If `state.players.size() >= 1`:
+            *   Calls `MemoryCard::finalizeSelection()` to update and save the player pool.
+            *   Generates a new Game ID (`getOrGenerateNextGameId`), sets it active, and creates the `/partial/[ID]/` directory.
+            *   Writes the game setup (`targetScore` and player details) to `meta.jsn` via `MemoryCard::writeGameMetadata()`.
+            *   Returns `game.getPhase<WaitingPhase>()`.
     5.  **Display Behavior (Hooks)**:
         *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Add Player", currentSelection, getNextPlayerColor(state.players.size()))`. The `currentSelection` is rendered in the specific color that will be assigned to this player index, providing immediate visual feedback of their "identity" before they are added.
         *   **`updateProgressGrid()`**: Calls `grid.displayPlayersPregame(state.getNextPlayerHue(state.players.size()))`.

@@ -13,6 +13,7 @@
 #include "medium_tests/test_conditional_at_risk_display.h"
 #include "medium_tests/test_tie_breaking.h"
 #include "small_tests/test_multi_press.h"
+#include "small_tests/test_TurnRecord.h"
 
 void setUp(void) {
     // set up tear down functions that are required by unity
@@ -36,6 +37,7 @@ void test_runner() {
     run_display_logic_tests();
     run_tie_breaking_tests();
     run_multi_press_tests();
+    run_turn_record_tests();
 }
 
 int main() {

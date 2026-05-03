@@ -17,6 +17,7 @@ This category handles user input for scoring, provides feedback through animatio
 - All animation phases (`BankingPhase`, `FarklingPhase`, `PenaltyFarklingPhase`) return to `EndOfTurnPhase` after animation completion.
 - `EndOfTurnPhase` returns to `WaitingPhase` after a button press or after 5 seconds of inactivity.
 - `WaitingPhase` transitions to `PostGamePhase_V1` when a player reaches the target score and the final round completes.
+- `PostGamePhase_V1` is the terminal state. On its first `update()`, it calls `MemoryCard::finalizeGame()` to archive the game. It then freezes forever.
 
 ## 4. Technical Details
 
@@ -66,12 +67,28 @@ This category handles user input for scoring, provides feedback through animatio
     1.  **Wait for Dismissal:** The `update()` method waits for any button press (`input.action != NONE`) or for a 5-second timeout (`m_elapsedTime >= 5000`).
     2.  **Finalize Turn:** Once a button is pressed or the 5-second timeout occurs:
         a. Check if `!state.finalRoundTriggered` and if the current player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
-        b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        c. `return game.getPhase<WaitingPhase>();`.
+        b. Pack the turn data (Score, Player Index, Farkle Count, Final Round flag, and Penalty flag) into a 32-bit `TurnRecord` and call `MemoryCard::appendTurnRecord()` to save the turn to the SD card's journal file (`journal.bin`).
+        c. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex` and reset turn flags.
+        d. `return game.getPhase<WaitingPhase>();`.
 
 *   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks:
     *   `updateWarningLights()`: Collects the `farkle_count` for all players and the `currentPlayerIndex`. It passes this data to the `FarkleWarningLights` component to update the entire 8-LED Status Strip (current player flashing, others dim/solid).
     *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
+
+### PostGamePhase_V1
+*   **Why:** Implements the terminal game-over state that archives the completed game to the SD card and freezes the display on the winner.
+*   **Defined in:** `src/farkle/include/phases/PostGamePhase_V1.h` & `src/farkle/src/phases/PostGamePhase_V1.cpp`
+*   **Implementation Details:**
+    1.  **On Enter (`onEnter`):** Identifies the winner from `state.rankedPlayerIndices[0]`, captures the winner's name and score for display, and caches all player scores for the final grid render. Resets the `m_finalized` guard flag to `false`.
+    2.  **Archiving (first `update()`):** On the first invocation of `update()`, it calls `game.getMemoryCard().finalizeGame(state)` to atomically:
+        *   Create `/archive/[ID].csv` with a human-readable header + one row per turn (decoded from `journal.bin`).
+        *   Delete `/partial/[ID]/meta.jsn`.
+        *   Delete `/partial/[ID]/journal.bin`.
+        *   Remove the `/partial/[ID]/` directory.
+        *   Delete `/sys/active_id.txt`.
+        *   Reset the internal `_activeGameId` to 0.
+    3.  **Freeze:** After finalization, `update()` returns `this` on every subsequent call, ignoring all user input.
+    4.  **Display:** Shows the winner's name and score message, freezes the LED progress grid at the final scores, and blinks the winning score on the `COMPETITION_SCORE` display.
 
 ### Visual Feedback
 -   **Unified Color Identity:** The `TextDisplayV2` renders the active player's name and critical turn information in the `Player.color` stored in the `GameState`. This matches the player's row on the `LedProgressGrid`, creating a cohesive visual link between the scoreboard and the high-resolution UI.

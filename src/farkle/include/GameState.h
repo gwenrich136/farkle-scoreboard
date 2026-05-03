@@ -36,8 +36,9 @@ struct GameState {
     std::vector<int> rankedPlayerIndices;
     int currentCompetitorRank;
     ScoreDisplayMode currentPlayerScoreMode;
+    bool penaltyAppliedThisTurn;
 
-    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt), currentCompetitorRank(0), currentPlayerScoreMode(ScoreDisplayMode::BANKED) {}
+    GameState() : atRiskScore(0), currentPlayerIndex(0), finalRoundTriggered(false), targetScore(10000), scoresVersion(1), prospectiveFirstHue(std::nullopt), currentCompetitorRank(0), currentPlayerScoreMode(ScoreDisplayMode::BANKED), penaltyAppliedThisTurn(false) {}
 
     void reset() {
         players.clear();
@@ -49,6 +50,7 @@ struct GameState {
         rankedPlayerIndices.clear();
         currentCompetitorRank = 0;
         currentPlayerScoreMode = ScoreDisplayMode::BANKED;
+        penaltyAppliedThisTurn = false;
     }
 
     uint16_t getNextPlayerHue(int playerCount) const {

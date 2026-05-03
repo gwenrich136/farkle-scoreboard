@@ -72,3 +72,32 @@ void MemoryCard::reservePlayer(char* dest) {
 void MemoryCard::finalizeSelection() {
     // No-op for mock
 }
+
+uint32_t MemoryCard::getOrGenerateNextGameId() {
+    mock_getOrGenerateNextGameId_called = true;
+    return 42; // mock implementation
+}
+
+void MemoryCard::setActiveGameId(uint32_t id) {
+    mock_setActiveGameId_called = true;
+    mock_setActiveGameId_arg = id;
+}
+
+void MemoryCard::initializeGameDirectory(uint32_t id) {
+    mock_initializeGameDirectory_called = true;
+    mock_initializeGameDirectory_arg = id;
+}
+
+void MemoryCard::writeGameMetadata(uint32_t gameId, const GameState& state) {
+    mock_writeGameMetadata_called = true;
+    mock_writeGameMetadata_arg = gameId;
+}
+
+void MemoryCard::appendTurnRecord(uint32_t record) {
+    mock_appendTurnRecord_called = true;
+    mock_appendTurnRecord_args.push_back(record);
+}
+
+void MemoryCard::finalizeGame(const GameState& state) {
+    mock_finalizeGame_called = true;
+}
