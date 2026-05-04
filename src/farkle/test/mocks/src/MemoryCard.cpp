@@ -101,3 +101,9 @@ void MemoryCard::appendTurnRecord(uint32_t record) {
 void MemoryCard::finalizeGame(const GameState& state) {
     mock_finalizeGame_called = true;
 }
+
+MemoryCard::UndoResult MemoryCard::undoLastTurn() {
+    mock_undoLastTurn_called = true;
+    mock_undoLastTurn_call_count++;
+    return mock_undoLastTurn_result;
+}

@@ -29,6 +29,14 @@ This category handles user input for scoring, provides feedback through animatio
     *   **Handle Score Input:** A `switch(input.action)` block handles `PLUS_50`, `PLUS_100`, and `PLUS_500` by modifying `state.atRiskScore`.
     *   **Handle Navigation (Competitor Preview):** Uses `input.rotationDelta` (Encoder) to cycle through other players' scores on the `COMPETITION_SCORE` display.
     *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it `return game.getPhase<FarklingPhase>();`.
+    *   **Handle Undo:** If `UNDO` is pressed (mapped to `BANK + CLEAR` combo), it calls `game.getMemoryCard().undoLastTurn()`. On success:
+        1. Steps `currentPlayerIndex` back one with wrap-around (e.g., 0 → last player).
+        2. Restores the previous player's `score` and `farkle_count` from the `UndoResult`.
+        3. Clears `state.atRiskScore` to 0.
+        4. Calls `_recomputeLeaderboard(state)` to re-rank players and set the correct default competitor (e.g., if the undo lands on the leader, rank 1 is shown rather than the leader seeing their own score).
+        On failure (empty journal), state is left unchanged.
+*   **Private Helpers:**
+    *   **`_recomputeLeaderboard(state)`**: Sorts `state.rankedPlayerIndices` by score (with turn-distance tie-breaking) and sets `state.currentCompetitorRank`. Defaults competitor to rank 0, but bumps to rank 1 if rank 0 is the current player. Called by both `onEnter()` and the `UNDO` handler to guarantee consistent competitor display behavior on any turn change.
 
 ### BankingPhase
 *   **Why:** Implements the banking animation and the end-of-turn logic that follows.

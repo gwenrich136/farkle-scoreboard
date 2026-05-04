@@ -58,6 +58,14 @@ public:
     void appendTurnRecord(uint32_t record);
     void finalizeGame(const GameState& state);
 
+    struct UndoResult {
+        bool success;        // false if journal is empty (nothing to undo)
+        uint8_t playerIndex; // Which player's turn was removed
+        int previousScore;   // Their score before that turn (0 if first turn)
+        uint8_t previousFarkleCount; // Their farkle count before that turn
+    };
+    UndoResult undoLastTurn();
+
 private:
     int _csPin;
     uint32_t _activeGameId;
@@ -67,6 +75,11 @@ private:
     void _autopopulateFile();
     void _readPlayersFile();
     void _sortPool();
+
+    // Journal helpers — shared low-level operations on journal.bin
+    void _getJournalPath(char* buf, size_t size) const;
+    bool _readLastRecord(uint32_t& outRecord) const;
+    void _truncateLastJournalRecord();
 };
 
 #endif

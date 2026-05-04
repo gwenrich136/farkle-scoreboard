@@ -45,6 +45,14 @@ public:
     void appendTurnRecord(uint32_t record);
     void finalizeGame(const GameState& state);
 
+    struct UndoResult {
+        bool success;
+        uint8_t playerIndex;
+        int previousScore;
+        uint8_t previousFarkleCount;
+    };
+    UndoResult undoLastTurn();
+
     // Mock specific
     void _setMockPlayers(const std::vector<std::string>& players);
 
@@ -59,6 +67,9 @@ public:
     bool mock_appendTurnRecord_called = false;
     std::vector<uint32_t> mock_appendTurnRecord_args;
     bool mock_finalizeGame_called = false;
+    bool mock_undoLastTurn_called = false;
+    int mock_undoLastTurn_call_count = 0;
+    UndoResult mock_undoLastTurn_result = {false, 0, 0, 0};
 
 private:
     int _csPin;

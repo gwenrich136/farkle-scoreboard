@@ -268,11 +268,84 @@ void MemoryCard::writeGameMetadata(uint32_t gameId, const GameState& state) {
     f.close();
 }
 
+// --- Journal Helpers ---
+
+void MemoryCard::_getJournalPath(char* buf, size_t size) const {
+    snprintf(buf, size, "/partial/%08lu/journal.bin", (unsigned long)_activeGameId);
+}
+
+// Reads the last 4-byte record from journal.bin into outRecord.
+// Returns false if the file doesn't exist, is empty, or a read error occurs.
+bool MemoryCard::_readLastRecord(uint32_t& outRecord) const {
+    char filePath[64];
+    _getJournalPath(filePath, sizeof(filePath));
+
+    File f = SD.open(filePath, FILE_READ);
+    if (!f) return false;
+
+    uint32_t fileSize = f.size();
+    if (fileSize < sizeof(uint32_t)) { f.close(); return false; }
+
+    f.seek(fileSize - sizeof(uint32_t));
+    bool ok = (f.read((uint8_t*)&outRecord, sizeof(outRecord)) == sizeof(outRecord));
+    f.close();
+    return ok;
+}
+
+// Removes the last 4 bytes from journal.bin by rewriting via a temp file.
+// SD libraries don't support in-place truncation, so we use a copy-rename idiom.
+void MemoryCard::_truncateLastJournalRecord() {
+    char filePath[64];
+    _getJournalPath(filePath, sizeof(filePath));
+
+    char tempPath[64];
+    snprintf(tempPath, sizeof(tempPath), "/partial/%08lu/journal.tmp", (unsigned long)_activeGameId);
+
+    // Pass 1: copy all records except the last into a temp file
+    {
+        File src = SD.open(filePath, FILE_READ);
+        File dst = SD.open(tempPath, FILE_WRITE);
+        if (src && dst) {
+            uint32_t bytesToCopy = src.size();
+            if (bytesToCopy >= sizeof(uint32_t)) {
+                bytesToCopy -= sizeof(uint32_t);
+            }
+            uint32_t bytesWritten = 0;
+            uint32_t rec;
+            while (bytesWritten + sizeof(uint32_t) <= bytesToCopy &&
+                   src.read((uint8_t*)&rec, sizeof(rec)) == sizeof(rec)) {
+                dst.write((const uint8_t*)&rec, sizeof(rec));
+                bytesWritten += sizeof(uint32_t);
+            }
+        }
+        if (src) src.close();
+        if (dst) dst.close();
+    }
+
+    // Pass 2: replace original with temp
+    SD.remove(filePath);
+    {
+        File tmpRead  = SD.open(tempPath, FILE_READ);
+        File jnlWrite = SD.open(filePath, FILE_WRITE);
+        if (tmpRead && jnlWrite) {
+            uint32_t rec;
+            while (tmpRead.read((uint8_t*)&rec, sizeof(rec)) == sizeof(rec)) {
+                jnlWrite.write((const uint8_t*)&rec, sizeof(rec));
+            }
+        }
+        if (tmpRead)  tmpRead.close();
+        if (jnlWrite) jnlWrite.close();
+    }
+    SD.remove(tempPath);
+}
+
+// --- Public Lifecycle API ---
+
 void MemoryCard::appendTurnRecord(uint32_t record) {
     if (_activeGameId == 0) return;
 
     char filePath[64];
-    snprintf(filePath, sizeof(filePath), "/partial/%08lu/journal.bin", (unsigned long)_activeGameId);
+    _getJournalPath(filePath, sizeof(filePath));
 
     File f = SD.open(filePath, FILE_WRITE);
     if (!f) return;
@@ -290,43 +363,39 @@ void MemoryCard::finalizeGame(const GameState& state) {
     }
 
     char partialJournalPath[64];
-    snprintf(partialJournalPath, sizeof(partialJournalPath), "/partial/%08lu/journal.bin", (unsigned long)_activeGameId);
-    
+    _getJournalPath(partialJournalPath, sizeof(partialJournalPath));
+
     char archiveCsvPath[64];
     snprintf(archiveCsvPath, sizeof(archiveCsvPath), "/archive/%08lu.csv", (unsigned long)_activeGameId);
 
-    // Read journal.bin and write to [ID].csv
+    // Decode journal.bin into a human-readable CSV
     File journal = SD.open(partialJournalPath, FILE_READ);
-    File csv = SD.open(archiveCsvPath, FILE_WRITE);
-    
+    File csv     = SD.open(archiveCsvPath, FILE_WRITE);
+
     if (journal && csv) {
         csv.println("Turn,Player,Score,Farkles,FinalRound,Penalty");
         int turnNum = 1;
         uint32_t record;
         while (journal.read((uint8_t*)&record, sizeof(record)) == sizeof(record)) {
-            int score = record & 0xFFFFF;
-            uint8_t playerIdx = (record >> 20) & 0xF;
-            uint8_t farkleCount = (record >> 24) & 0x3;
-            bool finalRound = (record >> 26) & 0x1;
-            bool penalty = (record >> 27) & 0x1;
-            
-            const char* name = (playerIdx < state.players.size()) ? state.players[playerIdx].name.c_str() : "Unknown";
-            
-            csv.print(turnNum++);
-            csv.print(",");
-            csv.print(name);
-            csv.print(",");
-            csv.print(score);
-            csv.print(",");
-            csv.print(farkleCount);
-            csv.print(",");
-            csv.print(finalRound ? 1 : 0);
-            csv.print(",");
+            int      score      = record & 0xFFFFF;
+            uint8_t  playerIdx  = (record >> 20) & 0xF;
+            uint8_t  farkleCount = (record >> 24) & 0x3;
+            bool     finalRound = (record >> 26) & 0x1;
+            bool     penalty    = (record >> 27) & 0x1;
+
+            const char* name = (playerIdx < state.players.size())
+                ? state.players[playerIdx].name.c_str() : "Unknown";
+
+            csv.print(turnNum++); csv.print(",");
+            csv.print(name);      csv.print(",");
+            csv.print(score);     csv.print(",");
+            csv.print(farkleCount); csv.print(",");
+            csv.print(finalRound ? 1 : 0); csv.print(",");
             csv.println(penalty ? 1 : 0);
         }
     }
     if (journal) journal.close();
-    if (csv) csv.close();
+    if (csv)     csv.close();
 
     // Clean up partial directory
     char metaPath[64];
@@ -337,8 +406,47 @@ void MemoryCard::finalizeGame(const GameState& state) {
     SD.remove(metaPath);
     SD.remove(partialJournalPath);
     SD.rmdir(dirPath);
-
     SD.remove("/sys/active_id.txt");
 
     _activeGameId = 0; // Game is finalized
+}
+
+MemoryCard::UndoResult MemoryCard::undoLastTurn() {
+    UndoResult result = {false, 0, 0, 0};
+    if (_activeGameId == 0) return result;
+
+    // Step 1: Read the last record to identify which player's turn to remove
+    uint32_t lastRecord;
+    if (!_readLastRecord(lastRecord)) return result; // Empty or missing journal
+
+    uint8_t targetPlayer = (lastRecord >> 20) & 0xF;
+
+    // Step 2: Remove the last record from the journal
+    _truncateLastJournalRecord();
+
+    // Step 3: Scan backwards for the most recent prior record for targetPlayer
+    char filePath[64];
+    _getJournalPath(filePath, sizeof(filePath));
+
+    File scan = SD.open(filePath, FILE_READ);
+    if (scan) {
+        int32_t pos = (int32_t)scan.size() - sizeof(uint32_t);
+        while (pos >= 0) {
+            scan.seek((uint32_t)pos);
+            uint32_t rec;
+            scan.read((uint8_t*)&rec, sizeof(rec));
+            if (((rec >> 20) & 0xF) == targetPlayer) {
+                result.previousScore      = rec & 0xFFFFF;
+                result.previousFarkleCount = (rec >> 24) & 0x3;
+                break;
+            }
+            pos -= sizeof(uint32_t);
+        }
+        scan.close();
+    }
+    // If no prior record found, previousScore/Farkles stay at 0 (first-ever turn)
+
+    result.success     = true;
+    result.playerIndex = targetPlayer;
+    return result;
 }
