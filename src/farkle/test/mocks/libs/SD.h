@@ -9,6 +9,8 @@
 #include <sys/types.h>
 #include <cstdint>
 #include <cstring>
+#include <sstream>
+#include <stdexcept>
 #include <Arduino.h>
 
 #define FILE_READ 0
@@ -158,6 +160,16 @@ public:
         return n;
     }
 
+    size_t println(long n) {
+        size_t s = print(n);
+        s += print("\n");
+        return s;
+    }
+
+    size_t println(int n) {
+        return println((long)n);
+    }
+
     bool seek(uint32_t pos) {
         if (!_is_open || !_stream) return false;
         _stream->seekg(pos, std::ios::beg);
@@ -190,11 +202,39 @@ public:
         system(("mkdir -p " + _base_path).c_str());
     }
 
+private:
+    void enforce8Dot3(const std::string& path) {
+        std::string p = (path[0] == '/') ? path.substr(1) : path;
+        std::stringstream ss(p);
+        std::string token;
+        while (std::getline(ss, token, '/')) {
+            if (token.empty()) continue;
+            size_t dot_pos = token.find('.');
+            if (dot_pos == std::string::npos) {
+                if (token.length() > 8) {
+                    throw std::runtime_error("FAT32 8.3 Constraint Violation: Base name '" + token + "' exceeds 8 characters in path: " + path);
+                }
+            } else {
+                std::string base = token.substr(0, dot_pos);
+                std::string ext = token.substr(dot_pos + 1);
+                if (base.length() > 8) {
+                    throw std::runtime_error("FAT32 8.3 Constraint Violation: Base name '" + base + "' exceeds 8 characters in path: " + path);
+                }
+                if (ext.length() > 3) {
+                    throw std::runtime_error("FAT32 8.3 Constraint Violation: Extension '" + ext + "' exceeds 3 characters in path: " + path);
+                }
+            }
+        }
+    }
+
+public:
+
     bool begin(uint8_t csPin) {
         return true;
     }
 
     File open(const char *filename, uint8_t mode = FILE_READ) {
+        enforce8Dot3(filename);
         std::string full_path = _base_path + (filename[0] == '/' ? filename + 1 : filename);
         return File(full_path, mode);
     }
@@ -204,6 +244,7 @@ public:
     }
 
     bool exists(const char *filepath) {
+        enforce8Dot3(filepath);
         std::string full_path = _base_path + (filepath[0] == '/' ? filepath + 1 : filepath);
         struct stat buffer;
         return (stat(full_path.c_str(), &buffer) == 0);
@@ -214,6 +255,7 @@ public:
     }
 
     bool remove(const char *filepath) {
+        enforce8Dot3(filepath);
         std::string full_path = _base_path + (filepath[0] == '/' ? filepath + 1 : filepath);
         return ::remove(full_path.c_str()) == 0;
     }
@@ -223,11 +265,13 @@ public:
     }
 
     bool mkdir(const char *filepath) {
+        enforce8Dot3(filepath);
         std::string full_path = _base_path + (filepath[0] == '/' ? filepath + 1 : filepath);
         return system(("mkdir -p " + full_path).c_str()) == 0;
     }
 
     bool rmdir(const char *filepath) {
+        enforce8Dot3(filepath);
         std::string full_path = _base_path + (filepath[0] == '/' ? filepath + 1 : filepath);
         return system(("rm -rf " + full_path).c_str()) == 0;
     }

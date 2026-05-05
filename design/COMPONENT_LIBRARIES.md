@@ -238,10 +238,10 @@ The `MemoryCard` strictly owns the "cursor" (`currentIndex`) during the `PlayerS
 
 #### Game Session Management
 - **`struct UndoResult { uint8_t playerIndex; int score; uint8_t farkles; }`**: Data returned when a turn is reverted.
-- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and creates `sys/active_id.txt`. Returns the new Game ID.
+- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and creates `sys/curr_id.txt`. Returns the new Game ID.
 - **`void logTurn(uint8_t playerIndex, int score, uint8_t farkleCount, bool finalRound, bool penalty)`**: Appends a 32-bit packed record to the `journal.bin` of the active game.
 - **`UndoResult undoLastTurn()`**: Reverts the last record in `journal.bin` and returns the player's previous state (via "Scan Back" logic).
-- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/` and deletes `sys/active_id.txt`.
+- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/` and deletes `sys/curr_id.txt`.
 
 #### Recovery & Preview
 - **`std::vector<uint32_t> getPartialGameIds()`**: Returns a list of IDs currently in the `/partial/` directory.

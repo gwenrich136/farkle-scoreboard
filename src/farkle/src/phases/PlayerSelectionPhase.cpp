@@ -45,9 +45,9 @@ GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput 
             game.getMemoryCard().finalizeSelection();
 
             uint32_t gameId = game.getMemoryCard().getOrGenerateNextGameId();
-            game.getMemoryCard().setActiveGameId(gameId);
             game.getMemoryCard().initializeGameDirectory(gameId);
             game.getMemoryCard().writeGameMetadata(gameId, state);
+            game.getMemoryCard().setActiveGameId(gameId);
 
             return game.getPhase<WaitingPhase>();
         }

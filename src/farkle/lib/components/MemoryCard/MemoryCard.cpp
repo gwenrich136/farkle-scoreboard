@@ -225,12 +225,13 @@ void MemoryCard::setActiveGameId(uint32_t id) {
     if (!SD.exists("/sys")) {
         SD.mkdir("/sys");
     }
-    SD.remove("/sys/active_id.txt");
-    File f = SD.open("/sys/active_id.txt", FILE_WRITE);
+    SD.remove("/sys/curr_id.txt");
+    File f = SD.open("/sys/curr_id.txt", FILE_WRITE);
     if (f) {
         char idBuf[16];
         snprintf(idBuf, sizeof(idBuf), "%08lu", (unsigned long)id);
         f.println(idBuf);
+        f.flush();
         f.close();
     }
 }
@@ -265,6 +266,7 @@ void MemoryCard::writeGameMetadata(uint32_t gameId, const GameState& state) {
     }
 
     serializeJson(doc, f);
+    f.flush();
     f.close();
 }
 
@@ -352,6 +354,7 @@ void MemoryCard::appendTurnRecord(uint32_t record) {
 
     // Write the 32-bit integer in little-endian format
     f.write((const uint8_t*)&record, sizeof(record));
+    f.flush();
     f.close();
 }
 
@@ -395,7 +398,10 @@ void MemoryCard::finalizeGame(const GameState& state) {
         }
     }
     if (journal) journal.close();
-    if (csv)     csv.close();
+    if (csv) {
+        csv.flush();
+        csv.close();
+    }
 
     // Clean up partial directory
     char metaPath[64];
@@ -406,7 +412,7 @@ void MemoryCard::finalizeGame(const GameState& state) {
     SD.remove(metaPath);
     SD.remove(partialJournalPath);
     SD.rmdir(dirPath);
-    SD.remove("/sys/active_id.txt");
+    SD.remove("/sys/curr_id.txt");
 
     _activeGameId = 0; // Game is finalized
 }

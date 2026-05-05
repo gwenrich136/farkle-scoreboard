@@ -93,7 +93,7 @@ This category handles user input for scoring, provides feedback through animatio
         *   Delete `/partial/[ID]/meta.jsn`.
         *   Delete `/partial/[ID]/journal.bin`.
         *   Remove the `/partial/[ID]/` directory.
-        *   Delete `/sys/active_id.txt`.
+        *   Delete `/sys/curr_id.txt`.
         *   Reset the internal `_activeGameId` to 0.
     3.  **Freeze:** After finalization, `update()` returns `this` on every subsequent call, ignoring all user input.
     4.  **Display:** Shows the winner's name and score message, freezes the LED progress grid at the final scores, and blinks the winning score on the `COMPETITION_SCORE` display.

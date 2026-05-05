@@ -111,12 +111,26 @@ void test_PlayerSelection_TransitionValidation() {
 
     // Verify MemoryCard file lifecycle methods were called
     TEST_ASSERT_TRUE(game.getMemoryCard().mock_getOrGenerateNextGameId_called);
-    TEST_ASSERT_TRUE(game.getMemoryCard().mock_setActiveGameId_called);
-    TEST_ASSERT_EQUAL_UINT32(42, game.getMemoryCard().mock_setActiveGameId_arg);
     TEST_ASSERT_TRUE(game.getMemoryCard().mock_initializeGameDirectory_called);
     TEST_ASSERT_EQUAL_UINT32(42, game.getMemoryCard().mock_initializeGameDirectory_arg);
     TEST_ASSERT_TRUE(game.getMemoryCard().mock_writeGameMetadata_called);
     TEST_ASSERT_EQUAL_UINT32(42, game.getMemoryCard().mock_writeGameMetadata_arg);
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_setActiveGameId_called);
+    TEST_ASSERT_EQUAL_UINT32(42, game.getMemoryCard().mock_setActiveGameId_arg);
+
+    // Verify Call Order: setActiveGameId MUST be called after directory init and metadata write
+    // This ensures that the recovery system only sees a valid game ID if its files are durable.
+    const auto& order = game.getMemoryCard().mock_call_order;
+    int idx_id = -1, idx_dir = -1, idx_meta = -1, idx_active = -1;
+    for(int i=0; i<(int)order.size(); ++i) {
+        if(order[i] == "getOrGenerateNextGameId") idx_id = i;
+        if(order[i] == "initializeGameDirectory") idx_dir = i;
+        if(order[i] == "writeGameMetadata") idx_meta = i;
+        if(order[i] == "setActiveGameId") idx_active = i;
+    }
+    TEST_ASSERT_TRUE(idx_id < idx_active);
+    TEST_ASSERT_TRUE(idx_dir < idx_active);
+    TEST_ASSERT_TRUE(idx_meta < idx_active);
 
     // Should be in WaitingPhase (OLED shows Head-to-Head info now instead of basic message)
     TEST_ASSERT_EQUAL_STRING("Geewee", game.textDisplay.captured_p1Name.c_str());

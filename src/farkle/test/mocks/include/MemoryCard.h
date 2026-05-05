@@ -57,6 +57,7 @@ public:
     void _setMockPlayers(const std::vector<std::string>& players);
 
     // Spy variables
+    std::vector<std::string> mock_call_order;
     bool mock_getOrGenerateNextGameId_called = false;
     bool mock_setActiveGameId_called = false;
     uint32_t mock_setActiveGameId_arg = 0;

@@ -74,21 +74,25 @@ void MemoryCard::finalizeSelection() {
 }
 
 uint32_t MemoryCard::getOrGenerateNextGameId() {
+    mock_call_order.push_back("getOrGenerateNextGameId");
     mock_getOrGenerateNextGameId_called = true;
     return 42; // mock implementation
 }
 
 void MemoryCard::setActiveGameId(uint32_t id) {
+    mock_call_order.push_back("setActiveGameId");
     mock_setActiveGameId_called = true;
     mock_setActiveGameId_arg = id;
 }
 
 void MemoryCard::initializeGameDirectory(uint32_t id) {
+    mock_call_order.push_back("initializeGameDirectory");
     mock_initializeGameDirectory_called = true;
     mock_initializeGameDirectory_arg = id;
 }
 
 void MemoryCard::writeGameMetadata(uint32_t gameId, const GameState& state) {
+    mock_call_order.push_back("writeGameMetadata");
     mock_writeGameMetadata_called = true;
     mock_writeGameMetadata_arg = gameId;
 }
