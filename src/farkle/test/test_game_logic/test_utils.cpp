@@ -48,6 +48,10 @@ void setupGameWithPlayers(Game& game, int numPlayers) {
 void simulatePregameFlow(Game& game, int numPlayers) {
     game.setup();
 
+    // 0. Transition from StartupPhase to TargetScoreSelectionPhase
+    simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
+
     // 1. Transition from TargetScoreSelectionPhase to PlayerSelectionPhase
     simulateButtonPress(game, ButtonAction::SELECT);
     game.loop();

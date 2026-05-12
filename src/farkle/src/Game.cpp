@@ -45,7 +45,7 @@ void Game::setup() {
     resetGame();
 
     // 3. Set Initial State
-    currentPhase = &phasePool.targetScoreSelection;
+    currentPhase = &phasePool.startup;
     currentPhase->onEnter(state);
     
     lastUpdateTime = millis();

@@ -20,6 +20,14 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     game.setup();
     game.loop();
 
+    // 0. Startup Phase
+    TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("New Game", game.textDisplay.captured_item.c_str());
+
+    // Transition to Target Score Selection
+    simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
+
     // 1. Target Score Selection
     TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
     TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
