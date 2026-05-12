@@ -288,3 +288,8 @@ To prevent phantom inputs when pressing multiple buttons on the bus (like the Gh
 ### 7.4 No-Repeat & Undefined States
 *   **Single Trigger**: Holding a bus button (e.g., `PLUS_50`) must result in exactly one action. A return to the "Neutral" bus state (0) is required before another action can be triggered.
 *   **Undefined States**: Ensure that any unmapped decimal bus values default gracefully to `ButtonAction::NONE`.
+
+## 8. Setup and Pregame Flow Principles
+To ensure tests are concise, robust, and fast, the following setup principles must be adhered to:
+1.  **Direct State Setup:** For all small and intermediate (medium) game logic tests, do NOT simulate the pregame flow (Target Score Selection, Player Selection). Use the provided `setupGameWithPlayers` helper, which directly constructs the game state internally, forces a jump to `WaitingPhase`, and bypasses the lengthy initial user interface sequences.
+2.  **Full Lifecycle Simulation:** For large end-to-end tests (or tests specifically designed to verify the pregame phase input logic), use the `simulatePregameFlow` helper to walk through the actual button inputs and rotation commands required to set up and start a game.
