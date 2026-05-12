@@ -11,9 +11,22 @@ The goal of this category is to populate the `GameState` with the necessary info
 
 ## 3. Phase Relationships
 The system follows this sequence:
-`TargetScoreSelectionPhase` -> `PlayerSelectionPhase` -> `WaitingPhase` (In-Game)
+`StartupPhase` -> `TargetScoreSelectionPhase` -> `PlayerSelectionPhase` -> `WaitingPhase` (In-Game)
 
 ## 4. Technical Details
+
+### StartupPhase
+*   **Why:** Serves as the absolute first entry point for the game upon boot. Currently functions as a dummy phase to introduce the UI layer but will be expanded with more options later.
+*   **Inherits From:** `PreGamePhase`
+*   **Defined in:** `src/farkle/include/phases/StartupPhase.h` & `src/farkle/src/phases/StartupPhase.cpp`
+*   **Implementation Details:**
+    1.  **Selection Logic**: Currently provides a single static option, "New Game".
+    2.  **Navigation**: No other items to navigate to. Encoder rotations are ignored.
+    3.  **Confirmation (SELECT)**:
+        *   Transitions the user to the `TargetScoreSelectionPhase`.
+    4.  **Display Behavior (Hooks)**:
+        *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Farkle!", "New Game")`.
+        *   **`updateProgressGrid()`**: The grid is already cleared via `Game::resetGame()`.
 
 ### PreGamePhase
 *   **Why:** Intermediate class for all pre-game states. It provides shared display behavior and ensures the scoreboard's secondary displays are used consistently during setup.

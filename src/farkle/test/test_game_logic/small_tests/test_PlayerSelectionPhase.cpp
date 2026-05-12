@@ -4,14 +4,18 @@
 #include <unity.h>
 #include "Arduino.h"
 
+// Helper function to setup game and transition to PlayerSelectionPhase
+void setup_and_transition_to_player_selection(Game& game) {
+    game.setup();
+    simulateButtonPress(game, ButtonAction::SELECT); // Transition from StartupPhase to TargetScore
+    simulateButtonPress(game, ButtonAction::SELECT); // Transition from TargetScore to PlayerSelection
+    game.loop(); // Run one extra loop to allow MemoryCard to initialize
+}
+
 // Verifies that the phase starts with the first name in the pool ("Geewee") and an empty player list.
 void test_PlayerSelection_InitialState() {
     Game game;
-    game.setup();
-
-    // Transition to PlayerSelectionPhase
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop(); // Run one extra loop to allow MemoryCard to initialize
+    setup_and_transition_to_player_selection(game);
 
     // Should be in PlayerSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
@@ -22,9 +26,7 @@ void test_PlayerSelection_InitialState() {
 // Verifies that rotation increments and decrements the name list correctly, including boundaries.
 void test_PlayerSelection_Cycling() {
     Game game;
-    game.setup();
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop();
+    setup_and_transition_to_player_selection(game);
 
     // Next name
     simulateRotation(game, 1);
@@ -50,9 +52,7 @@ void test_PlayerSelection_Cycling() {
 // Verifies that pressing SELECT adds the selected name and the selection "stays in place" (shifts to next name).
 void test_PlayerSelection_AddPlayer() {
     Game game;
-    game.setup();
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop();
+    setup_and_transition_to_player_selection(game);
 
     // Navigate to Sammy (index 1)
     simulateRotation(game, 1);
@@ -74,9 +74,7 @@ void test_PlayerSelection_AddPlayer() {
 // Verifies that multiple added players are all removed from the selection list and index stays valid.
 void test_PlayerSelection_Filtering() {
     Game game;
-    game.setup();
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop();
+    setup_and_transition_to_player_selection(game);
 
     // Add Geewee (index 0)
     simulateButtonPress(game, ButtonAction::SELECT);
@@ -96,10 +94,9 @@ void test_PlayerSelection_Filtering() {
 // Verifies that the game cannot start with 0 players but successfully transitions with >= 1.
 void test_PlayerSelection_TransitionValidation() {
     Game game;
-    game.setup();
+    setup_and_transition_to_player_selection(game);
 
     // Cannot start with 0 players
-    simulateButtonPress(game, ButtonAction::SELECT); // Transition from TargetScore to PlayerSelection
     simulateButtonPress(game, ButtonAction::FARKLE); // Try to start with 0
     TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
 
@@ -140,9 +137,7 @@ void test_PlayerSelection_TransitionValidation() {
 // Verifies that the phase respects the 8-player hardware limit and shows "ROSTER FULL" using a simple print.
 void test_PlayerSelection_MaxPlayers() {
     Game game;
-    game.setup();
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop();
+    setup_and_transition_to_player_selection(game);
 
     // Add 8 players
     simulateButtonPress(game, ButtonAction::SELECT, 8);
@@ -159,9 +154,7 @@ void test_PlayerSelection_MaxPlayers() {
 // Verifies that adding the last name in the filtered pool falls back to the previous name, not wrapping to 0.
 void test_PlayerSelection_AddLastPlayerFallsBack() {
     Game game;
-    game.setup();
-    simulateButtonPress(game, ButtonAction::SELECT);
-    game.loop();
+    setup_and_transition_to_player_selection(game);
 
     // Pool size is 9. Move to last (index 8: Andrea)
     for(int i=0; i<8; ++i) simulateRotation(game, 1);
