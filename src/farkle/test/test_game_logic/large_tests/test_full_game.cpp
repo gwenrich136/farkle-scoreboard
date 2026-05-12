@@ -11,7 +11,7 @@ void advance_to_player_zero(Game& game);
 // Simulates a full game where players take turns scoring until one player reaches the target score, triggering the final round.
 void test_FullGame_StandardGame() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
@@ -40,7 +40,7 @@ void test_FullGame_StandardGame() {
 // Verifies that finalizeGame is called exactly once regardless of how many loops run in PostGamePhase_V1
 void test_PostGame_FinalizeCalledOnce() {
     Game game;
-    setupGameWithPlayers(game, 2);
+    simulatePregameFlow(game, 2);
 
     // Get player 0 to 9500 points
     game.state.players[0].score = 9500;
@@ -72,7 +72,7 @@ void test_PostGame_FinalizeCalledOnce() {
 // Test function to verify the triple farkle penalty and reset behavior
 void test_FullGame_TripleFarkle() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
     game.state.players[0].score = 2500; // Give player 1 some points
 
     // --- First Farkle ---
@@ -108,7 +108,7 @@ void test_FullGame_TripleFarkle() {
 
 void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     // --- Player 0 scores 500 points ---
     simulateButtonPress(game, ButtonAction::PLUS_500);
@@ -152,7 +152,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
 
 void test_FullGame_AutoAdvanceTurn() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
@@ -180,7 +180,7 @@ void test_FullGame_AutoAdvanceTurn() {
 // Verifies that the Competition Score display begins blinking as soon as the final round is triggered.
 void test_FullGame_FinalRoundBlinking() {
     Game game;
-    setupGameWithPlayers(game, 2);
+    simulatePregameFlow(game, 2);
 
     // Player 0 is about to reach the target score (10,000)
     game.state.players[0].score = 9500;
@@ -217,7 +217,7 @@ void test_FullGame_FinalRoundBlinking() {
 // Full Game With Score Toggle Simulation
 void test_FullGame_ScoreToggle() {
     Game game;
-    setupGameWithPlayers(game, 2);
+    simulatePregameFlow(game, 2);
 
     // Toggle switch to PENDING
     game.controlPad.setToggleState(ScoreDisplayMode::PENDING);
