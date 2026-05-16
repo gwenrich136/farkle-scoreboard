@@ -28,14 +28,16 @@ GamePhase* StartupPhase::launchResumeGame(Game& game, GameState& state) {
         game.getMemoryCard().replayGameJournal(state)) {
         return game.getPhase<WaitingPhase>();
     } else {
-        // If it failed to resume, fall back to new game
+        // If it failed to resume, fall back to StartupPhase to let user pick again
         game.getMemoryCard().clearActiveGame();
-        return game.getPhase<TargetScoreSelectionPhase>();
+        populateOptions(game);
+        _selectionIndex = 0;
+        return this;
     }
 }
 
 GamePhase* StartupPhase::launchStartNewGame(Game& game, GameState& state) {
-    game.getMemoryCard().clearActiveGame();
+    // Only clears curr_id file, not the partial game files which happens on player selection finalize
     return game.getPhase<TargetScoreSelectionPhase>();
 }
 
