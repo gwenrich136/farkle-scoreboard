@@ -98,19 +98,26 @@ void test_StartupPhase_Resume_NewGameSelection() {
     simulateButtonPress(game, ButtonAction::SELECT);
 
     TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
-    TEST_ASSERT_TRUE(game.getMemoryCard().mock_clearActiveGame_called);
+    TEST_ASSERT_FALSE(game.getMemoryCard().mock_clearActiveGame_called); // Should NOT clear active game
 }
 
-// Verifies falling back to new game if resume fails
+// Verifies falling back to StartupPhase if resume fails
 void test_StartupPhase_Resume_FallbackOnFailure() {
     Game game;
     game.getMemoryCard().mock_hasActiveGame_result = true;
     game.getMemoryCard().mock_loadGameMetadata_result = false; // fail!
     game.setup();
 
+    // After failure, it should clear the broken active game and return to StartupPhase.
+    // However, since mock_hasActiveGame_result is hardcoded to true in the mock, populateOptions
+    // inside launchResumeGame will still think there is an active game. Let's toggle the mock result
+    // to simulate clearing it properly.
+    game.getMemoryCard().mock_hasActiveGame_result = false;
+
     simulateButtonPress(game, ButtonAction::SELECT);
 
-    TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("New Game", game.textDisplay.captured_item.c_str());
     TEST_ASSERT_TRUE(game.getMemoryCard().mock_clearActiveGame_called);
 }
 
