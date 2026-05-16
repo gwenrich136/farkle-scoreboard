@@ -24,7 +24,7 @@ The system follows this sequence:
     2.  **Navigation**:
         *   **Encoder Rotation**: Toggles between options (if active game exists).
     3.  **Confirmation (SELECT)**:
-        *   If "Resume Game" is selected, calls `loadGameMetadata` and `replayGameJournal`. On success, transitions directly to `WaitingPhase`. On failure, clears active game state and falls back to `TargetScoreSelectionPhase`.
+        *   If "Resume Game" is selected, calls `loadGameMetadata` and `replayGameJournal`. On success, calls `game.resumeGameDisplays()` to synchronize the hardware progress grid and score displays with the restored state, then transitions directly to `WaitingPhase`. On failure, clears active game state and falls back to `TargetScoreSelectionPhase`.
         *   If "New Game" is selected (or if no active game was present), clears any lingering active game state and transitions to `TargetScoreSelectionPhase`.
     4.  **Display Behavior (Hooks)**:
         *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Farkle!", currentSelection)` where `currentSelection` is "Resume Game" or "New Game".

@@ -8,6 +8,7 @@ void test_FullGame_TripleFarkle();
 void test_FullGame_TripleFarkle_ScoreLessThanPenalty();
 void test_FullGame_FinalRoundBlinking();
 void test_PostGame_FinalizeCalledOnce();
+void test_FullGame_ResumeActiveGame_GridInitialization();
 void run_full_game_tests();
 void advance_to_player_zero(Game& game);
 

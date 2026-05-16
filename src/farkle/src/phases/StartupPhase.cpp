@@ -26,6 +26,7 @@ StartupOption StartupPhase::getSelectedOption() const {
 GamePhase* StartupPhase::launchResumeGame(Game& game, GameState& state) {
     if (game.getMemoryCard().loadGameMetadata(state) &&
         game.getMemoryCard().replayGameJournal(state)) {
+        game.resumeGameDisplays();
         return game.getPhase<WaitingPhase>();
     } else {
         // If it failed to resume, fall back to StartupPhase to let user pick again

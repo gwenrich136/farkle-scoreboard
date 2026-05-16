@@ -199,6 +199,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FullGame_ScoreToggle`**: Verifies a full game loop incorporating the Total Score Toggle functionality, ensuring the display reads differently based on the switch state.
     *   **`test_PostGame_FinalizeCalledOnce`**: Verifies that `MemoryCard::finalizeGame()` is called exactly once when the game ends, even when `PostGamePhase_V1::update()` is called multiple times in the frozen state. Also asserts the correct sequence: final round triggered → last player takes turn → WaitingPhase detects win on next entry.
     *   **`test_FullGame_ResumeActiveGame`**: Verifies the end-to-end recovery of an active game. Ensures that when `MemoryCard::hasActiveGame()` is true, the `StartupPhase` allows selecting "Resume Game" which loads metadata and game journal successfully, skips player selection, and starts directly in the `WaitingPhase` with the correct state.
+    *   **`test_FullGame_ResumeActiveGame_GridInitialization`**: Verifies that resuming an active game correctly calls `resumeGameDisplays()` to initialize the hardware progress grid with restored players and target score.
 
 
 ## 5. Implementation Steps

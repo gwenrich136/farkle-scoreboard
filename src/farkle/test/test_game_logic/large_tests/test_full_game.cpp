@@ -299,6 +299,30 @@ void test_FullGame_ResumeActiveGame() {
     TEST_ASSERT_TRUE(game.getMemoryCard().mock_appendTurnRecord_called);
 }
 
+#define RESUME_EXPECTED_TARGET_SCORE 10000
+#define RESUME_EXPECTED_PLAYER_COUNT 2
+
+// Verifies that resuming an active game correctly initializes the hardware progress grid with restored players and target score.
+void test_FullGame_ResumeActiveGame_GridInitialization() {
+    Game game;
+
+    game.getMemoryCard().mock_hasActiveGame_result = true;
+    game.getMemoryCard().mock_loadGameMetadata_result = true;
+    game.getMemoryCard().mock_replayGameJournal_result = true;
+
+    game.setup();
+    game.getMemoryCard().setupGameFromHardcodedPartialGame(game.state);
+
+    game.loop(); // Render StartupPhase
+
+    // Select "Resume Game"
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    // Verify that the LedProgressGrid has been properly initialized
+    TEST_ASSERT_EQUAL_INT(RESUME_EXPECTED_PLAYER_COUNT, game.grid.player_count);
+    TEST_ASSERT_EQUAL_INT(RESUME_EXPECTED_TARGET_SCORE, game.grid.captured_targetScore);
+}
+
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
@@ -308,4 +332,5 @@ void run_full_game_tests() {
     RUN_TEST(test_FullGame_ScoreToggle);
     RUN_TEST(test_PostGame_FinalizeCalledOnce);
     RUN_TEST(test_FullGame_ResumeActiveGame);
+    RUN_TEST(test_FullGame_ResumeActiveGame_GridInitialization);
 }

@@ -97,6 +97,17 @@ void Game::resetGame() {
     scoreDisplay.clear(ScoreDisplay::DisplayType::COMPETITION_SCORE);
 }
 
+void Game::resumeGameDisplays() {
+    grid.reset();
+    grid.setTargetScore(state.targetScore);
+    for (const auto& player : state.players) {
+        grid.addPlayer(player.hue);
+    }
+    scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    scoreDisplay.clear(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+    scoreDisplay.clear(ScoreDisplay::DisplayType::COMPETITION_SCORE);
+}
+
 void Game::setTargetScore(int target) {
     state.targetScore = target;
     grid.setTargetScore(target);

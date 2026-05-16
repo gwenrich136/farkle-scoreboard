@@ -49,6 +49,7 @@ public:
     void addPlayer(const char* name);
     bool canAddPlayer();
     void resetGame();
+    void resumeGameDisplays();
     void setTargetScore(int target);
     MemoryCard& getMemoryCard() { return memoryCard; }
 
