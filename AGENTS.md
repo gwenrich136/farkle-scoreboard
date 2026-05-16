@@ -4,7 +4,7 @@ This document serves as the **SINGLE SOURCE OF TRUTH** for any AI agent, coding 
 
 ## 1. CRITICAL: The Golden Rules
 *   **Context First:** Before writing a single line of code or answering a question, you **MUST** read the contents of the `design/` directory. These are not "histories"; they are the current live specification.
-*   **Branching:** Unless explicitly told otherwise, **ALWAYS** check out and build off the `beta-testing` branch. Do not work on `main`.
+*   **Branching:** Unless explicitly told otherwise, **ALWAYS** check out and build off the `dev` branch. Do not work on `main`.
 *   **Live Documentation:**
     *   If code changes, the corresponding design doc in `design/` **must** change.
     *   If a test case is added, it must be reflected in `design/TESTING_STRATEGY.md`.

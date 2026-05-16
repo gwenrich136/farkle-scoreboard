@@ -20,12 +20,21 @@ void test_TurnLifecycle_FullSetupAndTurn() {
     game.setup();
     game.loop();
 
+    // 0. Startup Phase
+    TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("New Game", game.textDisplay.captured_item.c_str());
+
+    // Transition to Target Score Selection
+    simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
+
     // 1. Target Score Selection
     TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
     TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
 
     // Transition to Player Selection
     simulateButtonPress(game, ButtonAction::SELECT);
+    game.loop();
 
     // 2. Initial selection state (Geewee selected)
     TEST_ASSERT_EQUAL_STRING("Add Player", game.textDisplay.captured_title.c_str());
@@ -77,6 +86,11 @@ void test_TurnLifecycle_StandardTurn() {
     TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
     TEST_ASSERT_EQUAL_INT(1500, game.state.players[0].score);
     TEST_ASSERT_EQUAL_INT(0, game.state.atRiskScore);
+
+    // Verify journal append
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_appendTurnRecord_called);
+    TEST_ASSERT_EQUAL_INT(1, game.getMemoryCard().mock_appendTurnRecord_args.size());
+    TEST_ASSERT_EQUAL_UINT32(1500, game.getMemoryCard().mock_appendTurnRecord_args[0]);
 }
 
 // Verifies that the game correctly cycles through all players.

@@ -7,6 +7,7 @@
 #include "GamePhase.h"
 #include <type_traits>
 
+#include "phases/StartupPhase.h"
 #include "phases/TargetScoreSelectionPhase.h"
 #include "phases/PlayerSelectionPhase.h"
 #include "phases/WaitingPhase.h"
@@ -22,6 +23,7 @@
 #include "LedProgressGrid.h"
 #include "FarkleWarningLights.h"
 #include "TextDisplayV2.h"
+#include "MemoryCard.h"
 
 class Game {
 public:
@@ -32,6 +34,7 @@ public:
     // Templated helper to get a pointer to a specific phase from the pool
     template<typename T>
     T* getPhase() {
+        if (std::is_same<T, StartupPhase>::value) return (T*)&phasePool.startup;
         if (std::is_same<T, TargetScoreSelectionPhase>::value) return (T*)&phasePool.targetScoreSelection;
         if (std::is_same<T, PlayerSelectionPhase>::value) return (T*)&phasePool.playerSelection;
         if (std::is_same<T, WaitingPhase>::value) return (T*)&phasePool.waiting;
@@ -43,10 +46,12 @@ public:
         return nullptr;
     }
 
-    void addPlayer(const std::string& name);
+    void addPlayer(const char* name);
     bool canAddPlayer();
     void resetGame();
+    void resumeGameDisplays();
     void setTargetScore(int target);
+    MemoryCard& getMemoryCard() { return memoryCard; }
 
 #ifdef UNIT_TEST
 public:
@@ -54,6 +59,7 @@ public:
 private:
 #endif
     struct PhasePool {
+        StartupPhase startup;
         TargetScoreSelectionPhase targetScoreSelection;
         PlayerSelectionPhase playerSelection;
         WaitingPhase waiting;
@@ -75,6 +81,7 @@ private:
     LedProgressGrid grid;
     FarkleWarningLights farkleLights;
     TextDisplayV2 textDisplay;
+    MemoryCard memoryCard;
 };
 
 #endif

@@ -17,6 +17,7 @@ This category handles user input for scoring, provides feedback through animatio
 - All animation phases (`BankingPhase`, `FarklingPhase`, `PenaltyFarklingPhase`) return to `EndOfTurnPhase` after animation completion.
 - `EndOfTurnPhase` returns to `WaitingPhase` after a button press or after 5 seconds of inactivity.
 - `WaitingPhase` transitions to `PostGamePhase_V1` when a player reaches the target score and the final round completes.
+- `PostGamePhase_V1` is the terminal state. On its first `update()`, it calls `MemoryCard::finalizeGame()` to archive the game. It then freezes forever.
 
 ## 4. Technical Details
 
@@ -28,6 +29,14 @@ This category handles user input for scoring, provides feedback through animatio
     *   **Handle Score Input:** A `switch(input.action)` block handles `PLUS_50`, `PLUS_100`, and `PLUS_500` by modifying `state.atRiskScore`.
     *   **Handle Navigation (Competitor Preview):** Uses `input.rotationDelta` (Encoder) to cycle through other players' scores on the `COMPETITION_SCORE` display.
     *   **Handle Transitions:** If `BANK` is pressed, `return game.getPhase<BankingPhase>();`. If `FARKLE` is pressed, it checks the current player's `farkle_count`. If the count is 2 or more, it `return game.getPhase<PenaltyFarklingPhase>();`. Otherwise, it `return game.getPhase<FarklingPhase>();`.
+    *   **Handle Undo:** If `UNDO` is pressed (mapped to `BANK + CLEAR` combo), it calls `game.getMemoryCard().undoLastTurn()`. On success:
+        1. Steps `currentPlayerIndex` back one with wrap-around (e.g., 0 → last player).
+        2. Restores the previous player's `score` and `farkle_count` from the `UndoResult`.
+        3. Clears `state.atRiskScore` to 0.
+        4. Calls `_recomputeLeaderboard(state)` to re-rank players and set the correct default competitor (e.g., if the undo lands on the leader, rank 1 is shown rather than the leader seeing their own score).
+        On failure (empty journal), state is left unchanged.
+*   **Private Helpers:**
+    *   **`_recomputeLeaderboard(state)`**: Sorts `state.rankedPlayerIndices` by score (with turn-distance tie-breaking) and sets `state.currentCompetitorRank`. Defaults competitor to rank 0, but bumps to rank 1 if rank 0 is the current player. Called by both `onEnter()` and the `UNDO` handler to guarantee consistent competitor display behavior on any turn change.
 
 ### BankingPhase
 *   **Why:** Implements the banking animation and the end-of-turn logic that follows.
@@ -66,16 +75,32 @@ This category handles user input for scoring, provides feedback through animatio
     1.  **Wait for Dismissal:** The `update()` method waits for any button press (`input.action != NONE`) or for a 5-second timeout (`m_elapsedTime >= 5000`).
     2.  **Finalize Turn:** Once a button is pressed or the 5-second timeout occurs:
         a. Check if `!state.finalRoundTriggered` and if the current player's score is now `>= state.targetScore`. If so, set `state.finalRoundTriggered = true;`.
-        b. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex`.
-        c. `return game.getPhase<WaitingPhase>();`.
+        b. Pack the turn data (Score, Player Index, Farkle Count, Final Round flag, and Penalty flag) into a 32-bit `TurnRecord` and call `MemoryCard::appendTurnRecord()` to save the turn to the SD card's journal file (`journal.bin`).
+        c. Call the shared helper `this->endTurn(state);` to advance the `currentPlayerIndex` and reset turn flags.
+        d. `return game.getPhase<WaitingPhase>();`.
 
 *   **Refactoring Note:** To support the unique display requirements (flashing score, alternating lights, and conditional at-risk display), `InGamePhase::display()` is refactored into smaller virtual hooks:
     *   `updateWarningLights()`: Collects the `farkle_count` for all players and the `currentPlayerIndex`. It passes this data to the `FarkleWarningLights` component to update the entire 8-LED Status Strip (current player flashing, others dim/solid).
     *   `updateScoreDisplays()`: Decomposed into sub-hooks for the three segments: `updateAtRiskScoreDisplay()`, `updateCurrentPlayerScoreDisplay()`, and `updateCompetitionScoreDisplay()`.
 
+### PostGamePhase_V1
+*   **Why:** Implements the terminal game-over state that archives the completed game to the SD card and freezes the display on the winner.
+*   **Defined in:** `src/farkle/include/phases/PostGamePhase_V1.h` & `src/farkle/src/phases/PostGamePhase_V1.cpp`
+*   **Implementation Details:**
+    1.  **On Enter (`onEnter`):** Identifies the winner from `state.rankedPlayerIndices[0]`, captures the winner's name and score for display, and caches all player scores for the final grid render. Resets the `m_finalized` guard flag to `false`.
+    2.  **Archiving (first `update()`):** On the first invocation of `update()`, it calls `game.getMemoryCard().finalizeGame(state)` to move the game from `/partial/` to `/archive/` using a copy-mark-delete flow:
+        *   Create `/archive/[ID]/` directory.
+        *   Copy `journal.bin` from `/partial/[ID]/` to `/archive/[ID]/`.
+        *   Rewrite `meta.jsn` into `/archive/[ID]/` with `"completed": true`.
+        *   Delete `/partial/[ID]/journal.bin`, `/partial/[ID]/meta.jsn`, and the `/partial/[ID]/` directory.
+        *   Delete `/sys/curr_id.txt`.
+        *   Reset the internal `_activeGameId` to 0.
+    3.  **Freeze:** After finalization, `update()` returns `this` on every subsequent call, ignoring all user input.
+    4.  **Display:** Shows the winner's name and score message, freezes the LED progress grid at the final scores, and blinks the winning score on the `COMPETITION_SCORE` display.
+
 ### Visual Feedback
 -   **Unified Color Identity:** The `TextDisplayV2` renders the active player's name and critical turn information in the `Player.color` stored in the `GameState`. This matches the player's row on the `LedProgressGrid`, creating a cohesive visual link between the scoreboard and the high-resolution UI.
--   **Head-to-Head Display:** During all `InGamePhase` subclasses, the `TextDisplayV2` shows a split-screen "Leaderboard" view. The top half displays the current player's name and rank (e.g., "1st", "2nd"), colored in their hue. The bottom half displays the current game leader's name and rank, wrapped in selection arrows to indicate that the user can theoretically scroll through the competition. Both players' ranks are aligned to the left edge of their respective names.
+-   **Head-to-Head Display:** During all `InGamePhase` subclasses, the `TextDisplayV2` shows a split-screen "Leaderboard" view. The top half displays the current player's name and rank (e.g., "1st", "2nd"), colored in their hue. The bottom half displays the currently selected competitor's name and rank (which defaults to the 1st place player, or the 2nd place player if the current player is in 1st place), wrapped in selection arrows to indicate that the user can scroll through the competition. The user can scroll through the entire leaderboard, including selecting the current player, causing their name to appear on both the top and bottom halves of the screen. Both players' ranks are aligned to the left edge of their respective names.
 -   **Turn Indicator (FarkleWarningLights):**
     -   **WaitingPhase:** The current player's LED blinks (White/Yellow/Red) to indicate it is their turn to act.
     -   **Banking/Farkling Phases:** The current player's LED becomes solid (like other players) during animations, reducing visual noise.

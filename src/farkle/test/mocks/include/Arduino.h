@@ -54,6 +54,9 @@ int getMockPinMode(int pin);
 void triggerInterrupt(int pin);
 void resetMockPins();
 
+void randomSeed(unsigned long seed);
+extern unsigned long lastRandomSeed;
+
 long random(long max);
 long random(long min, long max);
 long map(long x, long in_min, long in_max, long out_min, long out_max);
@@ -62,5 +65,22 @@ template<typename T>
 T max(T a, T b) {
     return (a > b) ? a : b;
 }
+
+#include <string>
+
+class String : public std::string {
+public:
+    String() : std::string() {}
+    String(const char* s) : std::string(s) {}
+    String(const std::string& s) : std::string(s) {}
+
+    int toInt() const {
+        try {
+            return std::stoi(*this);
+        } catch (...) {
+            return 0;
+        }
+    }
+};
 
 #endif // ARDUINO_H

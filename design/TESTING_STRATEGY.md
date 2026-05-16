@@ -52,6 +52,7 @@ test/
 │   │   ├── Arduino.h
 │   │   ├── FastLED.h
 │   │   ├── EEPROM.h
+│   │   ├── MemoryCard.h    # Mock with spy variables for all lifecycle methods
 │   │   ├── ...
 │   └── src/
 │       ├── Arduino.cpp
@@ -63,9 +64,12 @@ test/
     ├── small_tests/
     │   ├── test_BankingPhase.cpp
     │   ├── test_FarklingPhase.cpp
+    │   ├── test_TurnRecord.cpp
     │   └── ...
     ├── medium_tests/
-    │   └── test_turn_lifecycle.cpp
+    │   ├── test_turn_lifecycle.cpp
+    │   ├── test_undo.cpp
+    │   └── ...
     └── large_tests/
         └── test_full_game.cpp
 ```
@@ -136,7 +140,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PlayerSelection_AddPlayer`**: Verifies that pressing **BANK** (Green) adds the selected name to the `GameState`, assigns a color in the `LedProgressGrid`, and removes the name from the selection list.
     *   **`test_PlayerSelection_Filtering`**: Verifies that multiple added players are all removed from the selection list and index stays valid.
     *   **`test_PlayerSelection_MaxPlayers`**: Verifies that the phase respects the hardware limit by disabling player addition once the `LedProgressGrid` is full (8 players).
-    *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists.
+    *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists. Also asserts that `getOrGenerateNextGameId`, `initializeGameDirectory`, `writeGameMetadata`, and `setActiveGameId` are all called on `MemoryCard` when the game starts, verifying the full file lifecycle is triggered. Specifically, it enforces that `setActiveGameId` is called **LAST** to ensure a valid game is only "armed" after its metadata and directory are committed.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
 
 *   **`test_WaitingPhase.cpp`**
@@ -145,15 +149,27 @@ We will structure our tests into three tiers based on scope and complexity. This
 *   **`test_multi_press.cpp`** (Test Utilities Verification)
     *   **`test_simulate_button_press_count`**: Verifies that `simulateButtonPress` correctly interprets the optional `count` parameter to trigger multiple button presses in sequence, ensuring the test utility functions as intended.
 
+*   **`test_TurnRecord.cpp`** (Bit-Packing)
+    *   **`test_TurnRecord_pack_basic`**: Verifies that a standard turn record (non-zero score, non-leader player, 1 farkle) is correctly packed into the 32-bit integer format with each field in its correct bit position.
+    *   **`test_TurnRecord_pack_penalty`**: Verifies the extreme case where all fields are at their maximum values (score=0xFFFFF, player=15, farkles=2, finalRound=1, penalty=1) and all bits pack correctly without cross-contamination.
+
 ### 4.2 MEDIUM Tests (Integration Tests)
 **Focus:** Handoffs. Verification of state persistence across phase transitions.
 **Location:** `test/test_game_logic/medium_tests/`
 
 *   **`test_turn_lifecycle.cpp`**
     *   **`test_TurnLifecycle_FullSetupAndTurn`**: Enhanced to start in `TargetScoreSelectionPhase`, transition through `PlayerSelectionPhase`, add specific players, and verify that those specific players are the ones active during the `WaitingPhase`.
-    *   **`test_TurnLifecycle_StandardTurn`**: Verifies that a standard turn correctly banks the score and advances to the next player.
+    *   **`test_TurnLifecycle_StandardTurn`**: Verifies that a standard turn correctly banks the score and advances to the next player. Also asserts that `MemoryCard::appendTurnRecord()` is called with the correctly packed 32-bit record.
     *   **`test_TurnLifecycle_RoundRobin`**: Verifies that the game correctly cycles through the dynamic list of players created during setup.
     *   **`test_TurnLifecycle_ClearButton`**: Verifies that the clear button resets the `atRiskScore` to 0.
+
+*   **`test_undo.cpp`** (Undo Feature Integration)
+    *   **`test_Undo_StepsBackAndRestoresScore`**: Verifies that a successful undo steps `currentPlayerIndex` back one and restores the previous player's score and farkle count from the `UndoResult`.
+    *   **`test_Undo_NoOpWhenJournalEmpty`**: Verifies that a failed undo (e.g., journal is empty) leaves the entire `GameState` unchanged — score, player index, and farkle count are all unmodified.
+    *   **`test_Undo_WrapsAroundToLastPlayer`**: Verifies that undoing when `currentPlayerIndex` is 0 correctly wraps around to the last player in the roster.
+    *   **`test_Undo_ClearsPendingAtRiskScore`**: Verifies that a successful undo also clears any pending `atRiskScore` to 0, preventing phantom scores from the cancelled turn.
+    *   **`test_Undo_RestoresFarkleCount`**: Verifies that the previous player's `farkle_count` (not just their score) is correctly restored from the undo record, covering the case where a player had accumulated consecutive farkles.
+    *   **`test_Undo_CompetitorDisplayUpdatedForLeader`**: Verifies that when an undo lands on the leading player, `_recomputeLeaderboard` is called and `currentCompetitorRank` is set to 1 (showing 2nd place) rather than 0, preventing the leader from seeing their own score as the competitor.
 
 *   **`test_tie_breaking.cpp`**
     *   **`test_TieBreaking_Case1`**: Verifies that if multiple players reach the same score (exactly at target), the first one who reached it in the rotation wins. Also verifies the in-game ranked list logic during tiebreakers.
@@ -175,12 +191,15 @@ We will structure our tests into three tiers based on scope and complexity. This
 **Location:** `test/test_game_logic/large_tests/`
 
 *   **`test_full_game.cpp`**
-    *   **`test_FullGame_StandardGame`**: Replaces hardcoded initialization. The test now simulates the full user journey: Selecting 2-4 players -> Playing until target score -> Winner celebration -> Reset.
+    *   **`test_FullGame_StandardGame`**: Simulates a full game until `PostGamePhase_V1` is reached. Also asserts that `MemoryCard::finalizeGame()` was called, verifying the archive step (copy-mark-delete to `/archive/`) is triggered at game end.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
     *   **`test_FullGame_TripleFarkle_ScoreLessThanPenalty`:** Verifies that player score does not go negative when triple farkled.
     *   **`test_FullGame_AutoAdvanceTurn`:** Verifies that a full game can be completed solely via the 5-second automatic timeout for turn advancement.
     *   **`test_FullGame_FinalRoundBlinking`**: Verifies that the Competition Score display begins blinking as soon as the final round is triggered and remains blinking until the game ends.
     *   **`test_FullGame_ScoreToggle`**: Verifies a full game loop incorporating the Total Score Toggle functionality, ensuring the display reads differently based on the switch state.
+    *   **`test_PostGame_FinalizeCalledOnce`**: Verifies that `MemoryCard::finalizeGame()` is called exactly once when the game ends, even when `PostGamePhase_V1::update()` is called multiple times in the frozen state. Also asserts the correct sequence: final round triggered → last player takes turn → WaitingPhase detects win on next entry.
+    *   **`test_FullGame_ResumeActiveGame`**: Verifies the end-to-end recovery of an active game. Ensures that when `MemoryCard::hasActiveGame()` is true, the `StartupPhase` allows selecting "Resume Game" which loads metadata and game journal successfully, skips player selection, and starts directly in the `WaitingPhase` with the correct state.
+    *   **`test_FullGame_ResumeActiveGame_GridInitialization`**: Verifies that resuming an active game correctly calls `resumeGameDisplays()` to initialize the hardware progress grid with restored players and target score.
 
 
 ## 5. Implementation Steps
@@ -271,3 +290,8 @@ To prevent phantom inputs when pressing multiple buttons on the bus (like the Gh
 ### 7.4 No-Repeat & Undefined States
 *   **Single Trigger**: Holding a bus button (e.g., `PLUS_50`) must result in exactly one action. A return to the "Neutral" bus state (0) is required before another action can be triggered.
 *   **Undefined States**: Ensure that any unmapped decimal bus values default gracefully to `ButtonAction::NONE`.
+
+## 8. Setup and Pregame Flow Principles
+To ensure tests are concise, robust, and fast, the following setup principles must be adhered to:
+1.  **Direct State Setup:** For all small and intermediate (medium) game logic tests, do NOT simulate the pregame flow (Target Score Selection, Player Selection). Use the provided `setupGameWithPlayers` helper, which directly constructs the game state internally, forces a jump to `WaitingPhase`, and bypasses the lengthy initial user interface sequences.
+2.  **Full Lifecycle Simulation:** For large end-to-end tests (or tests specifically designed to verify the pregame phase input logic), use the `simulatePregameFlow` helper to walk through the actual button inputs and rotation commands required to set up and start a game.

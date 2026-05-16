@@ -15,9 +15,15 @@ void PostGamePhase_V1::onEnter(GameState& state) {
             m_scores[m_scoresCount++] = player.score;
         }
     }
+    m_finalized = false;
 }
 
 GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
+    // Finalize the game on the first update: write the archive CSV and clean up the partial directory.
+    if (!m_finalized) {
+        game.getMemoryCard().finalizeGame(state);
+        m_finalized = true;
+    }
     // Frozen state: ignore all input
     return this;
 }

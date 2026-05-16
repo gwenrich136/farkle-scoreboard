@@ -7,12 +7,16 @@ Game::Game() :
     grid(A0),                // NeoPixel Data Pin
     farkleLights(A1),        // Status Strip NeoPixel Pin
     textDisplay(A4, A5, D7, D8), // cs, dc, res, blk
+    memoryCard(9),           // SD Card CS Pin
     currentPhase(nullptr),
     lastUpdateTime(0)
 {
 }
 
 void Game::setup() {
+    // Seed the random number generator using analog noise and time
+    randomSeed(analogRead(A0) + analogRead(A1) + analogRead(A2) + millis());
+
     Serial.println("GAME: Initializing hardware...");
     
     // 1. Initialize Hardware
@@ -34,12 +38,15 @@ void Game::setup() {
     Serial.println("GAME: Init FarkleLights...");
     farkleLights.begin();
     
+    Serial.println("GAME: Init MemoryCard...");
+    memoryCard.begin();
+
     // 2. Reset Game to clean state
     resetGame();
 
     // 3. Set Initial State
-    currentPhase = &phasePool.targetScoreSelection;
-    currentPhase->onEnter(state);
+    currentPhase = &phasePool.startup;
+    phasePool.startup.onEnter(*this, state); // StartupPhase needs Game reference
     
     lastUpdateTime = millis();
 }
@@ -70,7 +77,7 @@ void Game::loop() {
     currentPhase->display(state, displays);
 }
 
-void Game::addPlayer(const std::string& name) {
+void Game::addPlayer(const char* name) {
     if (!canAddPlayer()) return;
     uint16_t hue = state.getNextPlayerHue(state.players.size());
     state.players.push_back(Player(name, hue));
@@ -85,6 +92,17 @@ void Game::resetGame() {
     state.reset();
     grid.reset();
     farkleLights.farkle_state(0);
+    scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
+    scoreDisplay.clear(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
+    scoreDisplay.clear(ScoreDisplay::DisplayType::COMPETITION_SCORE);
+}
+
+void Game::resumeGameDisplays() {
+    grid.reset();
+    grid.setTargetScore(state.targetScore);
+    for (const auto& player : state.players) {
+        grid.addPlayer(player.hue);
+    }
     scoreDisplay.clear(ScoreDisplay::DisplayType::AT_RISK_SCORE);
     scoreDisplay.clear(ScoreDisplay::DisplayType::CURRENT_PLAYER_SCORE);
     scoreDisplay.clear(ScoreDisplay::DisplayType::COMPETITION_SCORE);

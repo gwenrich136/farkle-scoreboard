@@ -11,7 +11,7 @@ void advance_to_player_zero(Game& game);
 // Simulates a full game where players take turns scoring until one player reaches the target score, triggering the final round.
 void test_FullGame_StandardGame() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
@@ -32,12 +32,47 @@ void test_FullGame_StandardGame() {
 
     TEST_ASSERT_LESS_THAN(100, turn); // Game should end in a reasonable number of turns
     TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
+
+    // finalizeGame should have been called exactly once on the first update of PostGamePhase_V1
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_finalizeGame_called);
+}
+
+// Verifies that finalizeGame is called exactly once regardless of how many loops run in PostGamePhase_V1
+void test_PostGame_FinalizeCalledOnce() {
+    Game game;
+    simulatePregameFlow(game, 2);
+
+    // Get player 0 to 9500 points
+    game.state.players[0].score = 9500;
+
+    // Player 0's turn: bank 500 to cross 10,000 and trigger the final round
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn -> triggers final round
+    TEST_ASSERT_TRUE(game.state.finalRoundTriggered);
+
+    // Player 1's turn: take any turn to complete the final round
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Run FarklingPhase animation
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn
+
+    // Now back to player 0 whose score >= targetScore -> game ends on WaitingPhase update
+    simulateNoAction(game); // WaitingPhase.onEnter() + first update triggers PostGamePhase_V1
+    TEST_ASSERT_EQUAL_PTR(game.getPhase<PostGamePhase_V1>(), game.currentPhase);
+
+    // Run multiple loops to confirm finalizeGame is only called once
+    simulateNoAction(game);
+    simulateNoAction(game);
+    simulateNoAction(game);
+
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_finalizeGame_called);
 }
 
 // Test function to verify the triple farkle penalty and reset behavior
 void test_FullGame_TripleFarkle() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
     game.state.players[0].score = 2500; // Give player 1 some points
 
     // --- First Farkle ---
@@ -73,7 +108,7 @@ void test_FullGame_TripleFarkle() {
 
 void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     // --- Player 0 scores 500 points ---
     simulateButtonPress(game, ButtonAction::PLUS_500);
@@ -117,7 +152,7 @@ void test_FullGame_TripleFarkle_ScoreLessThanPenalty() {
 
 void test_FullGame_AutoAdvanceTurn() {
     Game game;
-    setupGameWithPlayers(game, 4);
+    simulatePregameFlow(game, 4);
 
     int turn = 0;
     while (game.currentPhase != game.getPhase<PostGamePhase_V1>() && turn < 100) {
@@ -145,7 +180,7 @@ void test_FullGame_AutoAdvanceTurn() {
 // Verifies that the Competition Score display begins blinking as soon as the final round is triggered.
 void test_FullGame_FinalRoundBlinking() {
     Game game;
-    setupGameWithPlayers(game, 2);
+    simulatePregameFlow(game, 2);
 
     // Player 0 is about to reach the target score (10,000)
     game.state.players[0].score = 9500;
@@ -182,7 +217,7 @@ void test_FullGame_FinalRoundBlinking() {
 // Full Game With Score Toggle Simulation
 void test_FullGame_ScoreToggle() {
     Game game;
-    setupGameWithPlayers(game, 2);
+    simulatePregameFlow(game, 2);
 
     // Toggle switch to PENDING
     game.controlPad.setToggleState(ScoreDisplayMode::PENDING);
@@ -211,15 +246,6 @@ void test_FullGame_ScoreToggle() {
     simulateButtonPress(game, ButtonAction::SELECT); // Dismiss
 }
 
-void run_full_game_tests() {
-    RUN_TEST(test_FullGame_StandardGame);
-    RUN_TEST(test_FullGame_TripleFarkle);
-    RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
-    RUN_TEST(test_FullGame_AutoAdvanceTurn);
-    RUN_TEST(test_FullGame_FinalRoundBlinking);
-    RUN_TEST(test_FullGame_ScoreToggle);
-}
-
 // Helper function to advance turns until it is player 0's turn again.
 void advance_to_player_zero(Game& game) {
     while (game.state.currentPlayerIndex != 0) {
@@ -228,4 +254,83 @@ void advance_to_player_zero(Game& game) {
         simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss the phase to complete the turn
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
+}
+
+// Verifies end-to-end recovery of an active game.
+void test_FullGame_ResumeActiveGame() {
+    Game game;
+
+    // First setup the initial context to mock having an active game
+    game.getMemoryCard().mock_hasActiveGame_result = true;
+    game.getMemoryCard().mock_loadGameMetadata_result = true;
+    game.getMemoryCard().mock_replayGameJournal_result = true;
+
+    game.setup();
+
+    // Actually set up the GameState as if loadGameMetadata and replayGameJournal successfully restored a mid-game state.
+    game.getMemoryCard().setupGameFromHardcodedPartialGame(game.state);
+
+    game.loop(); // Render StartupPhase
+
+    // Verify we are at the resume prompt
+    TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Resume Game", game.textDisplay.captured_item.c_str());
+
+    // Select "Resume Game"
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    // Transitioned to WaitingPhase. Since it's Alice's turn, her name should appear.
+    // Also rank calculation should set Bob as the competitor.
+    TEST_ASSERT_EQUAL_STRING("Alice", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_STRING("Bob", game.textDisplay.captured_p2Name.c_str());
+
+    // Let's have Alice score 500 and bank.
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss EndOfTurnPhase
+
+    // It should now be Bob's turn
+    TEST_ASSERT_EQUAL_STRING("Bob", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_INT(2000, game.state.players[0].score); // Alice has 1500 + 500
+    TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
+
+    // Ensure that MemoryCard append was called during her bank (once for the new turn).
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_appendTurnRecord_called);
+}
+
+#define RESUME_EXPECTED_TARGET_SCORE 10000
+#define RESUME_EXPECTED_PLAYER_COUNT 2
+
+// Verifies that resuming an active game correctly initializes the hardware progress grid with restored players and target score.
+void test_FullGame_ResumeActiveGame_GridInitialization() {
+    Game game;
+
+    game.getMemoryCard().mock_hasActiveGame_result = true;
+    game.getMemoryCard().mock_loadGameMetadata_result = true;
+    game.getMemoryCard().mock_replayGameJournal_result = true;
+
+    game.setup();
+    game.getMemoryCard().setupGameFromHardcodedPartialGame(game.state);
+
+    game.loop(); // Render StartupPhase
+
+    // Select "Resume Game"
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    // Verify that the LedProgressGrid has been properly initialized
+    TEST_ASSERT_EQUAL_INT(RESUME_EXPECTED_PLAYER_COUNT, game.grid.player_count);
+    TEST_ASSERT_EQUAL_INT(RESUME_EXPECTED_TARGET_SCORE, game.grid.captured_targetScore);
+}
+
+void run_full_game_tests() {
+    RUN_TEST(test_FullGame_StandardGame);
+    RUN_TEST(test_FullGame_TripleFarkle);
+    RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
+    RUN_TEST(test_FullGame_AutoAdvanceTurn);
+    RUN_TEST(test_FullGame_FinalRoundBlinking);
+    RUN_TEST(test_FullGame_ScoreToggle);
+    RUN_TEST(test_PostGame_FinalizeCalledOnce);
+    RUN_TEST(test_FullGame_ResumeActiveGame);
+    RUN_TEST(test_FullGame_ResumeActiveGame_GridInitialization);
 }

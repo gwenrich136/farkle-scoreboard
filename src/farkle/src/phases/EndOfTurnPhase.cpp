@@ -21,6 +21,18 @@ GamePhase* EndOfTurnPhase::update(Game& game, GameState& state, GameInput input,
         }
 
         // Advance turn and transition
+        uint32_t record = TurnRecord::pack(
+            state.players[state.currentPlayerIndex].score,
+            state.currentPlayerIndex,
+            state.players[state.currentPlayerIndex].farkle_count,
+            state.finalRoundTriggered,
+            state.penaltyAppliedThisTurn
+        );
+        game.getMemoryCard().appendTurnRecord(record);
+        
+        // Clear flag for the next turn
+        state.penaltyAppliedThisTurn = false;
+
         this->endTurn(state);
         return game.getPhase<WaitingPhase>();
     }

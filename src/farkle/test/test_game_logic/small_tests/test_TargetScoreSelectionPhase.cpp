@@ -4,13 +4,19 @@
 #include <unity.h>
 #include "Arduino.h"
 
+// Helper function to setup game and transition to TargetScoreSelectionPhase
+void setup_and_transition_to_target_score_selection(Game& game) {
+    game.setup();
+    simulateButtonPress(game, ButtonAction::SELECT); // Transition from StartupPhase
+    game.loop();
+}
+
 // Verifies that the phase starts with the default target score (10,000).
 void test_TargetScoreSelection_InitialState() {
     Game game;
-    game.setup();
-    game.loop();
+    setup_and_transition_to_target_score_selection(game);
 
-    // Should start in TargetScoreSelectionPhase
+    // Should be in TargetScoreSelectionPhase
     TEST_ASSERT_EQUAL_STRING("Target Score", game.textDisplay.captured_title.c_str());
     TEST_ASSERT_EQUAL_STRING("10,000", game.textDisplay.captured_item.c_str());
     TEST_ASSERT_EQUAL_INT(10000, game.state.targetScore);
@@ -19,7 +25,7 @@ void test_TargetScoreSelection_InitialState() {
 // Verifies that rotation increments and decrements the target score correctly.
 void test_TargetScoreSelection_Adjustment() {
     Game game;
-    game.setup();
+    setup_and_transition_to_target_score_selection(game);
 
     // Increment (1 click = 1000)
     simulateRotation(game, 1);
@@ -35,7 +41,7 @@ void test_TargetScoreSelection_Adjustment() {
 // Verifies that the target score is clamped between 1,000 and 20,000.
 void test_TargetScoreSelection_Clamping() {
     Game game;
-    game.setup();
+    setup_and_transition_to_target_score_selection(game);
 
     // Test Lower Bound
     // Start at 10,000. Go down 15,000 (15 clicks).
@@ -68,7 +74,7 @@ void test_TargetScoreSelection_Clamping() {
 // Verifies that pressing SELECT transitions to PlayerSelectionPhase, and BANK/FARKLE do not.
 void test_TargetScoreSelection_Transition() {
     Game game;
-    game.setup();
+    setup_and_transition_to_target_score_selection(game);
 
     // Change score to 5000
     for (int i = 0; i < 5; ++i) {

@@ -2,50 +2,53 @@
 #include "Game.h"
 #include <algorithm>
 #include "GameConstants.h"
-
-const std::vector<std::string> PlayerSelectionPhase::s_namePool = {
-    "Geewee", "Sammy", "Coach", "Sheshe", "Alex", "Tigre", "Pepa", "Fred", "Andrea"
-};
+#include <string.h>
 
 void PlayerSelectionPhase::onEnter(GameState& state) {
-    m_selectionIndex = 0;
-    updateAvailableNames(state);
+    m_currentSelection = nullptr;
 }
 
 GamePhase* PlayerSelectionPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    updateAvailableNames(state);
-
-    if (m_availableNames.empty()) {
-        if (input.action == ButtonAction::FARKLE && state.players.size() >= 1) {
-            return game.getPhase<WaitingPhase>();
-        }
-        return this;
+    // Lazy initialization on first frame
+    if (m_currentSelection == nullptr) {
+        game.getMemoryCard().beginPlayerSelection();
+        m_currentSelection = game.getMemoryCard().getCurrentPlayer();
     }
 
     // Handle rotation for selection
     if (input.action == ButtonAction::NONE && input.rotationDelta != 0) {
-        int size = (int)m_availableNames.size();
-        if (size > 0) {
-            m_selectionIndex = (m_selectionIndex + input.rotationDelta) % size;
-            if (m_selectionIndex < 0) m_selectionIndex += size;
+        if (input.rotationDelta > 0) {
+            for (int i = 0; i < input.rotationDelta; ++i) {
+                m_currentSelection = game.getMemoryCard().getNextPlayer();
+            }
+        } else if (input.rotationDelta < 0) {
+            for (int i = 0; i > input.rotationDelta; --i) {
+                m_currentSelection = game.getMemoryCard().getPreviousPlayer();
+            }
         }
     }
 
     // Handle actions
     if (input.action == ButtonAction::SELECT) {
         if (game.canAddPlayer()) {
-            if (m_availableNames.size() > 0) {
-                game.addPlayer(m_availableNames[m_selectionIndex]);
-                updateAvailableNames(state); // Update immediately to reflect changes
+            if (m_currentSelection != nullptr && m_currentSelection[0] != '\0') {
+                char reservedName[13];
+                game.getMemoryCard().reservePlayer(reservedName);
+                game.addPlayer(reservedName);
 
-                // Adjust index if it's now out of bounds due to the smaller list
-                if (!m_availableNames.empty() && m_selectionIndex >= (int)m_availableNames.size()) {
-                    m_selectionIndex = 0;
-                }
+                // Update current selection to whatever MemoryCard auto-advanced to
+                m_currentSelection = game.getMemoryCard().getCurrentPlayer();
             }
         }
     } else if (input.action == ButtonAction::FARKLE) {
         if (state.players.size() >= 1) {
+            game.getMemoryCard().finalizeSelection();
+
+            uint32_t gameId = game.getMemoryCard().getOrGenerateNextGameId();
+            game.getMemoryCard().initializeGameDirectory(gameId);
+            game.getMemoryCard().writeGameMetadata(gameId, state);
+            game.getMemoryCard().setActiveGameId(gameId);
+
             return game.getPhase<WaitingPhase>();
         }
     }
@@ -63,32 +66,19 @@ void PlayerSelectionPhase::updateProgressGrid(const GameState& state, const Disp
 }
 
 void PlayerSelectionPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    // In the current configuration (pool=9, max=8), the list will never be empty before the roster is full.
-    // However, we merge the conditions here as requested to simplify the logic.
     bool isRosterFull = state.players.size() >= MAX_PLAYERS;
-    if (isRosterFull || m_availableNames.empty()) {
+    if (isRosterFull) {
         displays.textDisplay.print("ROSTER FULL");
+    } else if (m_currentSelection == nullptr || m_currentSelection[0] == '\0') {
+        displays.textDisplay.printSelectionScreen(
+            "Add Player",
+            "NEW PLAYER"
+        );
     } else {
         displays.textDisplay.printSelectionScreen(
             "Add Player",
-            m_availableNames[m_selectionIndex].c_str(),
+            m_currentSelection,
             state.getNextPlayerHue(state.players.size())
         );
-    }
-}
-
-void PlayerSelectionPhase::updateAvailableNames(const GameState& state) {
-    m_availableNames.clear();
-    for (const auto& name : s_namePool) {
-        bool alreadyAdded = false;
-        for (const auto& player : state.players) {
-            if (player.name == name) {
-                alreadyAdded = true;
-                break;
-            }
-        }
-        if (!alreadyAdded) {
-            m_availableNames.push_back(name);
-        }
     }
 }

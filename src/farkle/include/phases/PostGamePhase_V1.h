@@ -17,6 +17,7 @@ private:
     std::string m_winnerMsg;
     int m_scores[MAX_PLAYERS];
     int m_scoresCount = 0;
+    bool m_finalized = false;
 };
 
 #endif

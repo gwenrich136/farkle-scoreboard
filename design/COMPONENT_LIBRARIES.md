@@ -202,6 +202,57 @@ The `TextDisplayV2` component is a high-performance UI manager for the **ST7789 
     -   **DC (A5)**: Data/Command.
     -   **RES (D7)**: Hardware Reset.
     -   **BLK (D8)**: Backlight Control (automatically set to 100% in `begin()`).
--   **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
--   **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
--   **State Caching**: The component caches the last rendered content to skip redundant SPI updates.
+- **Resolution (240x240)**: Layouts are optimized for the high-resolution square format.
+- **Color Defaults**: To ensure compatibility during migration, text defaults to **White (0xFFFF)** on a **Black (0x0000)** background.
+- **State Caching**: The component caches the last rendered content to skip redundant SPI updates.
+
+---
+
+## 7. MemoryCard
+
+### Purpose
+The `MemoryCard` component provides a high-level, game-aware interface for the SD card. It manages the global player name pool, tracks multiple game sessions (partial and completed), and provides "Live Snapshot" capabilities for game recovery and previews.
+
+### API Design
+
+#### Initialization & Global Setup
+- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/archive`).
+    - Reserves a fixed-size memory allocation (buffer) for up to 50 players to hold their `Name` (max 12 chars), `PlayerState` enum (`AVAILABLE`, `UNUSED`, `SELECTED`, `DELETED`), and `Frequency` (integer).
+
+#### Pre-Game Player Management API
+The `MemoryCard` strictly owns the "cursor" (`currentIndex`) during the `PlayerSelectionPhase` to manage navigation and boundaries, acting as a stateful data source for the UI. The list is non-circular; scrolling out of bounds updates the cursor to special indices (`START_OF_LIST` -1, or `END_OF_LIST` 50) and returns an empty string `""` to signal "no selection" to the game (e.g., to trigger an "Add Player" UI prompt).
+
+- **`void beginPlayerSelection()`**: Reads `players.csv` into the memory pool, self-sorts the pool in descending order based on frequency, and initializes the cursor.
+- **`char* getNextPlayer()`**: Advances the internal cursor (skipping any slots not marked `AVAILABLE`) and returns a pointer to the current player's name. If it hits the end of the list, returns `""`.
+- **`char* getPreviousPlayer()`**: Decrements the internal cursor (skipping any slots not marked `AVAILABLE`) and returns a pointer to the current player's name. If it hits the start of the list, returns `""`.
+- **`AddPlayerResult addName(const char* name)`**: Attempts to append a new name to the list. The `AddPlayerResult` enum returns `{SUCCESS, NAME_TOO_LONG, ALREADY_EXISTS, EMPTY_STRING, PLAYER_POOL_FULL}`. On `SUCCESS`, it marks the slot `AVAILABLE`, frequency to 0, and updates the `currentIndex` to this new player.
+    - **Buffer Compaction (Case A)**: If the buffer is full (no `UNUSED` slots) but contains `DELETED` slots, the `MemoryCard` will execute an expensive compacting operation: it shifts all `AVAILABLE` and `SELECTED` players forward to overwrite the `DELETED` slots, maintaining their relative order, and gathering all empty space as `UNUSED` slots at the end of the buffer. It then inserts the new name into the first newly `UNUSED` slot.
+    - **Buffer Full (Case B)**: If the buffer is completely full of `AVAILABLE` or `SELECTED` players (no `UNUSED` and no `DELETED` slots), it returns `PLAYER_POOL_FULL`.
+- **`char* deleteName()`**: Marks the player at the *current index* as `DELETED`, automatically advances the cursor to the next `AVAILABLE` player (like `getNextPlayer()`), and returns that name pointer.
+- **`void reservePlayer(char* locationToCopy)`**: Marks the player at the *current index* as `SELECTED` and explicitly copies their name string into the provided `locationToCopy` (the `Game`'s allocated `char[13]`). The `MemoryCard`'s string allocation will be cleared when the game starts.
+- **`void unreservePlayer(char* name)`**: Searches the memory pool for the given `name` string and changes their state from `SELECTED` back to `AVAILABLE`.
+- **`void finalizeSelection()`**: Called at the end of the `PlayerSelectionPhase`.
+    - Iterates through the memory pool and collects all names marked `AVAILABLE` and `SELECTED` (skipping `DELETED` and `UNUSED`).
+    - Increments the frequency counter for all `SELECTED` players.
+    - Rewrites `players.csv` from scratch with the retained players, keeping them in sorted order (descending by frequency).
+
+#### Game Session Management
+- **`struct UndoResult { uint8_t playerIndex; int score; uint8_t farkles; }`**: Data returned when a turn is reverted.
+- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.jsn` (with `"completed": false`), and creates `sys/curr_id.txt`. Returns the new Game ID.
+- **`void logTurn(uint8_t playerIndex, int score, uint8_t farkleCount, bool finalRound, bool penalty)`**: Appends a 32-bit packed record to the `journal.bin` of the active game.
+- **`UndoResult undoLastTurn()`**: Reverts the last record in `journal.bin` and returns the player's previous state (via "Scan Back" logic).
+- **`void finalizeGame(const GameState& state)`**: Archives the completed game using a copy-mark-delete flow: copies `journal.bin` to `/archive/[ID]/`, rewrites `meta.jsn` into `/archive/[ID]/` with `"completed": true`, deletes the `/partial/[ID]/` directory, and clears `sys/curr_id.txt`.
+
+#### Recovery & Preview
+- **`std::vector<uint32_t> getPartialGameIds()`**: Returns a list of IDs currently in the `/partial/` directory.
+- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, their current scores, and the `currentPlayerIndex` by reading `meta.jsn` and the end of `journal.bin`.
+
+### Key Logic & Behavior
+- **32-Bit Journaling**: Uses a fixed-width binary format for turn logs. This is more compact than CSV and allows for deterministic "Undo" and "Recovery" by jumping to specific offsets in the file.
+- **Fixed Memory Allocation & String Ownership**: To ensure the UI remains responsive during scrolling, global player names and metadata are loaded into a fixed-size RAM buffer at boot. The `MemoryCard` strictly owns these strings during the pre-game phases. Once selection is complete, the `Game` must copy the selected names into its own storage, as the `MemoryCard`'s RAM buffer will be wiped when the main game starts to conserve memory.
+- **Self-Sorting Roster**: Players are automatically sorted by play frequency (highest first) when loaded from `players.csv`, reducing the amount of scrolling needed for common players.
+- **Stateful Internal Cursor**: The `MemoryCard` maintains the active `currentIndex` (rather than accepting indices as arguments from the Game state machine). This encapsulates boundary logic, skipping, and out-of-bounds `""` signaling entirely within the component.
+- **State-Based Selection**: The selection API uses a `PlayerState` enum to manage selection. Navigation methods (`getNextPlayer`, `getPreviousPlayer`) inherently skip any slot not marked `AVAILABLE`.
+- **Self-Healing**: The component automatically reconstructs the `next_id.txt` by scanning the file system if system files are corrupted or missing.
+- **Power-Loss Recovery**: By logging at the end of every turn (`EndOfTurnPhase`), the game minimizes data loss to at most the current turn's unsaved progress.
+

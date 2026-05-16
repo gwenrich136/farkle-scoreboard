@@ -5,8 +5,24 @@
 #include <algorithm>
 
 void WaitingPhase::onEnter(GameState& state) {
-    // Recompute the ranking of all players
-    // Populate the list once if empty
+    _recomputeLeaderboard(state);
+}
+
+void WaitingPhase::_applyUndo(Game& game, GameState& state) {
+    auto undoResult = game.getMemoryCard().undoLastTurn();
+    if (!undoResult.success) return; // Journal empty — nothing to undo
+
+    int numPlayers = (int)state.players.size();
+    state.currentPlayerIndex = (state.currentPlayerIndex - 1 + numPlayers) % numPlayers;
+    state.updatePlayerScore(undoResult.playerIndex, undoResult.previousScore);
+    state.players[undoResult.playerIndex].farkle_count = undoResult.previousFarkleCount;
+    state.atRiskScore = 0;
+    // Re-rank and reset competitor display, same as a normal turn transition
+    _recomputeLeaderboard(state);
+}
+
+void WaitingPhase::_recomputeLeaderboard(GameState& state) {
+    // Populate the index list once if empty
     if (state.rankedPlayerIndices.empty()) {
         for (size_t i = 0; i < state.players.size(); ++i) {
             state.rankedPlayerIndices.push_back(i);
@@ -26,7 +42,7 @@ void WaitingPhase::onEnter(GameState& state) {
                   return turnsAwayA < turnsAwayB;
               });
 
-    // Set competitor rank to 0, or 1 if 0 is the current player (assuming > 1 player)
+    // Default competitor to rank 0, unless that IS the current player (show rank 1 instead)
     state.currentCompetitorRank = 0;
     if (!state.rankedPlayerIndices.empty() && state.rankedPlayerIndices[0] == state.currentPlayerIndex) {
         if (state.rankedPlayerIndices.size() > 1) {
@@ -51,11 +67,6 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
             state.currentCompetitorRank += listSize;
         }
 
-        // If we landed on the current player, step one more time in the direction of rotation
-        if (state.rankedPlayerIndices[state.currentCompetitorRank] == state.currentPlayerIndex) {
-            int step = (input.rotationDelta > 0) ? 1 : -1;
-            state.currentCompetitorRank = (state.currentCompetitorRank + step + listSize) % listSize;
-        }
     }
 
     switch (input.action) {
@@ -86,6 +97,10 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
                 Player& currentPlayer = state.players[state.currentPlayerIndex];
                 return (currentPlayer.farkle_count >= 2) ? (GamePhase*)game.getPhase<PenaltyFarklingPhase>() : (GamePhase*)game.getPhase<FarklingPhase>();
             }
+            break;
+
+        case ButtonAction::UNDO:
+            _applyUndo(game, state);
             break;
 
         default:
