@@ -58,6 +58,12 @@ public:
     void appendTurnRecord(uint32_t record);
     void finalizeGame(const GameState& state);
 
+    // Game Recovery API
+    bool hasActiveGame();
+    bool loadGameMetadata(GameState& state);
+    bool replayGameJournal(GameState& state);
+    void clearActiveGame();
+
     struct UndoResult {
         bool success;        // false if journal is empty (nothing to undo)
         uint8_t playerIndex; // Which player's turn was removed

@@ -220,6 +220,114 @@ uint32_t MemoryCard::getOrGenerateNextGameId() {
     return nextId;
 }
 
+bool MemoryCard::hasActiveGame() {
+    if (SD.exists("/sys/curr_id.txt")) {
+        File f = SD.open("/sys/curr_id.txt", FILE_READ);
+        if (f) {
+            String idStr = f.readStringUntil('\n');
+            _activeGameId = idStr.toInt();
+            f.close();
+            return _activeGameId > 0;
+        }
+    }
+    return false;
+}
+
+void MemoryCard::clearActiveGame() {
+    if (_activeGameId > 0) {
+        char metaPath[64];
+        snprintf(metaPath, sizeof(metaPath), "/partial/%08lu/meta.jsn", (unsigned long)_activeGameId);
+        char dirPath[64];
+        snprintf(dirPath, sizeof(dirPath), "/partial/%08lu", (unsigned long)_activeGameId);
+        char partialJournalPath[64];
+        _getJournalPath(partialJournalPath, sizeof(partialJournalPath));
+
+        SD.remove(metaPath);
+        SD.remove(partialJournalPath);
+        SD.rmdir(dirPath);
+        SD.remove("/sys/curr_id.txt");
+        _activeGameId = 0;
+    }
+}
+
+bool MemoryCard::loadGameMetadata(GameState& state) {
+    if (_activeGameId == 0) return false;
+
+    char filePath[64];
+    snprintf(filePath, sizeof(filePath), "/partial/%08lu/meta.jsn", (unsigned long)_activeGameId);
+
+    File f = SD.open(filePath, FILE_READ);
+    if (!f) return false;
+
+    // Use a reasonable buffer size for 16 players
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, f);
+    f.close();
+
+    if (error) {
+        return false;
+    }
+
+    state.reset();
+
+    if (doc.containsKey("targetScore")) {
+        state.targetScore = doc["targetScore"];
+    }
+
+    JsonArray players = doc["players"].as<JsonArray>();
+    for (JsonObject pObj : players) {
+        std::string name = pObj["name"].as<std::string>();
+        uint16_t hue = pObj["hue"].as<uint16_t>();
+        state.players.push_back(Player(name, hue));
+    }
+
+    return true;
+}
+
+bool MemoryCard::replayGameJournal(GameState& state) {
+    if (_activeGameId == 0 || state.players.empty()) return false;
+
+    char filePath[64];
+    _getJournalPath(filePath, sizeof(filePath));
+
+    File f = SD.open(filePath, FILE_READ);
+    if (!f) {
+        // It's possible the journal doesn't exist yet if we crashed immediately after player selection.
+        // That's fine, we just start at player 0 with 0 scores.
+        state.currentPlayerIndex = 0;
+        return true;
+    }
+
+    uint32_t record;
+    int lastPlayerIndex = -1;
+
+    // We update scores directly on the state. Wait, the state structure says:
+    // "Resume: Read the file from start to finish. For each record, update the corresponding player's score and farkle count in GameState. The last record in the file determines whose turn was just completed; the next player in the meta.jsn sequence is the current active player."
+
+    while (f.read((uint8_t*)&record, sizeof(record)) == sizeof(record)) {
+        int      score       = record & 0xFFFFF;
+        uint8_t  playerIdx   = (record >> 20) & 0xF;
+        uint8_t  farkleCount = (record >> 24) & 0x3;
+        // bool     finalRound  = (record >> 26) & 0x1;
+        // bool     penalty     = (record >> 27) & 0x1;
+
+        if (playerIdx < state.players.size()) {
+            state.updatePlayerScore(playerIdx, score);
+            state.players[playerIdx].farkle_count = farkleCount;
+            lastPlayerIndex = playerIdx;
+        }
+    }
+    f.close();
+
+    if (lastPlayerIndex >= 0) {
+        state.currentPlayerIndex = (lastPlayerIndex + 1) % state.players.size();
+    } else {
+        state.currentPlayerIndex = 0;
+    }
+
+    return true;
+}
+
 void MemoryCard::setActiveGameId(uint32_t id) {
     _activeGameId = id;
     if (!SD.exists("/sys")) {

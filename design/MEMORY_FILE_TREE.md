@@ -78,5 +78,5 @@ The `journal.bin` is an append-only file where every turn is recorded as a singl
 ## 5. Data Integrity & Recovery
 - **Torn Write Protection:** On boot, the `MemoryCard` component checks if `journal.bin` size is a multiple of 4. If not, it truncates the file to the last 4-byte boundary.
 - **Atomic Finalization:** When a game is won, a summary is written to `/archive/[ID].csv`, the `/partial/[ID]/` folder and its contents are deleted, and `sys/curr_id.txt` is deleted. This avoids the lack of atomic directory moves on SD libraries.
-- **Recovery Flow:** If `sys/curr_id.txt` exists on boot, the `Game` should prompt to "Resume" that specific ID.
+- **Recovery Flow:** If `sys/curr_id.txt` exists on boot, the `Game` should prompt to "Resume Game" via `StartupPhase`. Upon confirmation, it loads metadata from `meta.jsn` to restore player state and parses `journal.bin` to reconstruct scores and identify the next active player.
 - **Self-Healing:** If `/sys/next_id.txt` is missing, the component scans both `/partial` and `/archive` for the highest existing ID and increments from there.

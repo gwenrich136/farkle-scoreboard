@@ -45,6 +45,12 @@ public:
     void appendTurnRecord(uint32_t record);
     void finalizeGame(const GameState& state);
 
+    // Game Recovery API
+    bool hasActiveGame();
+    bool loadGameMetadata(GameState& state);
+    bool replayGameJournal(GameState& state);
+    void clearActiveGame();
+
     struct UndoResult {
         bool success;
         uint8_t playerIndex;
@@ -61,6 +67,15 @@ public:
     bool mock_getOrGenerateNextGameId_called = false;
     bool mock_setActiveGameId_called = false;
     uint32_t mock_setActiveGameId_arg = 0;
+
+    // Mock Verification API (Recovery)
+    bool mock_hasActiveGame_called = false;
+    bool mock_hasActiveGame_result = false;
+    bool mock_clearActiveGame_called = false;
+    bool mock_loadGameMetadata_called = false;
+    bool mock_loadGameMetadata_result = true;
+    bool mock_replayGameJournal_called = false;
+    bool mock_replayGameJournal_result = true;
     bool mock_initializeGameDirectory_called = false;
     uint32_t mock_initializeGameDirectory_arg = 0;
     bool mock_writeGameMetadata_called = false;

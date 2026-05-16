@@ -111,3 +111,22 @@ MemoryCard::UndoResult MemoryCard::undoLastTurn() {
     mock_undoLastTurn_call_count++;
     return mock_undoLastTurn_result;
 }
+
+bool MemoryCard::hasActiveGame() {
+    mock_hasActiveGame_called = true;
+    return mock_hasActiveGame_result;
+}
+
+bool MemoryCard::loadGameMetadata(GameState& state) {
+    mock_loadGameMetadata_called = true;
+    return mock_loadGameMetadata_result;
+}
+
+bool MemoryCard::replayGameJournal(GameState& state) {
+    mock_replayGameJournal_called = true;
+    return mock_replayGameJournal_result;
+}
+
+void MemoryCard::clearActiveGame() {
+    mock_clearActiveGame_called = true;
+}

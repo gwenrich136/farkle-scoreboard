@@ -46,7 +46,7 @@ void Game::setup() {
 
     // 3. Set Initial State
     currentPhase = &phasePool.startup;
-    currentPhase->onEnter(state);
+    phasePool.startup.onEnter(*this, state); // StartupPhase needs Game reference
     
     lastUpdateTime = millis();
 }
