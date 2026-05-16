@@ -2,41 +2,61 @@
 #include "Game.h"
 
 void StartupPhase::onEnter(GameState& state) {
-    // Legacy support, use Game overload
+    // Legacy signature (not needed but kept to satisfy base virtual function requirement in some places)
 }
 
 void StartupPhase::onEnter(Game& game, GameState& state) {
-    // PreGamePhase doesn't override onEnter, so no base call needed.
-    _hasActiveGame = game.getMemoryCard().hasActiveGame();
+    populateOptions(game);
     _selectionIndex = 0;
 }
 
+void StartupPhase::populateOptions(Game& game) {
+    _options.clear();
+    if (game.getMemoryCard().hasActiveGame()) {
+        _options.push_back(StartupOption::RESUME_GAME);
+    }
+    _options.push_back(StartupOption::NEW_GAME);
+}
+
+StartupOption StartupPhase::getSelectedOption() const {
+    if (_options.empty()) return StartupOption::NEW_GAME;
+    return _options[_selectionIndex];
+}
+
+GamePhase* StartupPhase::launchResumeGame(Game& game, GameState& state) {
+    if (game.getMemoryCard().loadGameMetadata(state) &&
+        game.getMemoryCard().replayGameJournal(state)) {
+        return game.getPhase<WaitingPhase>();
+    } else {
+        // If it failed to resume, fall back to new game
+        game.getMemoryCard().clearActiveGame();
+        return game.getPhase<TargetScoreSelectionPhase>();
+    }
+}
+
+GamePhase* StartupPhase::launchStartNewGame(Game& game, GameState& state) {
+    game.getMemoryCard().clearActiveGame();
+    return game.getPhase<TargetScoreSelectionPhase>();
+}
+
 GamePhase* StartupPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    if (_hasActiveGame) {
+    if (_options.size() > 1) {
         if (input.rotationDelta > 0) {
-            _selectionIndex = (_selectionIndex + 1) % 2;
+            _selectionIndex = (_selectionIndex + 1) % _options.size();
         } else if (input.rotationDelta < 0) {
-            _selectionIndex = (_selectionIndex - 1 + 2) % 2;
+            _selectionIndex = (_selectionIndex - 1 + _options.size()) % _options.size();
         }
     } else {
-        _selectionIndex = 0; // Only "New Game"
+        _selectionIndex = 0;
     }
 
     if (input.action == ButtonAction::SELECT) {
-        if (_hasActiveGame && _selectionIndex == 0) {
-            // Resume Game
-            if (game.getMemoryCard().loadGameMetadata(state) &&
-                game.getMemoryCard().replayGameJournal(state)) {
-                return game.getPhase<WaitingPhase>();
-            } else {
-                // If it failed to resume, fall back to new game
-                game.getMemoryCard().clearActiveGame();
-                return game.getPhase<TargetScoreSelectionPhase>();
-            }
-        } else {
-            // New Game
-            game.getMemoryCard().clearActiveGame();
-            return game.getPhase<TargetScoreSelectionPhase>();
+        switch (getSelectedOption()) {
+            case StartupOption::RESUME_GAME:
+                return launchResumeGame(game, state);
+            case StartupOption::NEW_GAME:
+            default:
+                return launchStartNewGame(game, state);
         }
     }
 
@@ -44,13 +64,13 @@ GamePhase* StartupPhase::update(Game& game, GameState& state, GameInput input, u
 }
 
 void StartupPhase::updateTextDisplay(const GameState& state, const Displays& displays) {
-    if (_hasActiveGame) {
-        if (_selectionIndex == 0) {
+    switch (getSelectedOption()) {
+        case StartupOption::RESUME_GAME:
             displays.textDisplay.printSelectionScreen("Farkle!", "Resume Game");
-        } else {
+            break;
+        case StartupOption::NEW_GAME:
+        default:
             displays.textDisplay.printSelectionScreen("Farkle!", "New Game");
-        }
-    } else {
-        displays.textDisplay.printSelectionScreen("Farkle!", "New Game");
+            break;
     }
 }
