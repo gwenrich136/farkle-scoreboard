@@ -246,16 +246,6 @@ void test_FullGame_ScoreToggle() {
     simulateButtonPress(game, ButtonAction::SELECT); // Dismiss
 }
 
-void run_full_game_tests() {
-    RUN_TEST(test_FullGame_StandardGame);
-    RUN_TEST(test_FullGame_TripleFarkle);
-    RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
-    RUN_TEST(test_FullGame_AutoAdvanceTurn);
-    RUN_TEST(test_FullGame_FinalRoundBlinking);
-    RUN_TEST(test_FullGame_ScoreToggle);
-    RUN_TEST(test_PostGame_FinalizeCalledOnce);
-}
-
 // Helper function to advance turns until it is player 0's turn again.
 void advance_to_player_zero(Game& game) {
     while (game.state.currentPlayerIndex != 0) {
@@ -264,4 +254,71 @@ void advance_to_player_zero(Game& game) {
         simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss the phase to complete the turn
     }
     TEST_ASSERT_EQUAL_INT(0, game.state.currentPlayerIndex);
+}
+
+// Verifies end-to-end recovery of an active game.
+void test_FullGame_ResumeActiveGame() {
+    Game game;
+
+    // First setup the initial context to mock having an active game
+    game.getMemoryCard().mock_hasActiveGame_result = true;
+    game.getMemoryCard().mock_loadGameMetadata_result = true;
+    game.getMemoryCard().mock_replayGameJournal_result = true;
+
+    // Actually set up the GameState as if loadGameMetadata and replayGameJournal successfully restored a mid-game state.
+    // E.g. we have two players: "Alice" (Score: 1500) and "Bob" (Score: 500, Farkles: 1)
+    // and Alice is the next player to move.
+    game.setup();
+    game.state.targetScore = 10000;
+
+    Player alice("Alice");
+    alice.score = 1500;
+    alice.farkle_count = 0;
+
+    Player bob("Bob");
+    bob.score = 500;
+    bob.farkle_count = 1;
+
+    game.state.players.push_back(alice);
+    game.state.players.push_back(bob);
+    game.state.currentPlayerIndex = 0; // Alice's turn
+
+    game.loop(); // Render StartupPhase
+
+    // Verify we are at the resume prompt
+    TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
+    TEST_ASSERT_EQUAL_STRING("Resume Game", game.textDisplay.captured_item.c_str());
+
+    // Select "Resume Game"
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    // Transitioned to WaitingPhase. Since it's Alice's turn, her name should appear.
+    // Also rank calculation should set Bob as the competitor.
+    TEST_ASSERT_EQUAL_STRING("Alice", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_STRING("Bob", game.textDisplay.captured_p2Name.c_str());
+
+    // Let's have Alice score 500 and bank.
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    simulateButtonPress(game, ButtonAction::SELECT); // Dismiss EndOfTurnPhase
+
+    // It should now be Bob's turn
+    TEST_ASSERT_EQUAL_STRING("Bob", game.textDisplay.captured_p1Name.c_str());
+    TEST_ASSERT_EQUAL_INT(2000, game.state.players[0].score); // Alice has 1500 + 500
+    TEST_ASSERT_EQUAL_INT(1, game.state.currentPlayerIndex);
+
+    // Ensure that MemoryCard append was called during her bank (once for the new turn).
+    TEST_ASSERT_TRUE(game.getMemoryCard().mock_appendTurnRecord_called);
+}
+
+void run_full_game_tests() {
+    RUN_TEST(test_FullGame_StandardGame);
+    RUN_TEST(test_FullGame_TripleFarkle);
+    RUN_TEST(test_FullGame_TripleFarkle_ScoreLessThanPenalty);
+    RUN_TEST(test_FullGame_AutoAdvanceTurn);
+    RUN_TEST(test_FullGame_FinalRoundBlinking);
+    RUN_TEST(test_FullGame_ScoreToggle);
+    RUN_TEST(test_PostGame_FinalizeCalledOnce);
+    RUN_TEST(test_FullGame_ResumeActiveGame);
 }

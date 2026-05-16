@@ -16,16 +16,18 @@ The system follows this sequence:
 ## 4. Technical Details
 
 ### StartupPhase
-*   **Why:** Serves as the absolute first entry point for the game upon boot. Currently functions as a dummy phase to introduce the UI layer but will be expanded with more options later.
+*   **Why:** Serves as the absolute first entry point for the game upon boot. Determines whether there is a game to recover, and if so, allows the user to resume it or start a new game.
 *   **Inherits From:** `PreGamePhase`
 *   **Defined in:** `src/farkle/include/phases/StartupPhase.h` & `src/farkle/src/phases/StartupPhase.cpp`
 *   **Implementation Details:**
-    1.  **Selection Logic**: Currently provides a single static option, "New Game".
-    2.  **Navigation**: No other items to navigate to. Encoder rotations are ignored.
+    1.  **Selection Logic**: Checks `MemoryCard::hasActiveGame()`. If true, provides "Resume Game" (default) and "New Game" options. Otherwise, provides only "New Game".
+    2.  **Navigation**:
+        *   **Encoder Rotation**: Toggles between options (if active game exists).
     3.  **Confirmation (SELECT)**:
-        *   Transitions the user to the `TargetScoreSelectionPhase`.
+        *   If "Resume Game" is selected, calls `loadGameMetadata` and `replayGameJournal`. On success, transitions directly to `WaitingPhase`. On failure, clears active game state and falls back to `TargetScoreSelectionPhase`.
+        *   If "New Game" is selected (or if no active game was present), clears any lingering active game state and transitions to `TargetScoreSelectionPhase`.
     4.  **Display Behavior (Hooks)**:
-        *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Farkle!", "New Game")`.
+        *   **`updateTextDisplay()`**: Calls `textDisplay.printSelectionScreen("Farkle!", currentSelection)` where `currentSelection` is "Resume Game" or "New Game".
         *   **`updateProgressGrid()`**: The grid is already cleared via `Game::resetGame()`.
 
 ### PreGamePhase
