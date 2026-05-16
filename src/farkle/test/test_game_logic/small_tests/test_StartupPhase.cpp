@@ -108,10 +108,7 @@ void test_StartupPhase_Resume_FallbackOnFailure() {
     game.getMemoryCard().mock_loadGameMetadata_result = false; // fail!
     game.setup();
 
-    // After failure, it should clear the broken active game and return to StartupPhase.
-    // However, since mock_hasActiveGame_result is hardcoded to true in the mock, populateOptions
-    // inside launchResumeGame will still think there is an active game. Let's toggle the mock result
-    // to simulate clearing it properly.
+    // Simulate clearing the mock's hardcoded active game state after failure
     game.getMemoryCard().mock_hasActiveGame_result = false;
 
     simulateButtonPress(game, ButtonAction::SELECT);

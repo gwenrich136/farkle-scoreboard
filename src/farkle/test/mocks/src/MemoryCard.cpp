@@ -1,5 +1,6 @@
 #include "MemoryCard.h"
 #include <string.h>
+#include "GameState.h"
 
 MemoryCard::MemoryCard(int csPin) : _csPin(csPin), _currentIndex(-1) {
     const char* defaultNames[] = {
@@ -129,4 +130,20 @@ bool MemoryCard::replayGameJournal(GameState& state) {
 
 void MemoryCard::clearActiveGame() {
     mock_clearActiveGame_called = true;
+}
+
+void MemoryCard::setupGameFromHardcodedPartialGame(GameState& state) {
+    state.targetScore = 10000;
+
+    Player alice("Alice");
+    alice.score = 1500;
+    alice.farkle_count = 0;
+
+    Player bob("Bob");
+    bob.score = 500;
+    bob.farkle_count = 1;
+
+    state.players.push_back(alice);
+    state.players.push_back(bob);
+    state.currentPlayerIndex = 0; // Alice's turn
 }

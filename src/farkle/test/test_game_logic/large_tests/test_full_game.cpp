@@ -265,23 +265,10 @@ void test_FullGame_ResumeActiveGame() {
     game.getMemoryCard().mock_loadGameMetadata_result = true;
     game.getMemoryCard().mock_replayGameJournal_result = true;
 
-    // Actually set up the GameState as if loadGameMetadata and replayGameJournal successfully restored a mid-game state.
-    // E.g. we have two players: "Alice" (Score: 1500) and "Bob" (Score: 500, Farkles: 1)
-    // and Alice is the next player to move.
     game.setup();
-    game.state.targetScore = 10000;
 
-    Player alice("Alice");
-    alice.score = 1500;
-    alice.farkle_count = 0;
-
-    Player bob("Bob");
-    bob.score = 500;
-    bob.farkle_count = 1;
-
-    game.state.players.push_back(alice);
-    game.state.players.push_back(bob);
-    game.state.currentPlayerIndex = 0; // Alice's turn
+    // Actually set up the GameState as if loadGameMetadata and replayGameJournal successfully restored a mid-game state.
+    game.getMemoryCard().setupGameFromHardcodedPartialGame(game.state);
 
     game.loop(); // Render StartupPhase
 
