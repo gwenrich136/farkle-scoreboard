@@ -270,8 +270,10 @@ bool MemoryCard::loadGameMetadata(GameState& state) {
 
     state.reset();
 
-    if (doc.containsKey("targetScore")) {
+    if (doc["targetScore"].is<int>()) {
         state.targetScore = doc["targetScore"];
+    } else {
+        return false;
     }
 
     JsonArray players = doc["players"].as<JsonArray>();
@@ -301,8 +303,6 @@ bool MemoryCard::replayGameJournal(GameState& state) {
     uint32_t record;
     int lastPlayerIndex = -1;
 
-    // We update scores directly on the state. Wait, the state structure says:
-    // "Resume: Read the file from start to finish. For each record, update the corresponding player's score and farkle count in GameState. The last record in the file determines whose turn was just completed; the next player in the meta.jsn sequence is the current active player."
 
     while (f.read((uint8_t*)&record, sizeof(record)) == sizeof(record)) {
         int      score       = record & 0xFFFFF;
