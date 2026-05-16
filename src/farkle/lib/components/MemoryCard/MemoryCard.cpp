@@ -365,6 +365,7 @@ void MemoryCard::writeGameMetadata(uint32_t gameId, const GameState& state) {
 
     JsonDocument doc;
     doc["targetScore"] = state.targetScore;
+    doc["completed"] = false;
     JsonArray players = doc["players"].to<JsonArray>();
     
     for (const auto& player : state.players) {
@@ -473,42 +474,54 @@ void MemoryCard::finalizeGame(const GameState& state) {
         SD.mkdir("/archive");
     }
 
+    char archiveDirPath[64];
+    snprintf(archiveDirPath, sizeof(archiveDirPath), "/archive/%08lu", (unsigned long)_activeGameId);
+    if (!SD.exists(archiveDirPath)) {
+        SD.mkdir(archiveDirPath);
+    }
+
     char partialJournalPath[64];
     _getJournalPath(partialJournalPath, sizeof(partialJournalPath));
+    char archiveJournalPath[64];
+    snprintf(archiveJournalPath, sizeof(archiveJournalPath), "/archive/%08lu/journal.bin", (unsigned long)_activeGameId);
 
-    char archiveCsvPath[64];
-    snprintf(archiveCsvPath, sizeof(archiveCsvPath), "/archive/%08lu.csv", (unsigned long)_activeGameId);
-
-    // Decode journal.bin into a human-readable CSV
-    File journal = SD.open(partialJournalPath, FILE_READ);
-    File csv     = SD.open(archiveCsvPath, FILE_WRITE);
-
-    if (journal && csv) {
-        csv.println("Turn,Player,Score,Farkles,FinalRound,Penalty");
-        int turnNum = 1;
-        uint32_t record;
-        while (journal.read((uint8_t*)&record, sizeof(record)) == sizeof(record)) {
-            int      score      = record & 0xFFFFF;
-            uint8_t  playerIdx  = (record >> 20) & 0xF;
-            uint8_t  farkleCount = (record >> 24) & 0x3;
-            bool     finalRound = (record >> 26) & 0x1;
-            bool     penalty    = (record >> 27) & 0x1;
-
-            const char* name = (playerIdx < state.players.size())
-                ? state.players[playerIdx].name.c_str() : "Unknown";
-
-            csv.print(turnNum++); csv.print(",");
-            csv.print(name);      csv.print(",");
-            csv.print(score);     csv.print(",");
-            csv.print(farkleCount); csv.print(",");
-            csv.print(finalRound ? 1 : 0); csv.print(",");
-            csv.println(penalty ? 1 : 0);
+    // Copy journal.bin from partial to archive directory
+    SD.remove(archiveJournalPath);
+    File src = SD.open(partialJournalPath, FILE_READ);
+    File dst = SD.open(archiveJournalPath, FILE_WRITE);
+    if (src && dst) {
+        uint32_t rec;
+        while (src.read((uint8_t*)&rec, sizeof(rec)) == sizeof(rec)) {
+            dst.write((const uint8_t*)&rec, sizeof(rec));
         }
     }
-    if (journal) journal.close();
-    if (csv) {
-        csv.flush();
-        csv.close();
+    if (src) src.close();
+    if (dst) {
+        dst.flush();
+        dst.close();
+    }
+
+    // Write completed metadata to archive directory
+    char archiveMetaPath[64];
+    snprintf(archiveMetaPath, sizeof(archiveMetaPath), "/archive/%08lu/meta.jsn", (unsigned long)_activeGameId);
+
+    SD.remove(archiveMetaPath);
+    File metaFile = SD.open(archiveMetaPath, FILE_WRITE);
+    if (metaFile) {
+        JsonDocument doc;
+        doc["targetScore"] = state.targetScore;
+        doc["completed"] = true;
+        JsonArray players = doc["players"].to<JsonArray>();
+        
+        for (const auto& player : state.players) {
+            JsonObject pObj = players.add<JsonObject>();
+            pObj["name"] = player.name;
+            pObj["hue"] = player.hue;
+        }
+
+        serializeJson(doc, metaFile);
+        metaFile.flush();
+        metaFile.close();
     }
 
     // Clean up partial directory

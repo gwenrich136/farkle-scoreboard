@@ -88,11 +88,11 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Defined in:** `src/farkle/include/phases/PostGamePhase_V1.h` & `src/farkle/src/phases/PostGamePhase_V1.cpp`
 *   **Implementation Details:**
     1.  **On Enter (`onEnter`):** Identifies the winner from `state.rankedPlayerIndices[0]`, captures the winner's name and score for display, and caches all player scores for the final grid render. Resets the `m_finalized` guard flag to `false`.
-    2.  **Archiving (first `update()`):** On the first invocation of `update()`, it calls `game.getMemoryCard().finalizeGame(state)` to atomically:
-        *   Create `/archive/[ID].csv` with a human-readable header + one row per turn (decoded from `journal.bin`).
-        *   Delete `/partial/[ID]/meta.jsn`.
-        *   Delete `/partial/[ID]/journal.bin`.
-        *   Remove the `/partial/[ID]/` directory.
+    2.  **Archiving (first `update()`):** On the first invocation of `update()`, it calls `game.getMemoryCard().finalizeGame(state)` to move the game from `/partial/` to `/archive/` using a copy-mark-delete flow:
+        *   Create `/archive/[ID]/` directory.
+        *   Copy `journal.bin` from `/partial/[ID]/` to `/archive/[ID]/`.
+        *   Rewrite `meta.jsn` into `/archive/[ID]/` with `"completed": true`.
+        *   Delete `/partial/[ID]/journal.bin`, `/partial/[ID]/meta.jsn`, and the `/partial/[ID]/` directory.
         *   Delete `/sys/curr_id.txt`.
         *   Reset the internal `_activeGameId` to 0.
     3.  **Freeze:** After finalization, `update()` returns `this` on every subsequent call, ignoring all user input.

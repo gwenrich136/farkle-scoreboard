@@ -2,6 +2,7 @@
 #include "MemoryCard.h"
 #include "GameState.h"
 #include <SD.h>
+#include <ArduinoJson.h>
 
 MemoryCard card(9);
 
@@ -184,6 +185,90 @@ void test_MemoryCard_ClearActiveGame() {
     TEST_ASSERT_FALSE(card.hasActiveGame());
 }
 
+// Verifies that writeGameMetadata correctly serializes target score and players, and sets the "completed" flag to false for in-progress games.
+void test_MemoryCard_WriteMetadata_SetsCompletedFalse() {
+    SD.mkdir("/partial");
+    SD.mkdir("/partial/00000042");
+
+    GameState state;
+    state.targetScore = 7500;
+    state.players.push_back(Player("Alice", 123));
+
+    card.writeGameMetadata(42, state);
+
+    File f = SD.open("/partial/00000042/meta.jsn", FILE_READ);
+    TEST_ASSERT_TRUE(f);
+
+    JsonDocument doc;
+    deserializeJson(doc, f);
+    f.close();
+
+    TEST_ASSERT_EQUAL_INT(7500, doc["targetScore"].as<int>());
+    TEST_ASSERT_FALSE(doc["completed"].as<bool>());
+    TEST_ASSERT_EQUAL_STRING("Alice", doc["players"][0]["name"].as<std::string>().c_str());
+    TEST_ASSERT_EQUAL_INT(123, doc["players"][0]["hue"].as<int>());
+}
+
+// Verifies the copy-mark-delete finalization flow: copies journal.bin and rewrites meta.jsn with "completed": true into /archive/, and removes all partial files.
+void test_MemoryCard_FinalizeGame_UnifiedFormat() {
+    SD.mkdir("/sys");
+    File fid = SD.open("/sys/curr_id.txt", FILE_WRITE);
+    fid.println("00000042");
+    fid.close();
+
+    TEST_ASSERT_TRUE(card.hasActiveGame()); // sets _activeGameId = 42
+
+    SD.mkdir("/partial");
+    SD.mkdir("/partial/00000042");
+
+    GameState state;
+    state.targetScore = 10000;
+    state.players.push_back(Player("Alice", 100));
+    state.players.push_back(Player("Bob", 200));
+
+    // Write partial meta
+    card.writeGameMetadata(42, state);
+
+    // Write partial journal
+    File fjnl = SD.open("/partial/00000042/journal.bin", FILE_WRITE);
+    uint32_t rec1 = TurnRecord::pack(500, 0, 0, false, false);
+    fjnl.write((const uint8_t*)&rec1, sizeof(rec1));
+    fjnl.close();
+
+    // Finalize
+    card.finalizeGame(state);
+
+    // Assert partial cleaned up
+    TEST_ASSERT_FALSE(SD.exists("/sys/curr_id.txt"));
+    TEST_ASSERT_FALSE(SD.exists("/partial/00000042/meta.jsn"));
+    TEST_ASSERT_FALSE(SD.exists("/partial/00000042/journal.bin"));
+    TEST_ASSERT_FALSE(SD.exists("/partial/00000042"));
+    TEST_ASSERT_FALSE(card.hasActiveGame());
+
+    // Assert archive files exist
+    TEST_ASSERT_TRUE(SD.exists("/archive/00000042/meta.jsn"));
+    TEST_ASSERT_TRUE(SD.exists("/archive/00000042/journal.bin"));
+
+    // Check archive metadata
+    File fmeta = SD.open("/archive/00000042/meta.jsn", FILE_READ);
+    JsonDocument doc;
+    deserializeJson(doc, fmeta);
+    fmeta.close();
+
+    TEST_ASSERT_TRUE(doc["completed"].as<bool>());
+    TEST_ASSERT_EQUAL_INT(10000, doc["targetScore"].as<int>());
+    TEST_ASSERT_EQUAL_STRING("Alice", doc["players"][0]["name"].as<std::string>().c_str());
+
+    // Check archive journal
+    File farchJnl = SD.open("/archive/00000042/journal.bin", FILE_READ);
+    uint32_t readRec;
+    size_t bytesRead = farchJnl.read((uint8_t*)&readRec, sizeof(readRec));
+    farchJnl.close();
+
+    TEST_ASSERT_EQUAL_INT(sizeof(uint32_t), bytesRead);
+    TEST_ASSERT_EQUAL_HEX32(rec1, readRec);
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(test_MemoryCard_AutoPopulatesMissingFile);
@@ -193,5 +278,7 @@ int main(int argc, char **argv) {
     RUN_TEST(test_MemoryCard_LoadGameMetadata);
     RUN_TEST(test_MemoryCard_ReplayGameJournal);
     RUN_TEST(test_MemoryCard_ClearActiveGame);
+    RUN_TEST(test_MemoryCard_WriteMetadata_SetsCompletedFalse);
+    RUN_TEST(test_MemoryCard_FinalizeGame_UnifiedFormat);
     return UNITY_END();
 }

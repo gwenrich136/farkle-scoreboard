@@ -216,7 +216,7 @@ The `MemoryCard` component provides a high-level, game-aware interface for the S
 ### API Design
 
 #### Initialization & Global Setup
-- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/completed`).
+- **`bool begin()`**: Initializes the SD card hardware (SPI) and verifies/creates the required file tree (`/sys`, `/partial`, `/archive`).
     - Reserves a fixed-size memory allocation (buffer) for up to 50 players to hold their `Name` (max 12 chars), `PlayerState` enum (`AVAILABLE`, `UNUSED`, `SELECTED`, `DELETED`), and `Frequency` (integer).
 
 #### Pre-Game Player Management API
@@ -238,14 +238,14 @@ The `MemoryCard` strictly owns the "cursor" (`currentIndex`) during the `PlayerS
 
 #### Game Session Management
 - **`struct UndoResult { uint8_t playerIndex; int score; uint8_t farkles; }`**: Data returned when a turn is reverted.
-- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.csv`, and creates `sys/curr_id.txt`. Returns the new Game ID.
+- **`uint32_t startNewGame(int targetScore, const std::vector<Player>& players)`**: Creates a new ID-based folder in `/partial/`, writes the `meta.jsn` (with `"completed": false`), and creates `sys/curr_id.txt`. Returns the new Game ID.
 - **`void logTurn(uint8_t playerIndex, int score, uint8_t farkleCount, bool finalRound, bool penalty)`**: Appends a 32-bit packed record to the `journal.bin` of the active game.
 - **`UndoResult undoLastTurn()`**: Reverts the last record in `journal.bin` and returns the player's previous state (via "Scan Back" logic).
-- **`void finalizeGame()`**: Moves the active game folder from `/partial/` to `/completed/` and deletes `sys/curr_id.txt`.
+- **`void finalizeGame(const GameState& state)`**: Archives the completed game using a copy-mark-delete flow: copies `journal.bin` to `/archive/[ID]/`, rewrites `meta.jsn` into `/archive/[ID]/` with `"completed": true`, deletes the `/partial/[ID]/` directory, and clears `sys/curr_id.txt`.
 
 #### Recovery & Preview
 - **`std::vector<uint32_t> getPartialGameIds()`**: Returns a list of IDs currently in the `/partial/` directory.
-- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, their current scores, and the `currentPlayerIndex` by reading `meta.csv` and the end of `journal.bin`.
+- **`bool getSnapshot(uint32_t gameId, GameState& outState)`**: A "Quick Read" that populates a `GameState` object with the target score, players, their current scores, and the `currentPlayerIndex` by reading `meta.jsn` and the end of `journal.bin`.
 
 ### Key Logic & Behavior
 - **32-Bit Journaling**: Uses a fixed-width binary format for turn logs. This is more compact than CSV and allows for deterministic "Undo" and "Recovery" by jumping to specific offsets in the file.

@@ -12,13 +12,15 @@ The SD card is organized into three main areas: system configuration, the global
 /players.csv               # Global pool of player names and their play frequencies
 /sys/
     ├── next_id.txt        # 8-digit decimal ID for the next game (e.g., 00000042)
-    └── curr_id.txt      # 8-digit decimal ID of the current un-finalized game
+    └── curr_id.txt        # 8-digit decimal ID of the current un-finalized game
 /partial/                  # Folders for games currently in progress
     └── [ID]/              # e.g., /partial/00000042/
-        ├── meta.jsn       # Game configuration (Target, Players, Hues)
+        ├── meta.jsn       # Game configuration (Target, Players, Hues, completed flag)
         └── journal.bin    # 32-bit raw binary turn records
-/archive/                  # Summaries for finished games (in-game files are deleted)
-    └── [ID].csv           # Human-readable turn-by-turn breakdown (e.g. 00000042.csv)
+/archive/                  # Folders for completed games (same structure as /partial/)
+    └── [ID]/              # e.g., /archive/00000042/
+        ├── meta.jsn       # Same format as partial, with "completed": true
+        └── journal.bin    # Complete turn history (identical binary format)
 ```
 
 ---
@@ -35,10 +37,26 @@ The SD card is organized into three main areas: system configuration, the global
 ## 3. Game Metadata (`meta.jsn`)
 Each game folder contains a `meta.jsn` that defines the "rules" and "players" for that specific session. This ensures the game remains resume-able even if the global `players.csv` is modified. It uses JSON for extensibility, but uses the `.jsn` extension to comply with the strict FAT32 8.3 file naming constraints (max 3 characters for the extension).
 
-**Example:**
+The `completed` field is a boolean that distinguishes partial (in-progress) games from finished ones. It is set to `false` when the game is created and updated to `true` during finalization. This provides an embedded marker of game state that survives directory corruption or accidental file moves.
+
+**Example (in-progress game):**
 ```json
 {
   "targetScore": 10000,
+  "completed": false,
+  "players": [
+    { "name": "Sammy", "hue": 42000 },
+    { "name": "Coach", "hue": 12000 },
+    { "name": "Alex", "hue": 55000 }
+  ]
+}
+```
+
+**Example (completed game):**
+```json
+{
+  "targetScore": 10000,
+  "completed": true,
   "players": [
     { "name": "Sammy", "hue": 42000 },
     { "name": "Coach", "hue": 12000 },
@@ -77,6 +95,14 @@ The `journal.bin` is an append-only file where every turn is recorded as a singl
 
 ## 5. Data Integrity & Recovery
 - **Torn Write Protection:** On boot, the `MemoryCard` component checks if `journal.bin` size is a multiple of 4. If not, it truncates the file to the last 4-byte boundary.
-- **Atomic Finalization:** When a game is won, a summary is written to `/archive/[ID].csv`, the `/partial/[ID]/` folder and its contents are deleted, and `sys/curr_id.txt` is deleted. This avoids the lack of atomic directory moves on SD libraries.
+- **Finalization (Copy-Mark-Delete):** When a game is won, the finalization process:
+    1. Creates the `/archive/[ID]/` directory.
+    2. Copies `journal.bin` from `/partial/[ID]/` to `/archive/[ID]/`.
+    3. Rewrites `meta.jsn` into `/archive/[ID]/` with `"completed": true`.
+    4. Deletes `/partial/[ID]/journal.bin`, `/partial/[ID]/meta.jsn`, and the `/partial/[ID]/` directory.
+    5. Deletes `sys/curr_id.txt`.
+    6. Resets the internal `_activeGameId` to 0.
+    This avoids the lack of atomic directory moves on SD libraries. The `completed` flag in `meta.jsn` provides resilience: if the process is interrupted between steps 3 and 4, the game can be identified as completed even if files exist in both directories.
 - **Recovery Flow:** If `sys/curr_id.txt` exists on boot, the `Game` should prompt to "Resume Game" via `StartupPhase`. Upon confirmation, it loads metadata from `meta.jsn` to restore player state and parses `journal.bin` to reconstruct scores and identify the next active player.
 - **Self-Healing:** If `/sys/next_id.txt` is missing, the component scans both `/partial` and `/archive` for the highest existing ID and increments from there.
+- **Unified Read Path:** Both partial and archived games use the identical `meta.jsn` + `journal.bin` format. The same `loadGameMetadata()` and `replayGameJournal()` methods work for both, with only the base path (`/partial/` vs `/archive/`) differing.

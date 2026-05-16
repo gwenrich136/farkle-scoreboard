@@ -191,7 +191,7 @@ We will structure our tests into three tiers based on scope and complexity. This
 **Location:** `test/test_game_logic/large_tests/`
 
 *   **`test_full_game.cpp`**
-    *   **`test_FullGame_StandardGame`**: Simulates a full game until `PostGamePhase_V1` is reached. Also asserts that `MemoryCard::finalizeGame()` was called, verifying the archive step is triggered at game end.
+    *   **`test_FullGame_StandardGame`**: Simulates a full game until `PostGamePhase_V1` is reached. Also asserts that `MemoryCard::finalizeGame()` was called, verifying the archive step (copy-mark-delete to `/archive/`) is triggered at game end.
     *   **`test_FullGame_TripleFarkle`:** Verifies the triple farkle penalty and reset behavior.
     *   **`test_FullGame_TripleFarkle_ScoreLessThanPenalty`:** Verifies that player score does not go negative when triple farkled.
     *   **`test_FullGame_AutoAdvanceTurn`:** Verifies that a full game can be completed solely via the 5-second automatic timeout for turn advancement.
