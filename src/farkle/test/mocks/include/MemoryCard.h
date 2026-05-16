@@ -76,6 +76,9 @@ public:
     bool mock_loadGameMetadata_result = true;
     bool mock_replayGameJournal_called = false;
     bool mock_replayGameJournal_result = true;
+
+    // Helper to simulate loading a hardcoded partial game state into the provided GameState
+    void setupGameFromHardcodedPartialGame(GameState& state);
     bool mock_initializeGameDirectory_called = false;
     uint32_t mock_initializeGameDirectory_arg = 0;
     bool mock_writeGameMetadata_called = false;
