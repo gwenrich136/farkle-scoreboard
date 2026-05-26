@@ -7,6 +7,7 @@ void test_BankingPhase_InputSpamming();
 void test_BankingPhase_ManualAdvance();
 void test_BankingPhase_FarkleResetOnEnter();
 void test_BankingPhase_LightsOffDuringAnimation();
+void test_BankingPhase_SoundEffectTriggered();
 void run_banking_phase_tests();
 
 #endif // TEST_BANKING_PHASE_H

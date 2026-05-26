@@ -11,6 +11,7 @@ public:
 
 private:
     float scoreMoveAccumulator;
+    bool _soundStarted;
 };
 
 #endif

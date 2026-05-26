@@ -24,6 +24,7 @@
 #include "FarkleWarningLights.h"
 #include "TextDisplayV2.h"
 #include "MemoryCard.h"
+#include "SoundPlayer.h"
 
 class Game {
 public:
@@ -82,6 +83,7 @@ private:
     FarkleWarningLights farkleLights;
     TextDisplayV2 textDisplay;
     MemoryCard memoryCard;
+    SoundPlayer soundPlayer;
 };
 
 #endif

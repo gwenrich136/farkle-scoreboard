@@ -159,4 +159,3 @@ Detailed implementation plans for each phase are organized by category:
 #### Modified Files
 *   **`src/farkle/src/main.cpp`**
     *   **Why:** To delegate all responsibility to the new `Game` class.
-    *   **Changes:** The file will be reduced to a minimal skeleton: instantiate a global `Game myGame;`, call `myGame.setup();` in `setup()`, and `myGame.loop();` in `loop()`.

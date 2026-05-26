@@ -43,6 +43,7 @@ This category handles user input for scoring, provides feedback through animatio
 *   **Defined in:** `src/farkle/include/phases/BankingPhase.h` & `src/farkle/src/phases/BankingPhase.cpp`
 *   **Implementation Details:**
     0.  **Reset Farkle Count:** The `onEnter()` method resets the current player's `farkle_count` to 0.
+    1.  **Sound Effects:** Plays `SFX_BANKING` when entering the phase, and stops it when transitioning to `EndOfTurnPhase`.
     1.  **Animate Score Transfer:** While `state.atRiskScore > 0`, run the time-based animation logic using `deltaTime` to incrementally move points from `state.atRiskScore` to the current player's banked score. Ignore all input during this stage.
     2.  **Transition:** Once `state.atRiskScore == 0`, the animation is complete and returns `game.getPhase<EndOfTurnPhase>()`.
 

@@ -256,3 +256,24 @@ The `MemoryCard` strictly owns the "cursor" (`currentIndex`) during the `PlayerS
 - **Self-Healing**: The component automatically reconstructs the `next_id.txt` by scanning the file system if system files are corrupted or missing.
 - **Power-Loss Recovery**: By logging at the end of every turn (`EndOfTurnPhase`), the game minimizes data loss to at most the current turn's unsaved progress.
 
+
+---
+
+## 8. SoundPlayer
+
+### Purpose
+The `SoundPlayer` component provides a fire-and-forget interface for triggering sound effects from game phases. It wraps the `DFRobotDFPlayerMini` library and communicates with the MP3-TF-16P module over `Serial1` (UART, 9600 baud).
+
+### API Design
+-   **`SoundPlayer()`**: Constructor. No pin arguments — the component uses `Serial1` (D0/D1) exclusively.
+-   **`void begin()`**: Initializes the UART connection (`Serial1.begin(9600)`) and the DFPlayer library. Sets volume to a hardcoded level (e.g., 20 out of 30).
+-   **`void play(SoundEffect sfx)`**: Starts playback of the MP3 file corresponding to the given `SoundEffect` enum value. Internally calls `dfPlayer.playFromMP3Folder(sfx + 1)` (enum is 0-indexed; file numbers are 1-indexed).
+-   **`void playRandomVictory()`**: Randomly selects one of the victory fanfare variants and plays it. Uses `random(SFX_VICTORY_COUNT)` to pick an index, then calls `play()` with the corresponding enum value.
+-   **`void stop()`**: Immediately stops any currently playing sound. Internally calls `dfPlayer.stop()`.
+
+### Key Logic & Behavior
+-   **Fire-and-Forget:** Phases call `play()` or `stop()` without needing to poll or manage playback state. The DFPlayer handles decoding and amplification autonomously.
+-   **No Mute Awareness:** The software has no knowledge of the hardware mute switch state. Commands are sent regardless; silence is achieved purely by the DPDT switch disconnecting the speaker.
+-   **Volume:** Hardcoded via `dfPlayer.volume(20)` during `begin()`. The DFPlayer supports volume levels 0–30.
+-   **Startup Delay:** The DFPlayer module requires approximately 200ms after power-on before it can accept commands. The `begin()` method should account for this with a brief delay or retry logic.
+-   **File Numbering Convention:** The `SoundEffect` enum is 0-indexed for clean C++ usage. File numbers on the SD card are 1-indexed per DFPlayer convention.
