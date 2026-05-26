@@ -8,6 +8,7 @@ Game::Game() :
     farkleLights(A1),        // Status Strip NeoPixel Pin
     textDisplay(A4, A5, D7, D8), // cs, dc, res, blk
     memoryCard(9),           // SD Card CS Pin
+    soundPlayer(),
     currentPhase(nullptr),
     lastUpdateTime(0)
 {
@@ -41,6 +42,9 @@ void Game::setup() {
     Serial.println("GAME: Init MemoryCard...");
     memoryCard.begin();
 
+    Serial.println("GAME: Init SoundPlayer...");
+    soundPlayer.begin();
+
     // 2. Reset Game to clean state
     resetGame();
 
@@ -62,7 +66,7 @@ void Game::loop() {
     state.currentPlayerScoreMode = input.scoreDisplayMode;
 
     // 3. Construct Displays struct
-    Displays displays(scoreDisplay, grid, farkleLights, textDisplay);
+    Displays displays(scoreDisplay, grid, farkleLights, textDisplay, soundPlayer);
 
     // 4. Update Current Phase
     GamePhase* nextPhase = currentPhase->update(*this, state, input, deltaTime);

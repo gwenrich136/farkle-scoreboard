@@ -48,7 +48,7 @@ void test_EndOfTurnPhase_DisplayClearsAtRisk() {
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
 
-    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay);
+    Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay, game.soundPlayer);
     game.currentPhase->display(game.state, displays);
 
     // ScoreDisplay mock captures the state of clearing the displays

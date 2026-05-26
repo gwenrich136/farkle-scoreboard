@@ -26,5 +26,6 @@ public:
 };
 
 extern MockSerial Serial;
+extern MockSerial Serial1;
 
 #endif // MOCK_SERIAL_H

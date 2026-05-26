@@ -7,9 +7,15 @@ const float SCORE_ANIMATION_SPEED = 0.5f; // points per millisecond (approx 500 
 void BankingPhase::onEnter(GameState& state) {
     scoreMoveAccumulator = 0.0f;
     state.players[state.currentPlayerIndex].farkle_count = 0;
+    _soundStarted = false;
 }
 
 GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
+    if (!_soundStarted) {
+        game.soundPlayer.play(SoundEffect::SFX_BANKING);
+        _soundStarted = true;
+    }
+
     // 1. Perform Animation
     if (state.atRiskScore > 0) {
         scoreMoveAccumulator += (SCORE_ANIMATION_SPEED * deltaTime);
@@ -30,6 +36,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, u
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0; // Clean up any fractional remainder
+        game.soundPlayer.stop();
         return game.getPhase<EndOfTurnPhase>();
     }
 
