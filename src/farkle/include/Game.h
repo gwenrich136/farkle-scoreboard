@@ -53,6 +53,7 @@ public:
     void resumeGameDisplays();
     void setTargetScore(int target);
     MemoryCard& getMemoryCard() { return memoryCard; }
+    SoundPlayer& getSoundPlayer() { return soundPlayer; }
 
 #ifdef UNIT_TEST
 public:

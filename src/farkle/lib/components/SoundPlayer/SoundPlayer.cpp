@@ -21,7 +21,7 @@ void SoundPlayer::play(SoundEffect sfx) {
         _activeSustainingEffect = sfx;
     }
 
-    _dfPlayer.playFromMP3Folder((int)sfx + 1); // 1-indexed for DFPlayer
+    _dfPlayer.playMp3Folder((int)sfx + 1); // 1-indexed for DFPlayer
 }
 
 void SoundPlayer::playRandomVictory() {

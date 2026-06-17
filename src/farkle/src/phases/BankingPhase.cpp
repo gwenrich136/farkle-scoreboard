@@ -12,7 +12,7 @@ void BankingPhase::onEnter(GameState& state) {
 
 GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
     if (!_soundStarted) {
-        game.soundPlayer.play(SoundEffect::SFX_BANKING);
+        game.getSoundPlayer().play(SoundEffect::SFX_BANKING);
         _soundStarted = true;
     }
 
@@ -36,7 +36,7 @@ GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, u
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0; // Clean up any fractional remainder
-        game.soundPlayer.stop();
+        game.getSoundPlayer().stop();
         return game.getPhase<EndOfTurnPhase>();
     }
 
