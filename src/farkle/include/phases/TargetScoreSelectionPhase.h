@@ -12,7 +12,7 @@
 class TargetScoreSelectionPhase : public PreGamePhase {
 public:
     virtual ~TargetScoreSelectionPhase() = default;
-    virtual void onEnter(GameState& state) override;
+    virtual void onEnter(Game& game, GameState& state) override;
     virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) override;
 
 protected:

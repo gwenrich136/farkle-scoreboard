@@ -2,7 +2,7 @@
 #include "Game.h"
 #include <cstdio>
 
-void TargetScoreSelectionPhase::onEnter(GameState& state) {
+void TargetScoreSelectionPhase::onEnter(Game& game, GameState& state) {
     // Default is usually 10,000, which is set in GameState constructor or reset.
 }
 

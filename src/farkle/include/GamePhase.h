@@ -14,7 +14,7 @@ public:
     virtual ~GamePhase() {}
 
     // Called when the state machine transitions into this phase
-    virtual void onEnter(GameState& state) = 0;
+    virtual void onEnter(Game& game, GameState& state) = 0;
 
     // Called every loop to handle logic and transitions
     // Returns a pointer to the next phase (or 'this' to stay in current phase)

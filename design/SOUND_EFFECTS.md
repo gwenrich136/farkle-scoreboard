@@ -91,32 +91,51 @@ The DFPlayer module has its **own micro SD card slot**, completely separate from
 
 ## 2. Sound Effect Catalog
 
-### 2.1 File Mapping
+### 2.1 Numbering Convention
 
-Each `SoundEffect` enum value maps to a specific 4-digit file number on the DFPlayer's SD card:
+Each `SoundEffect` enum value **directly equals** the file number on the SD card. There is no offset calculation — `SFX_BANKING = 4` maps to `0004.mp3`. The sentinel value `SFX_NONE = 0` maps to the non-existent file `0000.mp3`, which the DFPlayer ignores (files start at 1).
 
-| File | Enum Constant | Description | Duration | Type |
-|:-----|:-------------|:------------|:---------|:-----|
-| `0001.mp3` | `SFX_SCORE_LOW` | Score click for +50 (base pitch) | ~100ms | One-shot |
-| `0002.mp3` | `SFX_SCORE_MID` | Score click for +100 (+1 octave) | ~100ms | One-shot |
-| `0003.mp3` | `SFX_SCORE_HIGH` | Score click for +500 (+2 octaves) | ~100ms | One-shot |
-| `0004.mp3` | `SFX_BANKING` | Cha-ching / coin cascade (sustaining) | 10–15s | Sustain + stop |
-| `0005.mp3` | `SFX_FARKLE` | Buzzer / sad trombone (sustaining) | 10–15s | Sustain + stop |
-| `0006.mp3` | `SFX_PENALTY_FARKLE` | Alarm siren / klaxon | ≥5s | Timed stop |
-| `0007.mp3` | `SFX_FINAL_ROUND_BELL` | Track & field bell (single ring) | ~2s | One-shot |
-| `0008.mp3` | `SFX_VICTORY_1` | Victory fanfare variant 1 | 5–15s | One-shot |
-| `0009.mp3` | `SFX_VICTORY_2` | Victory fanfare variant 2 | 5–15s | One-shot |
-| `0010.mp3` | `SFX_VICTORY_3` | Victory fanfare variant 3 | 5–15s | One-shot |
+The file number space is divided into two ranges:
+
+| Range | Category | Purpose |
+|:------|:---------|:--------|
+| `0001–0099` | **Game Sounds** | In-game sound effects (score clicks, animations, victory fanfares) |
+| `0100–0199` | **System Sounds** | UI/lifecycle sounds (startup chime, new game, resume game) |
+
+### 2.2 Game Sound File Mapping
+
+| File | Enum Constant | Enum Value | Description | Duration | Type |
+|:-----|:-------------|:-----------|:------------|:---------|:-----|
+| `0001.mp3` | `SFX_SCORE_LOW` | 1 | Score click for +50 (base pitch) | ~100ms | One-shot |
+| `0002.mp3` | `SFX_SCORE_MID` | 2 | Score click for +100 (+1 octave) | ~100ms | One-shot |
+| `0003.mp3` | `SFX_SCORE_HIGH` | 3 | Score click for +500 (+2 octaves) | ~100ms | One-shot |
+| `0004.mp3` | `SFX_BANKING` | 4 | Cha-ching / coin cascade (sustaining) | 10–15s | Sustain + stop |
+| `0005.mp3` | `SFX_FARKLE` | 5 | Buzzer / sad trombone (sustaining) | 10–15s | Sustain + stop |
+| `0006.mp3` | `SFX_PENALTY_FARKLE` | 6 | Alarm siren / klaxon | ≥5s | Timed stop |
+| `0007.mp3` | `SFX_FINAL_ROUND_BELL` | 7 | Track & field bell (single ring) | ~2s | One-shot |
+| `0008.mp3` | `SFX_VICTORY_1` | 8 | Victory fanfare variant 1 | 5–15s | One-shot |
+| `0009.mp3` | `SFX_VICTORY_2` | 9 | Victory fanfare variant 2 | 5–15s | One-shot |
+| `0010.mp3` | `SFX_VICTORY_3` | 10 | Victory fanfare variant 3 | 5–15s | One-shot |
 
 **Score Clicks:** The three score click files are the same source sample pitched at three octaves. This creates an intuitive audio hierarchy where higher-value buttons produce higher-pitched sounds. Create these using a single click sample and applying pitch shifts of +12 semitones (one octave) and +24 semitones (two octaves).
 
-**Victory Fanfares:** The system supports an arbitrary number of victory songs. To add more, place additional files (`0011.mp3`, `0012.mp3`, ...) on the SD card and increment `SFX_VICTORY_COUNT`. The `playRandomVictory()` method selects one at random each time a game is won.
+**Victory Fanfares:** The system supports an arbitrary number of victory songs. To add more, place additional files (`0011.mp3`, `0012.mp3`, ...) on the SD card and increment `SFX_VICTORY_COUNT`. The `playRandomVictory()` method selects one at random each time a game is won. Files `0011`–`0099` are reserved for future game sounds and additional victory fanfares.
 
-### 2.2 Playback Behaviors
+### 2.3 System Sound File Mapping
+
+| File | Enum Constant | Enum Value | Description | Duration | Type |
+|:-----|:-------------|:-----------|:------------|:---------|:-----|
+| `0100.mp3` | `SFX_STARTUP` | 100 | Boot chime / power-on jingle | 1–3s | One-shot |
+| `0101.mp3` | `SFX_NEW_GAME` | 101 | New game confirmation sound | 1–2s | One-shot |
+| `0102.mp3` | `SFX_RESUME_GAME` | 102 | Resume game confirmation sound | 1–2s | One-shot |
+
+**System Sounds:** These sounds provide audio feedback for system-level lifecycle events. They are one-shot sounds that play to completion without requiring a `stop()` call. Files `0103`–`0199` are reserved for future system sounds.
+
+### 2.4 Playback Behaviors
 
 There are three distinct playback patterns used across the game:
 
-1.  **One-shot:** The sound is triggered once and plays to completion. No `stop()` call is needed. Used for: score clicks, final round bell, victory fanfares.
+1.  **One-shot:** The sound is triggered once and plays to completion. No `stop()` call is needed. Used for: score clicks, final round bell, victory fanfares, and all system sounds.
 
 2.  **Sustain + stop:** A long MP3 file is started at the beginning of an animation. The file is long enough to outlast any realistic animation duration (~10-15 seconds). When the animation completes (i.e., `atRiskScore` reaches 0), `stop()` is called to end playback immediately. Used for: banking cha-ching, farkle buzzer.
 
@@ -126,9 +145,13 @@ There are three distinct playback patterns used across the game:
 
 ## 3. Game Event → Sound Mapping
 
-### 3.1 Pre-Game Phases
+### 3.1 System & Pre-Game Phases
 
-No sound effects are played during pre-game phases. The boot sequence is silent.
+| Game Event | Phase | Trigger Point | Sound Effect | Playback Pattern |
+|:-----------|:------|:-------------|:-------------|:-----------------|
+| Board powers on | `SoundPlayer::begin()` | After successful DFPlayer initialization | `SFX_STARTUP` | One-shot |
+| New game started | `StartupPhase` | On transition to `TargetScoreSelectionPhase` (new game path) | `SFX_NEW_GAME` | One-shot |
+| Game resumed | `StartupPhase` | On transition to `WaitingPhase` (resume game path) | `SFX_RESUME_GAME` | One-shot |
 
 ### 3.2 In-Game Phases
 
@@ -158,7 +181,7 @@ The `SoundPlayer` component provides a fire-and-forget interface for triggering 
 ### API Design
 -   **`SoundPlayer()`**: Constructor. No pin arguments — the component uses `Serial1` (D0/D1) exclusively.
 -   **`void begin()`**: Initializes the UART connection (`Serial1.begin(9600)`) and the DFPlayer library. Sets volume to a hardcoded level (e.g., 20 out of 30).
--   **`void play(SoundEffect sfx)`**: Starts playback of the MP3 file corresponding to the given `SoundEffect` enum value. Internally calls `dfPlayer.playFromMP3Folder(sfx + 1)` (enum is 0-indexed; file numbers are 1-indexed).
+-   **`void play(SoundEffect sfx)`**: Starts playback of the MP3 file corresponding to the given `SoundEffect` enum value. Internally calls `dfPlayer.playMp3Folder(sfx)` — the enum value directly equals the file number (e.g., `SFX_BANKING = 4` → `0004.mp3`). `SFX_NONE = 0` is guarded by an early return.
 -   **`void playRandomVictory()`**: Randomly selects one of the victory fanfare variants and plays it. Uses `random(SFX_VICTORY_COUNT)` to pick an index, then calls `play()` with the corresponding enum value.
 -   **`void stop()`**: Immediately stops any currently playing sound. Internally calls `dfPlayer.stop()`.
 
@@ -168,7 +191,7 @@ The `SoundPlayer` component provides a fire-and-forget interface for triggering 
 -   **Volume:** Hardcoded via `dfPlayer.volume(20)` during `begin()`. The DFPlayer supports volume levels 0–30.
 -   **Library Dependency:** Uses the `DFRobotDFPlayerMini` library (installed via PlatformIO `lib_deps`).
 -   **Startup Delay:** The DFPlayer module requires approximately 200ms after power-on before it can accept commands. The `begin()` method should account for this with a brief delay or retry logic.
--   **File Numbering Convention:** The `SoundEffect` enum is 0-indexed for clean C++ usage. File numbers on the SD card are 1-indexed per DFPlayer convention. The `play()` method handles the `+1` offset internally.
+-   **File Numbering Convention:** The `SoundEffect` enum value directly equals the DFPlayer file number. `SFX_NONE = 0` is the sentinel (file `0000` does not exist). Game sounds occupy files `0001`–`0099`. System sounds occupy files `0100`–`0199`. No offset arithmetic is needed in `play()`.
 
 ### Integration
 

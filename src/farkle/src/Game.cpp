@@ -74,7 +74,7 @@ void Game::loop() {
     // 5. Handle Transitions
     if (nextPhase != currentPhase) {
         currentPhase = nextPhase;
-        currentPhase->onEnter(state);
+        currentPhase->onEnter(*this, state);
     }
 
     // 6. Display Current State

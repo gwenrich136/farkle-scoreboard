@@ -4,18 +4,13 @@
 // Constants for animation
 const float SCORE_ANIMATION_SPEED = 0.5f; // points per millisecond (approx 500 points/sec)
 
-void BankingPhase::onEnter(GameState& state) {
+void BankingPhase::onEnter(Game& game, GameState& state) {
     scoreMoveAccumulator = 0.0f;
     state.players[state.currentPlayerIndex].farkle_count = 0;
-    _soundStarted = false;
+    game.getSoundPlayer().play(SoundEffect::SFX_BANKING);
 }
 
 GamePhase* BankingPhase::update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) {
-    if (!_soundStarted) {
-        game.getSoundPlayer().play(SoundEffect::SFX_BANKING);
-        _soundStarted = true;
-    }
-
     // 1. Perform Animation
     if (state.atRiskScore > 0) {
         scoreMoveAccumulator += (SCORE_ANIMATION_SPEED * deltaTime);

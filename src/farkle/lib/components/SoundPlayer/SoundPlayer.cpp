@@ -10,24 +10,32 @@ void SoundPlayer::begin() {
 
     if (_dfPlayer.begin(Serial1)) {
         _dfPlayer.volume(20); // Hardcoded level per spec
+
+        // Play startup chime after successful initialization
+        delay(1000); // Give the reader a second to finish mounting the card
+        play(SFX_STARTUP);
     }
 }
 
 void SoundPlayer::play(SoundEffect sfx) {
-    if (sfx == SFX_NONE) return;
+    if (sfx == SFX_NONE) {
+        return;
+    }
 
     // Track sustaining effects to avoid stopping one-shots prematurely
     if (sfx == SFX_BANKING || sfx == SFX_FARKLE || sfx == SFX_PENALTY_FARKLE) {
         _activeSustainingEffect = sfx;
     }
 
-    _dfPlayer.playMp3Folder((int)sfx + 1); // 1-indexed for DFPlayer
+    int fileNum = (int)sfx;
+    _dfPlayer.playMp3Folder(fileNum); // Enum value = file number
 }
 
 void SoundPlayer::playRandomVictory() {
     int index = random(SFX_VICTORY_COUNT);
-    // Base victory is SFX_VICTORY_1 (7)
-    play((SoundEffect)(SFX_VICTORY_1 + index));
+    // Base victory is SFX_VICTORY_1 (8)
+    SoundEffect chosenSfx = (SoundEffect)(SFX_VICTORY_1 + index);
+    play(chosenSfx);
 }
 
 void SoundPlayer::stop() {

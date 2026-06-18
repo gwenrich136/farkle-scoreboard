@@ -130,6 +130,39 @@ void test_StartupPhase_IgnoreOtherButtons() {
     TEST_ASSERT_EQUAL_STRING("Farkle!", game.textDisplay.captured_title.c_str());
 }
 
+void test_StartupPhase_NewGameSound() {
+    Game game;
+    game.getMemoryCard().mock_hasActiveGame_result = false;
+    game.setup();
+
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.last_played_effect = SFX_NONE;
+
+    // Select New Game
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_NEW_GAME, game.soundPlayer.last_played_effect);
+}
+
+void test_StartupPhase_ResumeGameSound() {
+    Game game;
+    game.getMemoryCard().mock_hasActiveGame_result = true;
+    game.getMemoryCard().mock_loadGameMetadata_result = true;
+    game.getMemoryCard().mock_replayGameJournal_result = true;
+    game.setup();
+    game.state.players.push_back(Player("Alice"));
+
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.last_played_effect = SFX_NONE;
+
+    // Select Resume Game (initial item is Resume Game)
+    simulateButtonPress(game, ButtonAction::SELECT);
+
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_RESUME_GAME, game.soundPlayer.last_played_effect);
+}
+
 void run_startup_phase_tests() {
     RUN_TEST(test_StartupPhase_InitialState);
     RUN_TEST(test_StartupPhase_Transition);
@@ -140,4 +173,6 @@ void run_startup_phase_tests() {
     RUN_TEST(test_StartupPhase_Resume_Transition);
     RUN_TEST(test_StartupPhase_Resume_NewGameSelection);
     RUN_TEST(test_StartupPhase_Resume_FallbackOnFailure);
+    RUN_TEST(test_StartupPhase_NewGameSound);
+    RUN_TEST(test_StartupPhase_ResumeGameSound);
 }

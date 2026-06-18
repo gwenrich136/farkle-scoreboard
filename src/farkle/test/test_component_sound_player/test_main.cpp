@@ -20,12 +20,18 @@ void test_begin_initializes_serial_and_volume() {
     player.begin();
     TEST_ASSERT_TRUE(player._dfPlayer.begin_called);
     TEST_ASSERT_EQUAL_UINT8(20, player._dfPlayer.current_volume);
+    TEST_ASSERT_EQUAL_INT(100, player._dfPlayer.last_played_file);
 }
 
-void test_play_plays_file_with_offset() {
-    player.play(SFX_BANKING); // SFX_BANKING = 3
+void test_play_maps_enum_directly_to_file() {
+    player.play(SFX_BANKING); // SFX_BANKING = 4
     TEST_ASSERT_EQUAL_INT(4, player._dfPlayer.last_played_file);
     TEST_ASSERT_FALSE(player._dfPlayer.stop_called);
+}
+
+void test_play_system_sound_maps_directly() {
+    player.play(SFX_STARTUP); // SFX_STARTUP = 100
+    TEST_ASSERT_EQUAL_INT(100, player._dfPlayer.last_played_file);
 }
 
 void test_stop_stops_active_sustaining_effect() {
@@ -47,7 +53,8 @@ void test_stop_ignores_one_shots() {
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_begin_initializes_serial_and_volume);
-    RUN_TEST(test_play_plays_file_with_offset);
+    RUN_TEST(test_play_maps_enum_directly_to_file);
+    RUN_TEST(test_play_system_sound_maps_directly);
     RUN_TEST(test_stop_stops_active_sustaining_effect);
     RUN_TEST(test_stop_ignores_one_shots);
     return UNITY_END();

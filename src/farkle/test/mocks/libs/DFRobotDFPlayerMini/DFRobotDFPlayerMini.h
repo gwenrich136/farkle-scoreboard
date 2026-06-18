@@ -14,7 +14,12 @@ public:
         current_volume = volume;
     }
 
-    void playFromMP3Folder(int fileNumber) {
+    void playMp3Folder(int fileNumber) {
+        last_played_file = fileNumber;
+        stop_called = false;
+    }
+
+    void play(int fileNumber) {
         last_played_file = fileNumber;
         stop_called = false;
     }

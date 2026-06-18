@@ -30,7 +30,7 @@ void setupGameWithPlayers(Game& game, int numPlayers) {
 
     // Enter WaitingPhase directly
     game.currentPhase = game.getPhase<WaitingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     // Mock MemoryCard behaviors that are usually initialized in PlayerSelectionPhase
     game.getMemoryCard().mock_getOrGenerateNextGameId_called = true;

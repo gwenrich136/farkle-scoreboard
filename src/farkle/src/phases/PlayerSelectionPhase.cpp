@@ -4,7 +4,7 @@
 #include "GameConstants.h"
 #include <string.h>
 
-void PlayerSelectionPhase::onEnter(GameState& state) {
+void PlayerSelectionPhase::onEnter(Game& game, GameState& state) {
     m_currentSelection = nullptr;
 }
 

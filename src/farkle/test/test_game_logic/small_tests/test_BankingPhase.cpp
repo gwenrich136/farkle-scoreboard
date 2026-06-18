@@ -70,7 +70,7 @@ void test_BankingPhase_FarkleResetOnEnter() {
     game.state.players[0].farkle_count = 2;
 
     // Explicitly enter the phase
-    game.getPhase<BankingPhase>()->onEnter(game.state);
+    game.getPhase<BankingPhase>()->onEnter(game, game.state);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count);
 }
@@ -83,7 +83,7 @@ void test_BankingPhase_LightsOffDuringAnimation() {
     game.currentPhase = game.getPhase<BankingPhase>();
 
     // Enter the phase and update display
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay, game.soundPlayer);
     game.currentPhase->display(game.state, displays);
@@ -130,7 +130,7 @@ void test_BankingPhase_SoundEffectTriggered() {
     game.currentPhase = game.getPhase<BankingPhase>();
 
     // Explicitly enter and then update to trigger the sound
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     GameInput input = {ButtonAction::NONE, 0, ScoreDisplayMode::BANKED};
     game.currentPhase->update(game, game.state, input, 10);

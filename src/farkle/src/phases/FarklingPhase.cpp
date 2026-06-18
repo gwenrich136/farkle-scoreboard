@@ -4,8 +4,9 @@
 // Constants for animation
 const float FARKLE_DRAIN_SPEED = 1.0f;
 
-void FarklingPhase::onEnter(GameState& state) {
+void FarklingPhase::onEnter(Game& game, GameState& state) {
     scoreMoveAccumulator = 0.0f;
+    game.getSoundPlayer().play(SoundEffect::SFX_FARKLE);
     // No Harm, No Foul: only increment farkle_count if the player has points to lose.
     if (state.players[state.currentPlayerIndex].score > 0) {
         state.players[state.currentPlayerIndex].farkle_count++;
@@ -30,6 +31,7 @@ GamePhase* FarklingPhase::update(Game& game, GameState& state, GameInput input, 
     // 2. Check for completion
     if (state.atRiskScore <= 0) {
         state.atRiskScore = 0;
+        game.getSoundPlayer().stop();
         return game.getPhase<EndOfTurnPhase>();
     }
 

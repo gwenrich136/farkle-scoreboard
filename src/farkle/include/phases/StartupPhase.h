@@ -11,8 +11,7 @@ enum class StartupOption {
 class StartupPhase : public PreGamePhase {
 public:
     StartupPhase() : _selectionIndex(0) {}
-    virtual void onEnter(GameState& state) override;
-    virtual void onEnter(Game& game, GameState& state);
+    virtual void onEnter(Game& game, GameState& state) override;
     virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) override;
 
 protected:

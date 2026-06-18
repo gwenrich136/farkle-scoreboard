@@ -1,7 +1,7 @@
 #include "phases/PostGamePhase_V1.h"
 #include "Game.h"
 
-void PostGamePhase_V1::onEnter(GameState& state) {
+void PostGamePhase_V1::onEnter(Game& game, GameState& state) {
     // Winner is already determined by the sorted rankedPlayerIndices list from the start of the turn.
     m_winnerIdx = state.rankedPlayerIndices[0];
     m_highestScore = state.players[m_winnerIdx].score;
@@ -22,6 +22,7 @@ GamePhase* PostGamePhase_V1::update(Game& game, GameState& state, GameInput inpu
     // Finalize the game on the first update: write the archive CSV and clean up the partial directory.
     if (!m_finalized) {
         game.getMemoryCard().finalizeGame(state);
+        game.getSoundPlayer().playRandomVictory();
         m_finalized = true;
     }
     // Frozen state: ignore all input

@@ -12,7 +12,7 @@ void test_PenaltyFarklingPhase_AnimationMath() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
     game.state.atRiskScore = -1000;
     game.state.players[0].score = 2000;
 
@@ -43,7 +43,7 @@ void test_PenaltyFarklingPhase_BlinkParameter() {
     setupGameWithPlayers(game, 4);
     game.state.players[0].score = 1000; // Ensure atRiskScore is non-zero
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateNoAction(game, 100); // Still in THE_PAIN
     TEST_ASSERT_TRUE(game.scoreDisplay.captured_blinks[ScoreDisplay::DisplayType::AT_RISK_SCORE]);
@@ -57,7 +57,7 @@ void test_PenaltyFarklingPhase_ZeroCeilingSafety() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
     game.state.atRiskScore = -50;
     game.state.players[0].score = 2000;
 
@@ -75,7 +75,7 @@ void test_PenaltyFarklingPhase_InputSpamming() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
     game.state.atRiskScore = -500;
 
     simulateButtonPress(game, ButtonAction::BANK);
@@ -90,7 +90,7 @@ void test_PenaltyFarklingPhase_TransitionsToEndOfTurn() {
     Game game;
     setupGameWithPlayers(game, 4);
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
     game.state.atRiskScore = -100;
     
     // Advance past THE_PAIN (5000ms)
@@ -124,7 +124,7 @@ void test_PenaltyFarklingPhase_GridAnimationScores() {
     setupGameWithPlayers(game, 2);
     game.state.players[0].score = 1000;
     game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     Displays displays(game.scoreDisplay, game.grid, game.farkleLights, game.textDisplay, game.soundPlayer);
     game.currentPhase->display(game.state, displays);
@@ -135,6 +135,27 @@ void test_PenaltyFarklingPhase_GridAnimationScores() {
     TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
 }
 
+void test_PenaltyFarklingPhase_SoundEffectTriggered() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+    game.state.players[0].score = 1000;
+    game.currentPhase = game.getPhase<PenaltyFarklingPhase>();
+
+    // Explicitly enter and then update to trigger the sound
+    game.currentPhase->onEnter(game, game.state);
+
+    GameInput input = {ButtonAction::NONE, 0, ScoreDisplayMode::BANKED};
+    game.currentPhase->update(game, game.state, input, 10);
+
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_PENALTY_FARKLE, game.soundPlayer.last_played_effect);
+    TEST_ASSERT_FALSE(game.soundPlayer.stop_called);
+
+    // After 5000ms, transitioning from THE_PAIN to THE_DRAIN should call stop()
+    game.currentPhase->update(game, game.state, input, 5000);
+    TEST_ASSERT_TRUE(game.soundPlayer.stop_called);
+}
+
 void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_AnimationMath);
     RUN_TEST(test_PenaltyFarklingPhase_BlinkParameter);
@@ -143,4 +164,5 @@ void run_penalty_farkling_phase_tests() {
     RUN_TEST(test_PenaltyFarklingPhase_TransitionsToEndOfTurn);
     RUN_TEST(test_PenaltyFarklingPhase_FinalRoundBlinking);
     RUN_TEST(test_PenaltyFarklingPhase_GridAnimationScores);
+    RUN_TEST(test_PenaltyFarklingPhase_SoundEffectTriggered);
 }

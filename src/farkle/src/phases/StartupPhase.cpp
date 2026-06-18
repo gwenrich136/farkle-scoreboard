@@ -1,10 +1,6 @@
 #include "phases/StartupPhase.h"
 #include "Game.h"
 
-void StartupPhase::onEnter(GameState& state) {
-    // Legacy signature (not needed but kept to satisfy base virtual function requirement in some places)
-}
-
 void StartupPhase::onEnter(Game& game, GameState& state) {
     populateOptions(game);
     _selectionIndex = 0;
@@ -26,6 +22,7 @@ StartupOption StartupPhase::getSelectedOption() const {
 GamePhase* StartupPhase::launchResumeGame(Game& game, GameState& state) {
     if (game.getMemoryCard().loadGameMetadata(state) &&
         game.getMemoryCard().replayGameJournal(state)) {
+        game.getSoundPlayer().play(SFX_RESUME_GAME);
         game.resumeGameDisplays();
         return game.getPhase<WaitingPhase>();
     } else {
@@ -38,6 +35,7 @@ GamePhase* StartupPhase::launchResumeGame(Game& game, GameState& state) {
 }
 
 GamePhase* StartupPhase::launchStartNewGame(Game& game, GameState& state) {
+    game.getSoundPlayer().play(SFX_NEW_GAME);
     // Only clears curr_id file, not the partial game files which happens on player selection finalize
     return game.getPhase<TargetScoreSelectionPhase>();
 }

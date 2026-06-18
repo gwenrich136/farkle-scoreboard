@@ -39,7 +39,7 @@ void test_WaitingPhase_LeaderboardScrolling() {
 
     game.state.currentPlayerIndex = 0; // P0 is playing
     game.currentPhase = game.getPhase<WaitingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     // Initial state: P0 is current. Top competitor is P3.
     TEST_ASSERT_EQUAL_INT(4, game.state.rankedPlayerIndices.size());
@@ -177,7 +177,7 @@ void test_WaitingPhase_TieBreakerSorting() {
     // Set current player to P1 (index 1)
     game.state.currentPlayerIndex = 1;
     game.currentPhase = game.getPhase<WaitingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     // Expected ranked list based on turnsAwayFromPlayer (ascending)
     // P1 (index 1) -> turnsAway = 0
@@ -198,7 +198,7 @@ void test_WaitingPhase_TieBreakerSorting() {
     game.state.players[3].score = 4000;
 
     game.state.currentPlayerIndex = 3;
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     // Expected ranked list:
     // P3, P1, P2 all have 4000. P0 has 3000.
@@ -221,6 +221,31 @@ void test_WaitingPhase_TieBreakerSorting() {
     TEST_ASSERT_EQUAL_INT(0, game.state.rankedPlayerIndices[3]);
 }
 
+void test_WaitingPhase_ScoreClickSounds() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.last_played_effect = SFX_NONE;
+
+    // Trigger +50
+    simulateButtonPress(game, ButtonAction::PLUS_50);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_LOW, game.soundPlayer.last_played_effect);
+
+    game.soundPlayer.play_called = false;
+    // Trigger +100
+    simulateButtonPress(game, ButtonAction::PLUS_100);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_MID, game.soundPlayer.last_played_effect);
+
+    game.soundPlayer.play_called = false;
+    // Trigger +500
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_HIGH, game.soundPlayer.last_played_effect);
+}
+
 void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_TieBreakerSorting);
     RUN_TEST(test_WaitingPhase_ScoreAccumulation);
@@ -231,4 +256,5 @@ void run_waiting_phase_tests() {
     RUN_TEST(test_WaitingPhase_TransitionToPenaltyFarkling);
     RUN_TEST(test_WaitingPhase_FinalRoundBlinking);
     RUN_TEST(test_WaitingPhase_GridAnimationScores);
+    RUN_TEST(test_WaitingPhase_ScoreClickSounds);
 }

@@ -4,7 +4,7 @@
 #include "GameConstants.h"
 #include <algorithm>
 
-void WaitingPhase::onEnter(GameState& state) {
+void WaitingPhase::onEnter(Game& game, GameState& state) {
     _recomputeLeaderboard(state);
 }
 
@@ -72,12 +72,15 @@ GamePhase* WaitingPhase::update(Game& game, GameState& state, GameInput input, u
     switch (input.action) {
         case ButtonAction::PLUS_500:
             state.atRiskScore += 500;
+            game.getSoundPlayer().play(SFX_SCORE_HIGH);
             break;
         case ButtonAction::PLUS_100:
             state.atRiskScore += 100;
+            game.getSoundPlayer().play(SFX_SCORE_MID);
             break;
         case ButtonAction::PLUS_50:
             state.atRiskScore += 50;
+            game.getSoundPlayer().play(SFX_SCORE_LOW);
             break;
         case ButtonAction::CLEAR:
             state.atRiskScore = 0;

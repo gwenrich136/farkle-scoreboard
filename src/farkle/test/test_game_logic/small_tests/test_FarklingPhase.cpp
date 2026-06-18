@@ -13,7 +13,7 @@ void test_FarklingPhase_AnimationMath() {
     game.state.atRiskScore = 500;
     game.state.players[0].score = 1000;
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     for (int i = 0; i < 101; i++) { // 101 * 10ms = 1010ms
         simulateNoAction(game);
@@ -29,7 +29,7 @@ void test_FarklingPhase_ZeroFloorSafety() {
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 50;
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateNoAction(game, 1000);
 
@@ -42,7 +42,7 @@ void test_FarklingPhase_InputSpamming() {
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 500;
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateButtonPress(game, ButtonAction::BANK);
     simulateButtonPress(game, ButtonAction::CLEAR);
@@ -59,7 +59,7 @@ void test_FarklingPhase_NoHarmNoFoul_NoIncrement() {
     game.state.players[0].farkle_count = 0;
 
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     TEST_ASSERT_EQUAL_INT(0, game.state.players[0].farkle_count);
 }
@@ -72,7 +72,7 @@ void test_FarklingPhase_IncrementWithPoints() {
     game.state.players[0].farkle_count = 0;
 
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     TEST_ASSERT_EQUAL_INT(1, game.state.players[0].farkle_count);
 }
@@ -83,7 +83,7 @@ void test_FarklingPhase_TransitionsToEndOfTurn() {
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<FarklingPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
     game.state.currentPlayerIndex = 0;
 
     simulateNoAction(game);
@@ -122,6 +122,30 @@ void test_FarklingPhase_GridAnimationScores() {
     TEST_ASSERT_EQUAL_INT(0, game.grid.captured_blinkingScore);
 }
 
+void test_FarklingPhase_SoundEffectTriggered() {
+    Game game;
+    setupGameWithPlayers(game, 4);
+    game.state.atRiskScore = 500;
+    game.currentPhase = game.getPhase<FarklingPhase>();
+
+    // Explicitly enter and then update to trigger the sound
+    game.currentPhase->onEnter(game, game.state);
+
+    GameInput input = {ButtonAction::NONE, 0, ScoreDisplayMode::BANKED};
+    game.currentPhase->update(game, game.state, input, 10);
+
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_FARKLE, game.soundPlayer.last_played_effect);
+    TEST_ASSERT_FALSE(game.soundPlayer.stop_called);
+
+    // Fast forward to end of animation
+    for (int i = 0; i < 101; i++) {
+        game.currentPhase->update(game, game.state, input, 10);
+    }
+
+    TEST_ASSERT_TRUE(game.soundPlayer.stop_called);
+}
+
 void run_farkling_phase_tests() {
     RUN_TEST(test_FarklingPhase_AnimationMath);
     RUN_TEST(test_FarklingPhase_ZeroFloorSafety);
@@ -131,4 +155,5 @@ void run_farkling_phase_tests() {
     RUN_TEST(test_FarklingPhase_IncrementWithPoints);
     RUN_TEST(test_FarklingPhase_FinalRoundBlinking);
     RUN_TEST(test_FarklingPhase_GridAnimationScores);
+    RUN_TEST(test_FarklingPhase_SoundEffectTriggered);
 }

@@ -108,7 +108,7 @@ The following files will be created or modified to implement the Game State Mach
         *   Forward-declare `class Game;`.
         *   `class GamePhase` will be an abstract base class.
         *   It will define the pure virtual interface:
-            *   `virtual void onEnter(GameState& state) = 0;`
+            *   `virtual void onEnter(Game& game, GameState& state) = 0;`
             *   `virtual GamePhase* update(Game& game, GameState& state, GameInput input, unsigned long deltaTime) = 0;`
             *   `virtual void display(const GameState& state, const Displays& displays) = 0;` // Renders color-coded UI using state.currentPlayerIndex and grid colors.
         *   `class PreGamePhase : public GamePhase` will be an intermediate class.
@@ -139,7 +139,7 @@ The following files will be created or modified to implement the Game State Mach
             2.  Read input from the `ControlPad`: `GameInput input = controlPad.read();`.
             3.  Construct the `Displays` struct.
             4.  `GamePhase* nextPhase = currentPhase->update(*this, state, input, deltaTime);`
-            5.  `if (nextPhase != currentPhase) { currentPhase = nextPhase; currentPhase->onEnter(state); }`
+            5.  `if (nextPhase != currentPhase) { currentPhase = nextPhase; currentPhase->onEnter(*this, state); }`
             6.  `currentPhase->display(state, displays);`
 
 #### New Files - Concrete Phase Implementations

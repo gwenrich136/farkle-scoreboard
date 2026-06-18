@@ -6,10 +6,11 @@
 const unsigned long PAIN_DURATION = 5000;
 const float PENALTY_DRAIN_SPEED = 1.0f;
 
-void PenaltyFarklingPhase::onEnter(GameState& state) {
+void PenaltyFarklingPhase::onEnter(Game& game, GameState& state) {
     currentStage = PenaltyStage::THE_PAIN;
     stageTimer = 0;
     scoreMoveAccumulator = 0.0f;
+    game.getSoundPlayer().play(SoundEffect::SFX_PENALTY_FARKLE);
 
     // Calculate penalty: min(1000, player.score)
     state.atRiskScore = -1 * std::min(1000, state.players[state.currentPlayerIndex].score);
@@ -26,6 +27,7 @@ GamePhase* PenaltyFarklingPhase::update(Game& game, GameState& state, GameInput 
         case PenaltyStage::THE_PAIN:
             // Dramatic pause for 5 seconds with blinking score
             if (stageTimer >= PAIN_DURATION) {
+                game.getSoundPlayer().stop();
                 currentStage = PenaltyStage::THE_DRAIN;
             }
             break;

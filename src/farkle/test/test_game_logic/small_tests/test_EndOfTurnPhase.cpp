@@ -13,7 +13,7 @@ void test_EndOfTurnPhase_ManualAdvance() {
     game.state.atRiskScore = 0;
     game.state.currentPlayerIndex = 0;
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateNoAction(game);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
@@ -34,7 +34,7 @@ void test_EndOfTurnPhase_FinalRoundTrigger() {
     game.state.players[0].score = 10000;
     game.state.currentPlayerIndex = 0;
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateButtonPress(game, ButtonAction::BANK);
 
@@ -62,7 +62,7 @@ void test_EndOfTurnPhase_RotationAdvance() {
     game.state.atRiskScore = 0;
     game.state.currentPlayerIndex = 0;
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     simulateNoAction(game);
     TEST_ASSERT_EQUAL_PTR(game.getPhase<EndOfTurnPhase>(), game.currentPhase);
@@ -80,7 +80,7 @@ void test_EndOfTurnPhase_WaitWithoutInput() {
     setupGameWithPlayers(game, 4);
     game.state.atRiskScore = 0;
     game.currentPhase = game.getPhase<EndOfTurnPhase>();
-    game.currentPhase->onEnter(game.state);
+    game.currentPhase->onEnter(game, game.state);
 
     int initialPlayerIndex = game.state.currentPlayerIndex;
 
@@ -103,10 +103,34 @@ void test_EndOfTurnPhase_WaitWithoutInput() {
     TEST_ASSERT_NOT_EQUAL(initialPlayerIndex, game.state.currentPlayerIndex);
 }
 
+void test_EndOfTurnPhase_FinalRoundBellTriggered() {
+    Game game;
+    setupGameWithPlayers(game, 2);
+    // Player 0 reaches target score
+    game.state.players[0].score = 10000;
+    game.state.targetScore = 10000;
+    game.state.currentPlayerIndex = 0;
+    game.state.finalRoundTriggered = false;
+
+    game.currentPhase = game.getPhase<EndOfTurnPhase>();
+    game.currentPhase->onEnter(game, game.state);
+
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.last_played_effect = SFX_NONE;
+
+    // Trigger transition which triggers the final round evaluation
+    simulateButtonPress(game, ButtonAction::CLEAR);
+
+    TEST_ASSERT_TRUE(game.state.finalRoundTriggered);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_FINAL_ROUND_BELL, game.soundPlayer.last_played_effect);
+}
+
 void run_end_of_turn_phase_tests() {
     RUN_TEST(test_EndOfTurnPhase_ManualAdvance);
     RUN_TEST(test_EndOfTurnPhase_RotationAdvance);
     RUN_TEST(test_EndOfTurnPhase_FinalRoundTrigger);
     RUN_TEST(test_EndOfTurnPhase_DisplayClearsAtRisk);
     RUN_TEST(test_EndOfTurnPhase_WaitWithoutInput);
+    RUN_TEST(test_EndOfTurnPhase_FinalRoundBellTriggered);
 }

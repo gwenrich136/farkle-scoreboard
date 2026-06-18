@@ -91,6 +91,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_WaitingPhase_TransitionToFarkling`:** Verifies that the game transitions to the `FarklingPhase` when the `FARKLE` button is pressed.
     *   **`test_WaitingPhase_TransitionToPenaltyFarkling`:** Verifies that PenaltyFarklingPhase IS triggered if the player has 3 consecutive farkles.
     *   **`test_WaitingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the correct scores and YES blinking score during the WaitingPhase.
+    *   **`test_WaitingPhase_ScoreClickSounds`:** Verifies score low/mid/high sounds are played when score adjustment buttons are pressed.
 
 *   **`test_BankingPhase.cpp`**
     *   **`test_BankingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from `atRiskScore` to the player's score.
@@ -101,6 +102,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_BankingPhase_FarkleResetOnEnter`:** Verifies that the player's consecutive farkle count is reset to 0 immediately upon entering the `BankingPhase`.
     *   **`test_BankingPhase_LightsOffDuringAnimation`:** Verifies that the `FarkleWarningLights` are off during the banking animation as a result of the farkle count reset.
     *   **`test_BankingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the BankingPhase.
+    *   **`test_BankingPhase_SoundEffectTriggered`:** Verifies that the banking sound plays when entering the phase and stops when the animation is completed.
 
 *   **`test_FarklingPhase.cpp`**
     *   **`test_FarklingPhase_AnimationMath`:** Verifies that the `atRiskScore` drains to 0 but does NOT add to player score.
@@ -111,6 +113,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_FarklingPhase_NoHarmNoFoul_NoIncrement`:** Verifies that if a player has 0 banked points, their `farkle_count` does **not** increment upon farkling.
     *   **`test_FarklingPhase_IncrementWithPoints`:** Verifies that farkle_count DOES increment if the player has points.
     *   **`test_FarklingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the potential score as the base score, and NO blinking score during the FarklingPhase.
+    *   **`test_FarklingPhase_SoundEffectTriggered`:** Verifies that the farkle sound plays when entering the phase and stops when the animation is completed.
 
 *   **`test_PenaltyFarklingPhase.cpp`**
     *   **`test_PenaltyFarklingPhase_AnimationMath`:** Verifies that the score animation correctly moves points from atRiskScore (negative) to 0 and subtracts from the player's score, after the 5-second pause.
@@ -120,6 +123,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PenaltyFarklingPhase_ManualAdvance`:** Verifies that a button press transitions to the `WaitingPhase` after the animation is complete.
     *   **`test_PenaltyFarklingPhase_FinalRoundBlinking`:** Verifies that the Competition Score display blinks when `finalRoundTriggered` is true.
     *   **`test_PenaltyFarklingPhase_GridAnimationScores`:** Verifies that the LedProgressGrid receives the correct scores and NO blinking score during the PenaltyFarklingPhase.
+    *   **`test_PenaltyFarklingPhase_SoundEffectTriggered`:** Verifies that the penalty farkle siren plays when entering the phase and stops when transitioning from the "pain" stage to the "drain" stage.
 
 *   **`test_EndOfTurnPhase.cpp`**
     *   **`test_EndOfTurnPhase_ManualAdvance`:** Verifies that a button press advances the turn and transitions to `WaitingPhase`.
@@ -127,6 +131,7 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_EndOfTurnPhase_FinalRoundTrigger`:** Verifies that the phase correctly triggers final round if score condition met.
     *   **`test_EndOfTurnPhase_DisplayClearsAtRisk`:** Verifies that the At-Risk display is cleared when the turn ends.
     *   **`test_EndOfTurnPhase_WaitWithoutInput`:** Verifies that the phase properly waits and automatically advances after a 5-second timeout.
+    *   **`test_EndOfTurnPhase_FinalRoundBellTriggered`:** Verifies that the final round bell plays when the final round is triggered.
 
 *   **`test_TargetScoreSelectionPhase.cpp`**
     *   **`test_TargetScoreSelection_InitialState`**: Verifies that the phase starts with the default target score (10,000).
@@ -142,6 +147,10 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PlayerSelection_MaxPlayers`**: Verifies that the phase respects the hardware limit by disabling player addition once the `LedProgressGrid` is full (8 players).
     *   **`test_PlayerSelection_TransitionValidation`**: Verifies that pressing **FARKLE** (Red) is ignored if the player list is empty, but successfully transitions to `WaitingPhase` if at least one player exists. Also asserts that `getOrGenerateNextGameId`, `initializeGameDirectory`, `writeGameMetadata`, and `setActiveGameId` are all called on `MemoryCard` when the game starts, verifying the full file lifecycle is triggered. Specifically, it enforces that `setActiveGameId` is called **LAST** to ensure a valid game is only "armed" after its metadata and directory are committed.
     *   **`test_PlayerSelection_AddLastPlayerWraps`**: Verifies that adding the last name in the filtered pool correctly wraps the selection index back to the first available name (index 0).
+
+*   **`test_StartupPhase.cpp`**
+    *   **`test_StartupPhase_NewGameSound`**: Verifies that the new game sound plays when a new game is selected.
+    *   **`test_StartupPhase_ResumeGameSound`**: Verifies that the resume game sound plays when resuming an archived game.
 
 *   **`test_WaitingPhase.cpp`**
     *   **`test_WaitingPhase_TieBreakerSorting`**: Verifies that players with identical scores are sorted by the tiebreaker (turns away from the current player) when updating the leaderboard list.
@@ -200,6 +209,8 @@ We will structure our tests into three tiers based on scope and complexity. This
     *   **`test_PostGame_FinalizeCalledOnce`**: Verifies that `MemoryCard::finalizeGame()` is called exactly once when the game ends, even when `PostGamePhase_V1::update()` is called multiple times in the frozen state. Also asserts the correct sequence: final round triggered → last player takes turn → WaitingPhase detects win on next entry.
     *   **`test_FullGame_ResumeActiveGame`**: Verifies the end-to-end recovery of an active game. Ensures that when `MemoryCard::hasActiveGame()` is true, the `StartupPhase` allows selecting "Resume Game" which loads metadata and game journal successfully, skips player selection, and starts directly in the `WaitingPhase` with the correct state.
     *   **`test_FullGame_ResumeActiveGame_GridInitialization`**: Verifies that resuming an active game correctly calls `resumeGameDisplays()` to initialize the hardware progress grid with restored players and target score.
+    *   **`test_FullGame_AllGameSoundsTriggered`**: Simulates a full game flow and verifies that all game sounds (score clicks, banking, farkle, penalty farkle, final round bell, victory fanfare) play correctly at the appropriate moments.
+    *   **`test_FullGame_SystemSoundsTriggered`**: Verifies that system sounds (startup chime, new game sound, resume game sound) are triggered correctly during initialization and game launch.
 
 
 ## 5. Implementation Steps
@@ -266,13 +277,11 @@ pio test -e component_tests
 *   **`test_Update_SetsCorrectColorsAndBrightness`**: Verifies that the component correctly sets NeoPixel colors and brightness based on player status (Active/Idle) and farkle count (0: White/Off, 1: Yellow, 2+: Red).
 
 ### 6.10 Example Test Cases: `SoundPlayer`
-*   **`test_begin_initializes_serial_and_volume`**: Verifies that the component configures UART correctly.
-*   **`test_play_plays_file_with_offset`**: Verifies tracking active effects logic.
-*   **`test_stop_stops_active_sustaining_effect`**: Verifies stop logic appropriately halts sustaining tracks.
-*   **`test_Update_SetsCorrectColorsAndBrightness`**: Verifies that the component correctly sets NeoPixel colors and brightness based on player status (Active/Idle) and farkle count (0: White/Off, 1: Yellow, 2+: Red).
-*   **`test_MultiLedMapping`**: Verifies that the component uses the shared `PlayerLayout` to map a single player to multiple LEDs when fewer than 8 players are present.
-*   **`test_BlinkLogic`**: Verifies that the active player's LEDs blink (toggle On/Off) based on the `isBlinking` parameter, while idle players remain solid.
-*   **`test_Alternate_SmoothTransition`**: Verifies that the warning light smoothly transitions between Red and Yellow over a 1000ms cycle during the catastrophic penalty phase.
+*   **`test_begin_initializes_serial_and_volume`**: Verifies that the component configures UART and sets default volume, triggering the startup boot chime (index 100).
+*   **`test_play_maps_enum_directly_to_file`**: Verifies that playing a game sound maps directly to the corresponding file on the SD card (no offsets).
+*   **`test_play_system_sound_maps_directly`**: Verifies that playing a system sound (index 100+) maps directly to the corresponding file on the SD card.
+*   **`test_stop_stops_active_sustaining_effect`**: Verifies that stop logic appropriately halts the currently playing sustaining track.
+*   **`test_stop_ignores_one_shots`**: Verifies that stop logic does not interfere with one-shot sound effects (like score clicks).
 
 
 ## 7. 3-Bit Bus Input & Parallel Architecture (v2.1)

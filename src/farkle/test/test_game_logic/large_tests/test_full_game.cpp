@@ -323,6 +323,140 @@ void test_FullGame_ResumeActiveGame_GridInitialization() {
     TEST_ASSERT_EQUAL_INT(RESUME_EXPECTED_TARGET_SCORE, game.grid.captured_targetScore);
 }
 
+void test_FullGame_AllGameSoundsTriggered() {
+    Game game;
+    // Start game flow
+    simulatePregameFlow(game, 2);
+
+    // 1. Score low sound
+    game.soundPlayer.play_called = false;
+    simulateButtonPress(game, ButtonAction::PLUS_50);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_LOW, game.soundPlayer.last_played_effect);
+
+    // 2. Score mid sound
+    game.soundPlayer.play_called = false;
+    simulateButtonPress(game, ButtonAction::PLUS_100);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_MID, game.soundPlayer.last_played_effect);
+
+    // 3. Score high sound
+    game.soundPlayer.play_called = false;
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_SCORE_HIGH, game.soundPlayer.last_played_effect);
+
+    // 4. Banking sound
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.stop_called = false;
+    simulateButtonPress(game, ButtonAction::BANK);
+    simulateNoAction(game); // Run BankingPhase::update to trigger sound
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_BANKING, game.soundPlayer.last_played_effect);
+    
+    // Let banking finish animation
+    waitForScoreAnimation(game);
+    TEST_ASSERT_TRUE(game.soundPlayer.stop_called);
+
+    // Dismiss EndOfTurnPhase (transitions to player 1)
+    simulateButtonPress(game, ButtonAction::CLEAR);
+
+    // 5. Farkling sound
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.stop_called = false;
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Run FarklingPhase::update to trigger sound
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_FARKLE, game.soundPlayer.last_played_effect);
+
+    // Wait for Farkling animation to finish
+    simulateNoAction(game); // Run Farkling update
+    TEST_ASSERT_TRUE(game.soundPlayer.stop_called);
+
+    // Dismiss EndOfTurn (back to player 0)
+    simulateButtonPress(game, ButtonAction::CLEAR);
+
+    // 6. Penalty Farkle sound
+    // Force player 0 to have 2 farkles, score 1000, and trigger third farkle
+    game.state.currentPlayerIndex = 0;
+    game.state.players[0].score = 1000;
+    game.state.players[0].farkle_count = 2;
+
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.stop_called = false;
+    simulateButtonPress(game, ButtonAction::FARKLE); // Triggers penalty
+    simulateNoAction(game); // Run PenaltyFarklingPhase::update to trigger sound
+    
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_PENALTY_FARKLE, game.soundPlayer.last_played_effect);
+
+    // Wait for Penalty animation (5000ms PAIN + 1000ms DRAIN)
+    simulateNoAction(game, 5000);
+    TEST_ASSERT_TRUE(game.soundPlayer.stop_called);
+
+    // Finish penalty animation (drain)
+    simulateNoAction(game, 1000); // 1000ms drain
+    simulateNoAction(game, 10); // Transition to EndOfTurn
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn (back to player 1)
+
+    // 7. Final round bell
+    // Let's get player 1 close to winning (9500), score 500, bank to cross 10000
+    game.state.currentPlayerIndex = 1;
+    game.state.players[1].score = 9500;
+    game.soundPlayer.play_called = false;
+
+    simulateButtonPress(game, ButtonAction::PLUS_500);
+    simulateButtonPress(game, ButtonAction::BANK);
+    waitForScoreAnimation(game);
+    
+    // Clear EndOfTurn to trigger final round
+    simulateButtonPress(game, ButtonAction::CLEAR);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_FINAL_ROUND_BELL, game.soundPlayer.last_played_effect);
+    TEST_ASSERT_TRUE(game.state.finalRoundTriggered);
+
+    // 8. Victory fanfare
+    // Player 0's turn in the final round (they get a Farkle to end the game)
+    game.soundPlayer.play_called = false;
+    simulateButtonPress(game, ButtonAction::FARKLE);
+    simulateNoAction(game); // Process Farkling
+    simulateButtonPress(game, ButtonAction::CLEAR); // Dismiss EndOfTurn
+    
+    // Now back to player 1 (winner). Next loop transitions to PostGamePhase_V1
+    simulateNoAction(game); // WaitingPhase update triggers PostGame
+    simulateNoAction(game); // PostGamePhase_V1 update runs to trigger victory fanfare
+    TEST_ASSERT_TRUE(game.soundPlayer.play_random_victory_called);
+}
+
+void test_FullGame_SystemSoundsTriggered() {
+    // 1. Startup sound is played in begin() on boot
+    Game game;
+    game.getMemoryCard().mock_hasActiveGame_result = false;
+    game.setup();
+    TEST_ASSERT_TRUE(game.soundPlayer.begin_called);
+
+    // 2. Select "New Game" triggers SFX_NEW_GAME
+    game.soundPlayer.play_called = false;
+    game.soundPlayer.last_played_effect = SFX_NONE;
+    simulateButtonPress(game, ButtonAction::SELECT);
+    TEST_ASSERT_TRUE(game.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_NEW_GAME, game.soundPlayer.last_played_effect);
+
+    // 3. Select "Resume Game" triggers SFX_RESUME_GAME
+    Game game2;
+    game2.getMemoryCard().mock_hasActiveGame_result = true;
+    game2.getMemoryCard().mock_loadGameMetadata_result = true;
+    game2.getMemoryCard().mock_replayGameJournal_result = true;
+    game2.setup();
+    game2.state.players.push_back(Player("Alice"));
+
+    game2.soundPlayer.play_called = false;
+    game2.soundPlayer.last_played_effect = SFX_NONE;
+    simulateButtonPress(game2, ButtonAction::SELECT);
+    TEST_ASSERT_TRUE(game2.soundPlayer.play_called);
+    TEST_ASSERT_EQUAL_INT(SFX_RESUME_GAME, game2.soundPlayer.last_played_effect);
+}
+
 void run_full_game_tests() {
     RUN_TEST(test_FullGame_StandardGame);
     RUN_TEST(test_FullGame_TripleFarkle);
@@ -333,4 +467,6 @@ void run_full_game_tests() {
     RUN_TEST(test_PostGame_FinalizeCalledOnce);
     RUN_TEST(test_FullGame_ResumeActiveGame);
     RUN_TEST(test_FullGame_ResumeActiveGame_GridInitialization);
+    RUN_TEST(test_FullGame_AllGameSoundsTriggered);
+    RUN_TEST(test_FullGame_SystemSoundsTriggered);
 }
