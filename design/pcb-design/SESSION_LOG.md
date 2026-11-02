@@ -115,3 +115,42 @@
 
 **Still open:** Q2–Q10. **Q8 (fab) now gates A0**, because the BOM is chosen from that fab's catalog.
 
+---
+
+## Session 5: 2026-11-01, Guillermo Q&A & Single-Board Architecture Lock-In
+
+**Participants:** Guillermo, Antigravity (AI).
+
+**Context:** Walked through the schematic audit of `FarkleScorekeeper.kicad_sch` and resolved all remaining open questions (`Q2`–`Q10`) from `MODULAR_PCB_PROPOSAL.md` §11.
+
+**Answered (`Q1`–`Q10` all closed):**
+*   **Q1 (Goal):** Personal build (confirmed previously).
+*   **Q2 & Q5 (Compute & WiFi):** Keep the **Arduino Uno R4 WiFi** plugged into headers on the back of the PCB (Phase A only; zero firmware changes).
+*   **Q3 & Board Architecture:** **Single Unified Main PCB** mounted behind the front panel (instead of the 3-board modular split). Controls, 72 SMD LEDs, and displays sit on the front side; Uno R4 WiFi, 5V microSD adapter (`MC_A1`), and DFPlayer (`MP3-TF-16P`) plug into headers on the back; power switch and USB-C breakout/docked power bank connect via a 2-pin power entry header.
+*   **Q4 (LCD CS & Button Diodes):**
+    *   **F1 resolved:** Guillermo upgraded to an **8-pin ST7789 240x240 LCD module that includes a `CS` pin** (`TextDisplay` / `TD1` in the KiCad schematic). The `74LVC1G125` clock-gate fallback is no longer needed.
+    *   **F4 resolved:** The schematic confirms **7 steering diodes** (`D1`–`D7`) on the multi-bit buttons (`+50`, `+100`, `+500`).
+*   **Q6 (SD Access):** **Internal-only** (set and forget inside the enclosure; reuses the 5V-native `MemoryCard_Adapter` module `MC_A1`, so discrete SD level-shifter ICs are not needed).
+*   **Q7 (Displays, LEDs, Controls):**
+    *   **Score Displays:** Reuse the **3× off-the-shelf 5-digit MAX7219 modules** (`AtRiskScore`, `Banked`, `Opposition` adapters on the PCB).
+    *   **LED Grid & Strip:** Place **72 individual SMD `WS2812B` LEDs** (64 for the 8x8 progress grid + 8 for the status strip, with `100nF` decoupling per LED) directly on the PCB, organized in a clean **KiCad hierarchical sub-sheet**.
+    *   **Buttons & Controls:** PCB-mounted tactile switches (`BANK`, `FARKLE`, `CLEAR`, `+50`, `+100`, `+500`), PCB-mounted rotary encoder, and PCB-mounted DPDT latching switch (`SW2`).
+*   **Q8 (Fab & Assembly):** **JLCPCB / PCBWay SMD assembly** for the 72 SMD LEDs, passives, diodes, and active protection/level-shifter ICs; hand-solder through-hole headers and switches.
+*   **Q9 (Chord Aliasing):** **Accept as-is** (rely on physical button spacing + 50 ms debounce window).
+*   **Q10 (Portability & Power):** **Option A** — single 5V USB-C power entry (docked USB-C power bank or wall adapter) routed through the panel power rocker switch.
+
+**Circuit Protection & Level-Shifting Decision:**
+*   Include the 3 active protection/level-shifting upgrades on the Single Unified PCB (assembled via SMD pick-and-place):
+    1.  **Power Entry eFuse (`TPS2595`):** Soft-start for the `1000µF` bulk capacitor, ~2.2A–2.5A over-current limit, and low-current `EN` switch input (plus `SMBJ5.0A` TVS diode).
+    2.  **LCD 3.3V Level Shifter (`AP2112K-3.3` LDO + `74LVC245A`):** Steps 5V SPI/control signals (`SCL/SCK`, `SDA/MOSI`, `RES`, `DC`, `CS`, `BLK`) down to 3.3V for the ST7789 LCD (`TD1`).
+    3.  **5V Buffer (`74AHCT244`) + DFPlayer `1kΩ/2kΩ` RX Divider:** Shifts DFPlayer 3.3V `TX` up to 5.0V for Uno R4 `D0 (RX)` (satisfying the RA4M1 $4.0\text{V}$ CMOS $V_{IH}$) and buffers the `A0`/`A1` NeoPixel and `MAX7219` SPI lines.
+
+**Schematic Audit Findings Fixed in Duplicated KiCad Project:**
+*   Duplicated `FarkleScorekeeper` KiCad project to keep the original untouched.
+*   Fixed `AtRiskScore` `CS_IN` (moved from `A4` to `D10`; `A4` connected to `TextDisplay` `CS`).
+*   Connected broken daisy-chain wires (`D_OUT`/`CS_OUT`/`CLK_OUT` -> `D_IN`/`CS_IN`/`CLK_IN`) between `Banked` and `Opposition` MAX7219 adapters.
+*   Swapped the reversed diode buses on `+50` (needs 3 diodes: `D5`, `D6`, `A2` for binary `111`) and `+100` (needs 2 diodes: `D5`, `D6` for binary `110`).
+*   Unified all floating `+5V` and `GND` islands with proper power symbols and decoupling capacitors.
+*   Added the missing subsystems: `TextDisplay` (`TD1`) level-shifted wiring, `DFPlayer Mini` (`MP3-TF-16P`) with `1kΩ/2kΩ` RX divider + `74AHCT244` TX buffer + ferrite-filtered supply, DPDT mute switch (`SW_MUTE`) + speaker header, `TPS2595` eFuse power entry + power switch header, and the 72-LED `WS2812B` hierarchical sub-sheet (`LedGrid_StatusStrip.kicad_sch`).
+
+

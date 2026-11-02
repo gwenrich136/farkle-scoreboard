@@ -146,8 +146,8 @@ Guillermo shared a photo of the working breadboard build. The photo isn't commit
 |:--|:--|:--|
 | Construction | Two breadboards plus a perfboard strip for the buttons, all inter-wired with ~20 cm Dupont jumpers. Power and ground are distributed through breadboard rails. | New finding **F12** |
 | Score displays | Three off-the-shelf 5-digit MAX7219 modules with in/out chain headers, jumpered in series. Digits look blue/white. | SEG can reuse these (proposal §4.3) |
-| Gamepad | Six 12 mm tactile switches with coloured caps (green, red, black, 3× white). A KY-040-style encoder module and a self-locking switch module with a white cap sit beside the displays. Small parts near the buttons *may* be steering diodes, but the photo can't confirm it. | F4 still open (Q4) |
-| Screen | ~1.3–1.5" ST7789 module, header along its top edge. Pin count isn't readable. | F1 still open (Q4) |
+| Gamepad | Six 12 mm tactile switches with coloured caps (green, red, black, 3× white). A KY-040-style encoder module and a self-locking switch module with a white cap sit beside the displays. Small parts near the buttons *may* be steering diodes, but the photo can't confirm it. | F4 confirmed in Session 5 (7 steering diodes in `FarkleScorekeeper.kicad_sch`) |
+| Screen | ~1.3–1.5" ST7789 module, header along its top edge. Pin count isn't readable. | F1 resolved in Session 5 (upgraded to 8-pin ST7789 module with `CS` pin) |
 | Audio / storage | DFPlayer with its blue busy LED lit, and a microSD module beside the LCD. 36 mm speaker on long jumper leads. **No mute switch is visible** in the speaker path. | Mute DPDT may not be built yet |
 | Power | Xiaomi power bank (USB-A out). Its cable leaves the frame, so its destination isn't visible. A separate red USB-C cable runs into the Uno R4. A large electrolytic (the 1000 µF bulk) is visible. | If the PC cable and the bank are connected together, **F8 applies** |
 | Not visible | No 8x8 grid and no status strip in frame. | Confirm they're wired, and how they're powered |

@@ -1,15 +1,17 @@
 > **Scope:** Proposed set of custom PCBs, the off-the-shelf modules they host, the board-to-board interconnect, the power architecture, the certification strategy (certified PSU + pre-certified radio), and the enclosure interface for the Farkle Scoreboard.
-> **Status:** **PROPOSAL** - Not yet agreed. Open questions in §11 must be answered by Guillermo before schematic capture starts (Q1 answered 2026-10-16: personal build). Revised after the build-photo review (Session 2) and the first design review (Session 4, R1–R10 applied). Builds on findings F1–F13 in `ELECTRONICS_CURRENT_STATE.md`. Workflow rules in `VIBE_CODING_PCB_PITFALLS.md`.
+> **Status:** **ADOPTED (SINGLE-BOARD VARIANT, SESSION 5)** - All open questions Q1–Q10 answered by Guillermo on 2026-11-01 (see §11 and `SESSION_LOG.md` Session 5). Guillermo selected the **Single Unified Main PCB** architecture (Option 1 in §10) with 72 onboard SMD `WS2812B` LEDs (in a KiCad hierarchical sheet), reusing the Uno R4 WiFi, 3× MAX7219 5-digit modules, 8-pin CS-capable ST7789 LCD, 5V microSD adapter, and DFPlayer Mini, while keeping the active protection/level-shifting ICs (`TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` LCD shifter, and `74AHCT244` 5V buffer).
 
-# Modular PCB Architecture Proposal
+# Modular & Unified PCB Architecture Proposal
 
 ## 0. TL;DR
 
-*   **Three custom boards:** `PWR` (USB-C power entry), `CORE` (compute carrier), and `PAD` (gamepad). A custom `SEG` score-display board is **optional**, because the build already uses chainable 5-digit MAX7219 modules.
-*   **Buy, don't build:** the score-display modules (already in hand), the 8x8 LED grid, the 8-LED strip, the ST7789 LCD (a CS-capable module), the DFPlayer, and the compute module.
-*   **Phase A** keeps the Uno R4 WiFi and **today's pin map**, so firmware is unchanged. `CORE-A` is a shield the R4 plugs into.
-*   **Phase B** (optional) replaces it with `CORE-B`, which puts a pre-certified ESP32-S3 module directly on the board. Because the connectors are fixed, **every other board carries over unchanged**.
-*   **Certification boundary:** no mains, no battery design, and no radio design inside the product. Portability comes from a certified power bank docked in the enclosure (§6.1). Power comes from a UL/CE-listed USB-C adapter (or a certified power bank). The only radio is a module with existing modular approvals.
+*   **Session 5 Decision (Unified Main PCB):** Rather than splitting into 3 separate boards connected by cables, the build consolidates onto **one Single Unified Main PCB** mounted behind the front panel:
+    *   **Front side:** 72 SMD `WS2812B` LEDs (64 in the 8x8 grid + 8 in the status strip, captured in a KiCad hierarchical sub-sheet), 6 PCB-mounted tactile buttons, PCB-mounted rotary encoder + latching switch, 8-pin ST7789 LCD header (`TD1`, with `CS`), and chain headers for the 3× off-the-shelf 5-digit MAX7219 score modules.
+    *   **Back side:** Plug-in headers for the **Arduino Uno R4 WiFi**, **5V microSD adapter (`MC_A1`)**, and **DFPlayer Mini (`MP3-TF-16P`)**, plus SMD protection and level-shifting circuitry (`TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` LCD 3.3V shifter, `74AHCT244` 5V buffer, `1kΩ/2kΩ` DFPlayer RX divider, and 7 steering diodes).
+    *   **Panel connections:** 2-pin USB-C power entry (`J_PWR`), 2-pin power rocker switch (`J_SW`), DPDT audio mute switch (`SW_MUTE`), and 2-pin speaker header (`J_SPK`).
+*   *(Historical Session 1–4 Modular Proposal preserved below for reference: three custom boards `PWR`, `CORE-A`, and `PAD`.)*
+*   **Phase A** keeps the Uno R4 WiFi and **today's pin map**, so firmware is unchanged.
+*   **Certification boundary:** no mains, no battery design, and no radio design inside the product. Portability comes from a certified power bank docked in the enclosure (§6.1 Option A). Power comes from a UL/CE-listed USB-C adapter or certified power bank. The only radio is the Uno R4 WiFi's pre-certified module.
 
 ---
 
@@ -269,35 +271,40 @@ A Farkle game runs about 30–60 min, so a 10,000 mAh bank covers an evening. Ke
 
 ---
 
-## 10. Alternative Considered: Single Board
+## 10. Selected Architecture: Single Unified Main PCB (vs. Modular)
 
-One large front-panel PCB with all displays, LEDs, buttons, and the compute on the back.
+One large front-panel PCB with all displays, 72 SMD LEDs, and buttons on the front, and the compute/storage/audio modules plugged into headers on the back.
 
-| | Single board | Modular (proposed) |
+| | Single board (Selected in Session 5) | Modular (Sessions 1–4 proposal) |
 |:--|:--|:--|
-| Harness | None | 8 short keyed cables |
+| Harness | None (only 2-pin power entry + speaker leads) | 8 short keyed cables |
 | Unit cost at volume | Lower | Slightly higher (connectors) |
 | Prototype cost per re-spin | High (large board) | Low (only the changed board) |
 | Enclosure freedom | Locked to PCB | Displays placed independently |
-| Noise isolation | Needs careful partitioning | Physical separation by default |
+| Noise isolation | Needs careful partitioning (`5V_LED` vs `5V_SYS` star point) | Physical separation by default |
 | Compute upgrade | Full re-spin | Swap CORE only |
 
-**Recommendation:** modular now, while the layout and compute choice are still moving. Phase C consolidates once they are frozen.
+**Session 5 Decision:** Guillermo selected the **Single Unified Main PCB** (matching the approach started in `FarkleScorekeeper.kicad_sch`) to eliminate internal multi-board wiring harnesses, while keeping the `5V_LED` vs. `5V_SYS` star distribution, `TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` LCD 3.3V level shifter, and `74AHCT244` 5V buffer on the unified board.
 
 ---
 
-## 11. Open Questions (for Guillermo)
+## 11. Open Questions — All Resolved (Session 5, 2026-11-01)
 
-1.  ~~**Q1, Goal:**~~ **Answered:** personal build. Certification is a design-for goal, not a gate (§7). Still to confirm: does "UE" mean UL + CE?
-2.  **Q2, Compute:** happy to keep the Uno R4 WiFi long-term (Phase A only), or interested in Phase B?
-3.  **Q3, Gamepad form:** are the controls part of the scoreboard front panel, or a **tethered handheld pad** on a cable? (This changes J6's connector to a panel-mount locking type and adds cable ESD considerations.)
-4.  **Q4, Current wiring:** how are the multi-bit buttons isolated today, with diodes or multi-pole switches (F4)? And does the current LCD module really have no CS pin (F1)?
-5.  **Q5, WiFi:** is stats upload a real requirement? If not, it changes the Phase B radio and certification picture (§7.4).
-6.  **Q6, SD access:** do players ever remove the game-data card, or is it internal-only?
-7.  **Q7, Sizes:** target enclosure dimensions, 7-segment digit height, and button type (arcade 24/30 mm vs tactile)?
-8.  **Q8, Fab:** hand-solder, or JLCPCB/PCBWay assembly? This decides package choices.
-9.  **Q9, Chord aliasing:** which option in §4.4 (accept / re-assign / expander)?
-10. **Q10, Portability:** should it run untethered? If so, a docked power bank (§6.1 A), or bank + wall auto-switch (§6.1 B)? Any preferred bank size or model to design the bay around?
+1.  **Q1, Goal:** **Answered (2026-10-16):** Personal build. Certification is a design-for goal, not a gate (§7).
+2.  **Q2, Compute:** **Answered (2026-11-01):** Keep the **Arduino Uno R4 WiFi** plugged into headers on the PCB (Phase A only; zero firmware changes).
+3.  **Q3, Gamepad form:** **Answered (2026-11-01):** Integrated into the main scoreboard front panel on the Single Unified Main PCB.
+4.  **Q4, Current wiring:** **Answered (2026-11-01):**
+    *   Multi-bit buttons are isolated with **7 steering diodes** (`D1`–`D7` in `FarkleScorekeeper.kicad_sch`).
+    *   The ST7789 LCD was upgraded to an **8-pin module that includes a `CS` pin** (`TD1` in `FarkleScorekeeper.kicad_sch`), eliminating Finding F1 and the need for a `74LVC1G125` clock gate.
+5.  **Q5, WiFi:** **Answered (2026-11-01):** Covered by keeping the Uno R4 WiFi (Phase A).
+6.  **Q6, SD access:** **Answered (2026-11-01):** **Internal-only** (set and forget inside the enclosure; reuses the 5V-native `MemoryCard_Adapter` module `MC_A1`, so discrete SD level-shifter ICs are not required).
+7.  **Q7, Sizes & Parts:** **Answered (2026-11-01):**
+    *   Reuse the **3× off-the-shelf 5-digit MAX7219 display modules** (`MAX2719_Adapter`).
+    *   Place **72 individual SMD `WS2812B` LEDs** (64 for the 8x8 grid + 8 for the status strip) directly on the PCB using a KiCad hierarchical sheet.
+    *   Use **PCB-mounted tactile switches**, PCB-mounted rotary encoder, and PCB-mounted DPDT latching switch.
+8.  **Q8, Fab:** **Answered (2026-11-01):** **JLCPCB / PCBWay SMD assembly** for the 72 SMD LEDs, passives, diodes, and active ICs (`TPS2595`, `AP2112K-3.3`, `74LVC245A`, `74AHCT244`); hand-solder through-hole headers and switches.
+9.  **Q9, Chord aliasing:** **Answered (2026-11-01):** **Accept as-is** (rely on physical button spacing + 50 ms debounce window).
+10. **Q10, Portability:** **Answered (2026-11-01):** **Option A (§6.1)** — single USB-C power input (docked USB-C power bank or wall adapter) routed through the panel power switch.
 
 ---
 
