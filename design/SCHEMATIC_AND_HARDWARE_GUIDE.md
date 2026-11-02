@@ -1,5 +1,6 @@
 > **Scope:** Provides a complete wiring guide, pin map, and power strategy for connecting all physical hardware components to the Arduino.
 > **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If hardware changes, this document MUST be updated.
+> **PCB work:** A proposed modular PCB replacement for this hand-wired build lives in `design/pcb-design/` (see `MODULAR_PCB_PROPOSAL.md`). Until it is adopted, this file remains the wiring source of truth.
 
 # **The "Retro Arduino" Farkle Scoreboard: Complete Wiring Guide**
 
