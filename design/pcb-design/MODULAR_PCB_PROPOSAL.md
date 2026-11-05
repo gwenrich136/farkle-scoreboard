@@ -286,9 +286,9 @@ One large front-panel PCB with all displays, 72 SMD LEDs, and buttons on the fro
 
 **Session 5 Decision:** Guillermo selected the **Single Unified Main PCB** (matching the approach started in `FarkleScorekeeper.kicad_sch`) to eliminate internal multi-board wiring harnesses, while keeping the `5V_LED` vs. `5V_SYS` star distribution, `TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` LCD 3.3V level shifter, and `74AHCT244` 5V buffer on the unified board.
 
-### 10.1 Unified Main PCB Complete Schematic & Component Reference (`FarkleScorekeeper_v2`)
+### 10.1 Unified Main PCB Complete Schematic & Component Reference (`hardware/kicad/FarkleScorekeeper/`)
 
-The complete schematic is captured in `FarkleScorekeeper.kicad_sch` (main sheet) and `LedGrid_StatusStrip.kicad_sch` (hierarchical sub-sheet), verified to **0 ERC errors and 0 warnings** in KiCad 10.
+The complete schematic is captured in `hardware/kicad/FarkleScorekeeper/FarkleScorekeeper.kicad_sch` (main sheet) and `hardware/kicad/FarkleScorekeeper/LedGrid_StatusStrip.kicad_sch` (hierarchical sub-sheet), verified to **0 ERC errors and 0 warnings** in KiCad 10.
 
 #### 1. Compute & Storage (`FarkleScorekeeper.kicad_sch`)
 | Ref | Part / Value | Role & Pin / Net Wiring |

@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "FarkleScoreekeper_Stuff") (type "KiCad") (uri "${KIPRJMOD}/FarkleScoreekeper_Stuff.kicad_sym") (options "") (descr ""))
+)

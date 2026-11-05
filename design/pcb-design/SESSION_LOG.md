@@ -145,8 +145,8 @@
     2.  **LCD 3.3V Level Shifter (`AP2112K-3.3` LDO + `74LVC245A`):** Steps 5V SPI/control signals (`SCL/SCK`, `SDA/MOSI`, `RES`, `DC`, `CS`, `BLK`) down to 3.3V for the ST7789 LCD (`TD1`).
     3.  **5V Buffer (`74AHCT244`) + DFPlayer `1kΩ/2kΩ` RX Divider:** Shifts DFPlayer 3.3V `TX` up to 5.0V for Uno R4 `D0 (RX)` (satisfying the RA4M1 $4.0\text{V}$ CMOS $V_{IH}$) and buffers the `A0`/`A1` NeoPixel and `MAX7219` SPI lines.
 
-**Schematic Audit Findings Fixed in Duplicated KiCad Project:**
-*   Duplicated `FarkleScorekeeper` KiCad project to keep the original untouched.
+**Schematic Audit Findings Fixed in Repo KiCad Project (`hardware/kicad/FarkleScorekeeper/`):**
+*   Duplicated `FarkleScorekeeper` KiCad project into `hardware/kicad/FarkleScorekeeper/` (keeping the original external project untouched).
 *   Fixed `AtRiskScore` `CS_IN` (moved from `A4` to `D10`; `A4` connected to `TextDisplay` `CS`).
 *   Connected broken daisy-chain wires (`D_OUT`/`CS_OUT`/`CLK_OUT` -> `D_IN`/`CS_IN`/`CLK_IN`) between `Banked` and `Opposition` MAX7219 adapters.
 *   Swapped the reversed diode buses on `+50` (needs 3 diodes: `D5`, `D6`, `A2` for binary `111`) and `+100` (needs 2 diodes: `D5`, `D6` for binary `110`).

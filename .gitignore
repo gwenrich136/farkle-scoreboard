@@ -1,1 +1,10 @@
 venv/
+
+# KiCad temporary, lock, and backup files
+*.lck
+*.bak
+*.kicad_prl
+*-backups/
+.history/
+fp-info-cache
+
