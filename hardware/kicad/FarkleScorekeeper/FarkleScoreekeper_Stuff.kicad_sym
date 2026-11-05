@@ -458,7 +458,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "EC11_Encoder"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -468,7 +468,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -490,7 +490,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "Bare EC11 Rotary Encoder with Push Switch"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -515,17 +515,17 @@
 			)
 		)
 		(symbol "RotaryEncoder_1_1"
-			(pin input line
+			(pin passive line
 				(at -7.62 2.54 0)
 				(length 2.54)
-				(name "CLK"
+				(name "A"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "1"
+				(number "A"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -533,17 +533,17 @@
 					)
 				)
 			)
-			(pin output line
+			(pin passive line
 				(at -7.62 0 0)
 				(length 2.54)
-				(name "DT"
+				(name "B"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "2"
+				(number "B"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -551,17 +551,17 @@
 					)
 				)
 			)
-			(pin output line
+			(pin passive line
 				(at -7.62 -2.54 0)
 				(length 2.54)
-				(name "SW"
+				(name "S1"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "3"
+				(number "S1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -572,14 +572,14 @@
 			(pin power_in line
 				(at 2.54 7.62 270)
 				(length 2.54)
-				(name "V_in"
+				(name "C"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "4"
+				(number "C"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -590,14 +590,32 @@
 			(pin power_in line
 				(at 2.54 -7.62 90)
 				(length 2.54)
-				(name "GND"
+				(name "S2"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "5"
+				(number "S2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "MP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "MP"
 					(effects
 						(font
 							(size 1.27 1.27)

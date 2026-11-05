@@ -1957,7 +1957,7 @@
 					)
 				)
 			)
-			(property "Value" ""
+			(property "Value" "EC11_Encoder"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -1967,7 +1967,7 @@
 					)
 				)
 			)
-			(property "Footprint" ""
+			(property "Footprint" "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -1989,7 +1989,7 @@
 					)
 				)
 			)
-			(property "Description" ""
+			(property "Description" "Bare EC11 Rotary Encoder with Push Switch"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -2014,17 +2014,17 @@
 				)
 			)
 			(symbol "RotaryEncoder_1_1"
-				(pin input line
+				(pin passive line
 					(at -7.62 2.54 0)
 					(length 2.54)
-					(name "CLK"
+					(name "A"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "1"
+					(number "A"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2032,17 +2032,17 @@
 						)
 					)
 				)
-				(pin output line
+				(pin passive line
 					(at -7.62 0 0)
 					(length 2.54)
-					(name "DT"
+					(name "B"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "2"
+					(number "B"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2050,17 +2050,17 @@
 						)
 					)
 				)
-				(pin output line
+				(pin passive line
 					(at -7.62 -2.54 0)
 					(length 2.54)
-					(name "SW"
+					(name "S1"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "3"
+					(number "S1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2071,14 +2071,14 @@
 				(pin power_in line
 					(at 2.54 7.62 270)
 					(length 2.54)
-					(name "V_in"
+					(name "C"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "4"
+					(number "C"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2089,14 +2089,32 @@
 				(pin power_in line
 					(at 2.54 -7.62 90)
 					(length 2.54)
-					(name "GND"
+					(name "S2"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "5"
+					(number "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "MP"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "MP"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -7754,7 +7772,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "EC11_Encoder"
 			(at 116.84 151.13 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7764,7 +7782,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm"
 			(at 116.84 151.13 0)
 			(hide yes)
 			(show_name no)
@@ -7797,20 +7815,23 @@
 				)
 			)
 		)
-		(pin "4"
+		(pin "C"
 			(uuid "11408a55-bdab-40ee-80f5-374c015b9ccf")
 		)
-		(pin "5"
+		(pin "S2"
 			(uuid "a0c414f2-05da-4eea-ad69-157b56e31535")
 		)
-		(pin "2"
+		(pin "B"
 			(uuid "6bc148c0-ed4a-432a-940a-e8dba617e6dc")
 		)
-		(pin "3"
+		(pin "S1"
 			(uuid "5d32f1a9-dd60-4ef3-a4a1-6cbd6efd284c")
 		)
-		(pin "1"
+		(pin "A"
 			(uuid "b491d72e-37c0-4d66-89d1-5b64130862ab")
+		)
+			(pin "MP"
+			(uuid "66cc9b84-32b3-4431-9b89-405b95070776")
 		)
 		(instances
 			(project "FarkleScorekeeper"
@@ -7853,7 +7874,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 214.63 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -7955,7 +7976,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 156.21 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -8043,7 +8064,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:Max2719Big"
 			(at 179.07 55.88 0)
 			(hide yes)
 			(show_name no)
@@ -8147,7 +8168,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 234.95 134.62 0)
 			(hide yes)
 			(show_name no)
@@ -8249,7 +8270,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 17.78 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -8329,7 +8350,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 204.47 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -8415,7 +8436,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:SW_Toggle_DPDT_PC_Pin_E-Switch_100DP1"
 			(at 154.94 85.09 0)
 			(hide yes)
 			(show_name no)
@@ -8498,7 +8519,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "C_US"
+		(property "Value" "1000uF"
 			(at 52.07 99.3139 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8509,7 +8530,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:CP_Radial_D10.0mm_P5.00mm"
 			(at 48.26 97.79 0)
 			(hide yes)
 			(show_name no)
@@ -8589,7 +8610,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 134.62 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -8675,7 +8696,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 195.58 118.11 0)
 			(hide yes)
 			(show_name no)
@@ -8777,7 +8798,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 243.84 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -8865,7 +8886,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:Max2719Big"
 			(at 262.89 55.88 0)
 			(hide yes)
 			(show_name no)
@@ -8969,7 +8990,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 195.58 114.3 0)
 			(hide yes)
 			(show_name no)
@@ -9072,7 +9093,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:TextDisplay_ST7789_8Pin"
 			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
@@ -9170,7 +9191,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:SW_Toggle_DPDT_PC_Pin_E-Switch_100DP1"
 			(at 154.94 76.2 0)
 			(hide yes)
 			(show_name no)
@@ -9262,7 +9283,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 175.26 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -9349,7 +9370,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 281.94 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -9429,7 +9450,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 214.63 121.92 0)
 			(hide yes)
 			(show_name no)
@@ -9531,7 +9552,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 234.95 138.43 0)
 			(hide yes)
 			(show_name no)
@@ -9633,7 +9654,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 34.29 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -9713,7 +9734,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_PUSH-12mm"
 			(at 223.52 146.05 0)
 			(hide yes)
 			(show_name no)
@@ -9800,7 +9821,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:MemoryCard_Adapter_6Pin"
 			(at 52.07 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -9892,7 +9913,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 214.63 129.54 0)
 			(hide yes)
 			(show_name no)
@@ -9996,7 +10017,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:Max2719Big"
 			(at 220.98 55.88 0)
 			(hide yes)
 			(show_name no)
@@ -10721,7 +10742,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"
 			(at 40.64 215.9 0)
 			(hide yes)
 			(show_name no)
@@ -11072,7 +11093,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:TPS2595_WSON-8_2x2mm"
 			(at 91.44 220.98 0)
 			(hide yes)
 			(show_name no)
@@ -11216,7 +11237,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_SMB"
 			(at 55.88 205.74 0)
 			(hide yes)
 			(show_name no)
@@ -11393,7 +11414,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 64.77 205.74 0)
 			(hide yes)
 			(show_name no)
@@ -11570,7 +11591,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"
 			(at 40.64 236.22 0)
 			(hide yes)
 			(show_name no)
@@ -11690,7 +11711,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 55.88 220.98 0)
 			(hide yes)
 			(show_name no)
@@ -11816,7 +11837,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 63.5 228.6 0)
 			(hide yes)
 			(show_name no)
@@ -12013,7 +12034,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 71.12 236.22 0)
 			(hide yes)
 			(show_name no)
@@ -12200,7 +12221,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 76.2 246.38 0)
 			(hide yes)
 			(show_name no)
@@ -12553,7 +12574,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
 			(at 180.34 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -12778,7 +12799,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 160.02 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -13135,7 +13156,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 200.66 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -13302,7 +13323,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm"
 			(at 254 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -14024,7 +14045,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Package_SO:SOIC-20W_7.5x12.8mm_P1.27mm"
 			(at 355.6 226.06 0)
 			(hide yes)
 			(show_name no)
@@ -14683,7 +14704,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 411.48 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -14937,7 +14958,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 426.72 218.44 0)
 			(hide yes)
 			(show_name no)
@@ -15908,7 +15929,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "CustomKiCadLibrary:DFPlayer_Mini_DIP16"
 			(at 104.14 320.04 0)
 			(hide yes)
 			(show_name no)
@@ -16000,7 +16021,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0805_2012Metric"
 			(at 55.88 294.64 0)
 			(hide yes)
 			(show_name no)
@@ -16306,7 +16327,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm"
 			(at 68.58 302.26 0)
 			(hide yes)
 			(show_name no)
@@ -16483,7 +16504,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 78.74 302.26 0)
 			(hide yes)
 			(show_name no)
@@ -16660,7 +16681,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 55.88 317.5 0)
 			(hide yes)
 			(show_name no)
@@ -16786,7 +16807,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 66.04 325.12 0)
 			(hide yes)
 			(show_name no)
@@ -17080,7 +17101,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_E-Switch_EG2219_DPDT_Angled"
 			(at 144.78 317.5 0)
 			(hide yes)
 			(show_name no)
@@ -17163,7 +17184,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_E-Switch_EG2219_DPDT_Angled"
 			(at 144.78 327.66 0)
 			(hide yes)
 			(show_name no)
@@ -17294,7 +17315,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal"
 			(at 175.26 314.96 0)
 			(hide yes)
 			(show_name no)
@@ -17381,6 +17402,264 @@
 			(type default)
 		)
 		(uuid "fcdca53f-6af8-440f-b7a4-36370ce531ba")
+	)
+	(wire
+		(pts
+			(xy 116.84 158.75) (xy 119.38 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "beff0d7c-1580-47ef-91e0-6387951252d0")
+	)
+	(symbol
+		(lib_id "Device:R_Small_US")
+		(at 83.82 151.13 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d63beb0a-d17b-47de-b248-b0b0d075f374")
+		(property "Reference" "R_ENC1"
+			(at 83.82 147.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "10k"
+			(at 83.82 154.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 83.82 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 83.82 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "10k Encoder A Pull-Up Resistor"
+			(at 83.82 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1" (uuid "19fd592d-761c-43ae-b484-767a96305268"))
+		(pin "2" (uuid "4478975a-84a9-4020-a4fb-5a7afb7465d0"))
+		(instances
+			(project "FarkleScorekeeper"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "R_ENC1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 83.82 148.59 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9f59d1df-b10f-45d0-a829-ff8fb36e53c1")
+		(property "Reference" "#PWR450"
+			(at 83.82 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "+5V"
+			(at 83.82 146.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 83.82 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 83.82 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" ""
+			(at 83.82 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1" (uuid "46aa1b4d-6ee8-4ee4-83fb-3cea9e1fe2be"))
+		(instances
+			(project "FarkleScorekeeper"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "#PWR450")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 83.82 153.67) (xy 83.82 156.21)
+		)
+		(stroke (width 0) (type default))
+		(uuid "871ccad1-4858-469f-9315-12012d1287e5")
+	)
+	(label "2"
+		(at 83.82 156.21 0)
+		(effects (font (size 1.27 1.27)) (justify left bottom))
+		(uuid "b0be25a2-c21a-4728-9b2f-76c7ea6fc8e7")
+	)
+	(symbol
+		(lib_id "Device:R_Small_US")
+		(at 91.44 151.13 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "56c6a96a-3b7a-4b26-9f71-19ebbeee3a0d")
+		(property "Reference" "R_ENC2"
+			(at 91.44 147.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "10k"
+			(at 91.44 154.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 91.44 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 91.44 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" "10k Encoder B Pull-Up Resistor"
+			(at 91.44 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1" (uuid "9eeb34e0-fb16-4524-a8f6-380250a11bca"))
+		(pin "2" (uuid "b4dcc79d-8c18-46c0-87aa-c48379b00efa"))
+		(instances
+			(project "FarkleScorekeeper"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "R_ENC2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 91.44 148.59 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "4ddb8627-e9b8-44e7-be1b-737721102c7e")
+		(property "Reference" "#PWR451"
+			(at 91.44 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Value" "+5V"
+			(at 91.44 146.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Footprint" ""
+			(at 91.44 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Datasheet" ""
+			(at 91.44 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(property "Description" ""
+			(at 91.44 148.59 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)))
+		)
+		(pin "1" (uuid "168a602f-1701-4333-8ced-02361ffb737c"))
+		(instances
+			(project "FarkleScorekeeper"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "#PWR451")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 91.44 153.67) (xy 91.44 156.21)
+		)
+		(stroke (width 0) (type default))
+		(uuid "9d7e9390-f1e4-4a77-93d7-2aa69b010530")
+	)
+	(label "*3"
+		(at 91.44 156.21 0)
+		(effects (font (size 1.27 1.27)) (justify left bottom))
+		(uuid "cefdac78-cc31-4135-9df5-1f5b903e3be5")
 	)
 	(sheet_instances
 		(path "/"

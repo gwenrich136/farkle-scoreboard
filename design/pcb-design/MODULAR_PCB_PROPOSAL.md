@@ -299,10 +299,10 @@ The complete schematic is captured in `hardware/kicad/FarkleScorekeeper/FarkleSc
 #### 2. Power Entry, Protection & Decoupling (`FarkleScorekeeper.kicad_sch`)
 | Ref | Part / Value | Role & Pin / Net Wiring |
 |:--|:---|:--|
-| **`J_PWR`** | `Conn_01x02` (`USB_C_5V_IN`) | 2-pin 5V power input from the USB-C breakout / docked power bank (`VBUS_IN`, `GND`). |
-| **`J_SW`** | `Conn_01x02` (`PWR_SWITCH`) | 2-pin header to the panel power rocker switch; switches the low-current (µA) eFuse `EN` line. |
-| **`D_TVS1`** | `SMBJ5.0A` | Unidirectional 5V TVS protection diode across `VBUS_IN` and `GND` for ESD / hot-plug spikes. |
-| **`U_EFUSE1`** | `TPS2595` eFuse | `VIN` ← `VBUS_IN`, `VOUT` → `+5V` rail, `GND` → `GND`, `FLT` → unconnected (no-connect). |
+| **`J_PWR`** | `Conn_01x02` (`USB_C_5V_IN`) | 2-pin 5.08mm PCB screw terminal block (`TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal`) for raw wires from the USB-C breakout / docked power bank (`VBUS_IN`, `GND`). |
+| **`J_SW`** | `Conn_01x02` (`PWR_SWITCH`) | 2-pin 5.08mm PCB screw terminal block to the panel-mounted SPST power rocker switch ([ProtoSupplies Miniature Rocker Switch SPST](https://protosupplies.com/product/miniature-rocker-switch-spst/)); switches the low-current (µA) eFuse `EN` line. |
+| **`D_TVS1`** | `SMBJ5.0A` (`D_SMB`) | Unidirectional 5V TVS protection diode across `VBUS_IN` and `GND` for ESD / hot-plug spikes. |
+| **`U_EFUSE1`** | `TPS2595` eFuse (`WSON-8 2x2mm`) | `VIN` ← `VBUS_IN`, `VOUT` → `+5V` rail, `GND` → `GND`, `FLT` → unconnected (no-connect). |
 | **`C_IN1`** | `100nF` | Input decoupling capacitor on `VBUS_IN` next to `U_EFUSE1`. |
 | **`R_EN1`, `R_EN2`** | `10kΩ`, `100kΩ` | `R_EN1` pulls `J_SW` Pin 1 to `VBUS_IN`; `R_EN2` pulls `U_EFUSE1` `EN` (`J_SW` Pin 2) to `GND` (defaults OFF when switch is open). |
 | **`R_ILIM1`** | `22kΩ` | Programs `U_EFUSE1` over-current limit (`ILIM` to `GND`) to ~2.2A–2.5A. |
@@ -333,27 +333,28 @@ The complete schematic is captured in `hardware/kicad/FarkleScorekeeper/FarkleSc
 | **`R_RX1`, `R_RX2`** | `1kΩ`, `2kΩ` | Voltage divider stepping Arduino 5V `TX/1` down to 3.3V (`MP3_RX_3V3`) for `U_MP3` Pin 2 (`RX`). |
 | **`FB1`** | `600R@100MHz` Ferrite Bead | Isolates `+5V_AUDIO` from `+5V` LED switching noise (Finding F11). |
 | **`C_MP3_BULK`, `C_MP3_DEC`** | `100µF`, `100nF` | Local power filtering on `+5V_AUDIO` right at `U_MP3`. |
-| **`SW_MUTE`** | `SW_DPDT_x2` | Hardware DPDT audio mute switch disconnecting both `SPK_1` and `SPK_2` differential speaker lines. |
-| **`J_SPK`** | `Conn_01x02` (`SPEAKER_8R`) | 2-pin header for the 8Ω 0.5W speaker after `SW_MUTE`. |
+| **`SW_MUTE`** | `SW_DPDT_x2` (`E-Switch EG2219`) | Right-angle PCB-mount DPDT slide switch (`Button_Switch_THT:SW_E-Switch_EG2219_DPDT_Angled`) placed at the board edge, disconnecting both `SPK_1` and `SPK_2` differential speaker lines. |
+| **`J_SPK`** | `Conn_01x02` (`SPEAKER_8R`) | 2-pin 5.08mm PCB screw terminal block (`TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal`) for the raw 8Ω 0.5W speaker wires after `SW_MUTE`. |
 
 #### 6. Control Pad: Buttons, Steering Diodes & Rotary Encoder (`FarkleScorekeeper.kicad_sch`)
 | Ref | Part / Value | Role & Pin / Net Wiring |
 |:--|:---|:--|
-| **`RotaryEncoder`** | `RotaryEncoder_Switch` | `A` → `2`, `B` → `*3`, `S1` (push button) → `4`, `C` & `S2` → `GND`. |
-| **`SW2`** | `SW_DPDT_x2` | Latching "Total Score" switch (`Pin 2` → `A3`, `Pin 3` → `GND`). |
-| **`BANK`, `FARKLE`, `CLEAR`** | `SW_Push` (×3) | Single-bit buttons pulling `*5` (`100`), `*6` (`010`), and `A2` (`001`) directly to `GND`. |
-| **`+50`** | `SW_Push` | Multi-bit button (`111`) pulling `*5`, `*6`, and `A2` to `GND` via 3 steering diodes (`D5`, `D6`, `D7`). |
-| **`+100`** | `SW_Push` | Multi-bit button (`110`) pulling `*5` and `*6` to `GND` via 2 steering diodes (`D3`, `D4`). |
-| **`+500`** | `SW_Push` | Multi-bit button (`011`) pulling `*6` and `A2` to `GND` via 2 steering diodes (`D1`, `D2`). |
-| **`D1`–`D7`** | `1N5819` Schottky Diodes (×7) | Isolate the 3-bit button bus lines (`*5`, `*6`, `A2`) so unpressed multi-bit buttons do not short bus lines together (Finding F4 / Review R1). |
+| **`RotaryEncoder`** | Bare `EC11` Encoder (`Alps EC11E` / `Bourns PEC11R`) | Direct PCB-mount 20-detent rotary encoder with push switch (`RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm`). `A` → `2`, `B` → `*3`, `S1` (push button) → `4`, `C`, `S2` & `MP` (shield) → `GND`. |
+| **`R_ENC1`, `R_ENC2`** | `10kΩ` (`0603`) | Pull-up resistors from `2` (`A`) and `*3` (`B`) to `+5V`, matching the `KY-040` module circuit so zero firmware changes are needed. |
+| **`SW2`** | `SW_DPDT_x2` (`E-Switch 100DP1T1B1M2QE`) | PCB-mount miniature bat toggle switch (`ON-ON`, through-hole PC pins, `CustomKiCadLibrary:SW_Toggle_DPDT_PC_Pin_E-Switch_100DP1`) for the "Total Score" display toggle (`Pin 2` → `A3`, `Pin 3` → `GND`). |
+| **`BANK`, `FARKLE`, `CLEAR`** | `SW_Push` (`Button_Switch_THT:SW_PUSH-12mm`) | 12×12mm tactile pushbuttons with colored caps ([ProtoSupplies 12mm Tactile](https://protosupplies.com/product/tactile-momentary-pushbutton-green-12mm/)), pulling `*5` (`100`), `*6` (`010`), and `A2` (`001`) directly to `GND`. |
+| **`+50`** | `SW_Push` (`SW_PUSH-12mm`) | Multi-bit 12mm button (`111`) pulling `*5`, `*6`, and `A2` to `GND` via 3 steering diodes (`D5`, `D6`, `D7`). |
+| **`+100`** | `SW_Push` (`SW_PUSH-12mm`) | Multi-bit 12mm button (`110`) pulling `*5` and `*6` to `GND` via 2 steering diodes (`D3`, `D4`). |
+| **`+500`** | `SW_Push` (`SW_PUSH-12mm`) | Multi-bit 12mm button (`011`) pulling `*6` and `A2` to `GND` via 2 steering diodes (`D1`, `D2`). |
+| **`D1`–`D7`** | `1N5819` Schottky Diodes (`SOD-123`) | Isolate the 3-bit button bus lines (`*5`, `*6`, `A2`) so unpressed multi-bit buttons do not short bus lines together (Finding F4 / Review R1). |
 
-#### 7. WS2812B LEDs & Hierarchical Sub-Sheet (`LedGrid_StatusStrip.kicad_sch`)
+#### 7. WS2812B LEDs & Serpentine Hierarchical Sub-Sheet (`LedGrid_StatusStrip.kicad_sch`)
 | Ref | Part / Value | Role & Pin / Net Wiring |
 |:--|:---|:--|
-| **`R1`, `R2`** | `330Ω` (on main sheet) | Series data-line protection resistors between `U_BUF1` (`LED_GRID_RAW`, `LED_STRIP_RAW`) and hierarchical ports `LED_GRID_DIN`, `LED_STRIP_DIN`. |
-| **`LED1`–`LED64`** | `WS2812B` SMD LEDs (×64) | 8×8 progress grid powered by `+5V` and `GND`; `LED1` `DIN` ← `LED_GRID_DIN`, daisy-chained `DOUT` → `DIN` through `LED64`. |
-| **`LED65`–`LED72`** | `WS2812B` SMD LEDs (×8) | 8-LED status strip powered by `+5V` and `GND`; `LED65` `DIN` ← `LED_STRIP_DIN`, daisy-chained `DOUT` → `DIN` through `LED72`. |
-| **`C_LED1`–`C_LED9`** | `100nF` Ceramic (×9) | Local high-frequency decoupling capacitors across `+5V` and `GND` for each row of 8 `WS2812B` LEDs. |
+| **`R1`, `R2`** | `330Ω` (`0603`, on main sheet) | Series data-line protection resistors between `U_BUF1` (`LED_GRID_RAW`, `LED_STRIP_RAW`) and hierarchical ports `GRID_DIN`, `STRIP_DIN`. |
+| **`LED1`–`LED64`** | `WS2812B` 5050 SMD LEDs (`5.0×5.0mm PLCC4`) | 8×8 progress grid (`LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm`) arranged in a **serpentine ("snake") chain** matching `LedProgressGrid::get_pixel_index(row, col)`:<br>• **Even rows (`Row 0, 2, 4, 6`):** Flow **Right-to-Left** (`Col 7` → `Col 0`; `LED1` enters at `R0,C7` and exits `LED8` at `R0,C0`).<br>• **Odd rows (`Row 1, 3, 5, 7`):** Flow **Left-to-Right** (`Col 0` → `Col 7`; `LED9` enters at `R1,C0` and exits `LED16` at `R1,C7`). |
+| **`LED65`–`LED72`** | `WS2812B` 5050 SMD LEDs (`5.0×5.0mm PLCC4`) | 8-LED status strip powered by `+5V` and `GND`; `LED65` `DIN` ← `STRIP_DIN`, daisy-chained `DOUT` → `DIN` through `LED72`. |
+| **`C_LED1`–`C_LED9`** | `100nF` Ceramic (`0603`, ×9) | Local high-frequency decoupling capacitors across `+5V` and `GND` for each row of 8 `WS2812B` LEDs. |
 
 ---
 

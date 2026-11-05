@@ -156,8 +156,14 @@
 *   **Full Component & Net Reference:** Added to `MODULAR_PCB_PROPOSAL.md` §10.1.
 
 **Next Steps (Phase A0 → A1):**
-1.  Select physical mechanical switches (`BANK`/`FARKLE`/`CLEAR`/`+50`/`+100`/`+500`, `SW2`, `SW_MUTE`, `RotaryEncoder`) and JLCPCB/LCSC part numbers for the SMD BOM.
-2.  Assign footprints to all schematic symbols in `FarkleScorekeeper_v2` and proceed to PCB layout.
+1.  **Switch, Control & Footprint Assignment (Completed in Session 5):**
+    *   **6× Gamepad Buttons (`BANK`, `FARKLE`, `CLEAR`, `+50`, `+100`, `+500`):** Reusing [ProtoSupplies 12mm Tactile Momentary Pushbuttons](https://protosupplies.com/product/tactile-momentary-pushbutton-green-12mm/) (`Button_Switch_THT:SW_PUSH-12mm`).
+    *   **Display Toggle Switch (`SW2`):** PCB-mount miniature bat toggle switch (`ON-ON`, through-hole PC pins, **E-Switch `100DP1T1B1M2QE`** / **C&K `1201M2S3CQE2`**, `CustomKiCadLibrary:SW_Toggle_DPDT_PC_Pin_E-Switch_100DP1`).
+    *   **Audio Mute Switch (`SW_MUTE`):** Right-angle PCB-mount DPDT slide switch (**E-Switch `EG2219`**, `Button_Switch_THT:SW_E-Switch_EG2219_DPDT_Angled`) at the PCB edge.
+    *   **Rotary Encoder (`RotaryEncoder`):** Bare PCB-mount 20-detent `EC11` rotary encoder with push switch (**Alps `EC11E` / Bourns `PEC11R`**, `Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm`) + two `10kΩ` pull-up resistors (`R_ENC1`, `R_ENC2`) to `+5V`.
+    *   **Off-Board Wire Connections (`J_PWR`, `J_SW`, `J_SPK`):** 2-pin `5.08mm` PCB screw terminal blocks (`TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal`) for the USB-C power breakout, [ProtoSupplies Miniature SPST Power Rocker](https://protosupplies.com/product/miniature-rocker-switch-spst/), and 8Ω speaker.
+    *   **Serpentine 8×8 LED Grid (`LedGrid_StatusStrip.kicad_sch`):** Updated to `5.0×5.0mm` `5050` footprint (`LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm`) and drawn in serpentine order (even rows Right-to-Left, odd rows Left-to-Right) with `(R#,C#)` labels matching `LedProgressGrid::get_pixel_index`.
+2.  **Next:** Review the updated schematic in KiCad, import footprints into `FarkleScorekeeper.kicad_pcb` (`Update PCB from Schematic`), and arrange the front-panel component placement.
 
 
 
