@@ -286,6 +286,75 @@ One large front-panel PCB with all displays, 72 SMD LEDs, and buttons on the fro
 
 **Session 5 Decision:** Guillermo selected the **Single Unified Main PCB** (matching the approach started in `FarkleScorekeeper.kicad_sch`) to eliminate internal multi-board wiring harnesses, while keeping the `5V_LED` vs. `5V_SYS` star distribution, `TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` LCD 3.3V level shifter, and `74AHCT244` 5V buffer on the unified board.
 
+### 10.1 Unified Main PCB Complete Schematic & Component Reference (`FarkleScorekeeper_v2`)
+
+The complete schematic is captured in `FarkleScorekeeper.kicad_sch` (main sheet) and `LedGrid_StatusStrip.kicad_sch` (hierarchical sub-sheet), verified to **0 ERC errors and 0 warnings** in KiCad 10.
+
+#### 1. Compute & Storage (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`J1`–`J4`** | Arduino Uno R4 WiFi Headers | **`J1` (Power):** `+5V`, `+3V3`, `GND` (`Pin 6`, `Pin 7`).<br>**`J2` (Analog):** `A0` (LED Grid), `A1` (Status Strip), `A2` (Button Bus Bit 0), `A3` (Latching Switch), `SDA/A4` (LCD CS), `SCL/A5` (LCD DC).<br>**`J3` (Digital High):** `8` (LCD BLK), `*9` (SD CS), `*10` (MAX7219 CS), `*11` (SPI MOSI), `12` (SPI MISO), `13` (SPI SCK), `GND`.<br>**`J4` (Digital Low):** `RX/0` (MP3 TX), `TX/1` (MP3 RX), `2`/`*3` (Encoder A/B), `4` (Encoder Push/Select), `*5` (Button Bus Bit 2), `*6` (Button Bus Bit 1), `7` (LCD RES). |
+| **`MC_A1`** | `MemoryCard_Adapter` (5V-native microSD) | `VCC` → `+5V`, `GND` → `GND`, `CS` → `*9`, `MOSI` → `*11`, `MISO` → `12`, `SCK` → `13`. |
+
+#### 2. Power Entry, Protection & Decoupling (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`J_PWR`** | `Conn_01x02` (`USB_C_5V_IN`) | 2-pin 5V power input from the USB-C breakout / docked power bank (`VBUS_IN`, `GND`). |
+| **`J_SW`** | `Conn_01x02` (`PWR_SWITCH`) | 2-pin header to the panel power rocker switch; switches the low-current (µA) eFuse `EN` line. |
+| **`D_TVS1`** | `SMBJ5.0A` | Unidirectional 5V TVS protection diode across `VBUS_IN` and `GND` for ESD / hot-plug spikes. |
+| **`U_EFUSE1`** | `TPS2595` eFuse | `VIN` ← `VBUS_IN`, `VOUT` → `+5V` rail, `GND` → `GND`, `FLT` → unconnected (no-connect). |
+| **`C_IN1`** | `100nF` | Input decoupling capacitor on `VBUS_IN` next to `U_EFUSE1`. |
+| **`R_EN1`, `R_EN2`** | `10kΩ`, `100kΩ` | `R_EN1` pulls `J_SW` Pin 1 to `VBUS_IN`; `R_EN2` pulls `U_EFUSE1` `EN` (`J_SW` Pin 2) to `GND` (defaults OFF when switch is open). |
+| **`R_ILIM1`** | `22kΩ` | Programs `U_EFUSE1` over-current limit (`ILIM` to `GND`) to ~2.2A–2.5A. |
+| **`C_DVDT1`** | `10nF` | Programs `U_EFUSE1` soft-start ramp time (`DVDT` to `GND`, ≥6 ms) to prevent `1000µF` inrush trips. |
+| **`C1`** | `1000µF` Electrolytic | Main bulk reservoir capacitor across `+5V` and `GND` for LED current transients. |
+| **`C2`, `C3`** | `100nF` Ceramic | Local high-frequency decoupling capacitors across `+5V`/`GND` and on `A2`/`GND` (Issue #80 filter). |
+
+#### 3. 3.3V LCD Level-Shifter & TextDisplay (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`U_LDO1`** | `AP2112K-3.3` | Dedicated 600 mA 3.3V LDO regulator (`VIN` & `EN` ← `+5V`, `VOUT` → `+3V3_LCD`, `GND` → `GND`). |
+| **`C_LDO_IN`, `C_LDO_OUT`** | `1µF` Ceramic | Input and output stability capacitors for `U_LDO1`. |
+| **`U_LVL1`** | `74LVC245A` | Octal 5V-to-3.3V level shifter (`VCC` ← `+3V3_LCD`, `DIR` ← `+3V3_LCD` for A→B, `OE_N` ← `GND`).<br>**Inputs (`A1`–`A6`):** `13` (`SCK`), `*11` (`MOSI`), `7` (`RES`), `SCL/A5` (`DC`), `SDA/A4` (`CS`), `8` (`BLK`). Unused `A7`, `A8` tied to `GND`.<br>**Outputs (`B1`–`B6`):** `LCD_SCL_3V3`, `LCD_SDA_3V3`, `LCD_RES_3V3`, `LCD_DC_3V3`, `LCD_CS_3V3`, `LCD_BLK_3V3`. |
+| **`C_LVL1`** | `100nF` Ceramic | Local decoupling capacitor for `U_LVL1` (`+3V3_LCD` to `GND`). |
+| **`TD1`** | `TextDisplay` (8-pin ST7789 240×240 LCD) | Powered by `+3V3_LCD` and `GND`; receives the 6 level-shifted 3.3V signals (`SCL`, `SDA`, `RES`, `DC`, `CS`, `BLK`) from `U_LVL1`. |
+
+#### 4. 5V Signal Buffer & 3× Score Displays (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`U_BUF1`** | `74AHCT244` | Octal 5V line driver / TTL-threshold up-shifter (`VCC` ← `+5V`, `1OE_N` & `2OE_N` ← `GND`).<br>• **`1A1`–`1A3` → `1Y1`–`1Y3`:** Buffers `*11`, `*10`, `13` → `MAX_DIN_5V`, `MAX_CS_5V`, `MAX_CLK_5V`.<br>• **`1A4`, `2A1` → `1Y4`, `2Y1`:** Buffers `A0`, `A1` → `LED_GRID_RAW`, `LED_STRIP_RAW`.<br>• **`2A2` → `2Y2`:** Shifts `MP3_TX_3V3` (3.3V from DFPlayer) up to a clean 5.0V for Arduino `RX/0`.<br>• Unused `2A3`, `2A4` tied to `GND`. |
+| **`C_BUF1`** | `100nF` Ceramic | Local decoupling capacitor for `U_BUF1` (`+5V` to `GND`). |
+| **`AtRiskScore`, `Banked`, `Opposition`** | `MAX2719_Adapter` (×3) | Powered by `+5V` and `GND`. `AtRiskScore` receives buffered `MAX_DIN_5V`, `MAX_CS_5V`, `MAX_CLK_5V`, and daisy-chains `D_OUT`/`CS_OUT`/`CLK_OUT` → `Banked` → `Opposition`. |
+
+#### 5. Audio Subsystem: DFPlayer Mini, Mute Switch & Speaker (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`U_MP3`** | `MP3-TF-16P` (DFPlayer Mini) | Powered by filtered `+5V_AUDIO` and `GND` (both pins 7 and 10). `RX` ← `MP3_RX_3V3`, `TX` → `MP3_TX_3V3`, `SPK_1`/`SPK_2` → `SW_MUTE`. |
+| **`R_RX1`, `R_RX2`** | `1kΩ`, `2kΩ` | Voltage divider stepping Arduino 5V `TX/1` down to 3.3V (`MP3_RX_3V3`) for `U_MP3` Pin 2 (`RX`). |
+| **`FB1`** | `600R@100MHz` Ferrite Bead | Isolates `+5V_AUDIO` from `+5V` LED switching noise (Finding F11). |
+| **`C_MP3_BULK`, `C_MP3_DEC`** | `100µF`, `100nF` | Local power filtering on `+5V_AUDIO` right at `U_MP3`. |
+| **`SW_MUTE`** | `SW_DPDT_x2` | Hardware DPDT audio mute switch disconnecting both `SPK_1` and `SPK_2` differential speaker lines. |
+| **`J_SPK`** | `Conn_01x02` (`SPEAKER_8R`) | 2-pin header for the 8Ω 0.5W speaker after `SW_MUTE`. |
+
+#### 6. Control Pad: Buttons, Steering Diodes & Rotary Encoder (`FarkleScorekeeper.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`RotaryEncoder`** | `RotaryEncoder_Switch` | `A` → `2`, `B` → `*3`, `S1` (push button) → `4`, `C` & `S2` → `GND`. |
+| **`SW2`** | `SW_DPDT_x2` | Latching "Total Score" switch (`Pin 2` → `A3`, `Pin 3` → `GND`). |
+| **`BANK`, `FARKLE`, `CLEAR`** | `SW_Push` (×3) | Single-bit buttons pulling `*5` (`100`), `*6` (`010`), and `A2` (`001`) directly to `GND`. |
+| **`+50`** | `SW_Push` | Multi-bit button (`111`) pulling `*5`, `*6`, and `A2` to `GND` via 3 steering diodes (`D5`, `D6`, `D7`). |
+| **`+100`** | `SW_Push` | Multi-bit button (`110`) pulling `*5` and `*6` to `GND` via 2 steering diodes (`D3`, `D4`). |
+| **`+500`** | `SW_Push` | Multi-bit button (`011`) pulling `*6` and `A2` to `GND` via 2 steering diodes (`D1`, `D2`). |
+| **`D1`–`D7`** | `1N5819` Schottky Diodes (×7) | Isolate the 3-bit button bus lines (`*5`, `*6`, `A2`) so unpressed multi-bit buttons do not short bus lines together (Finding F4 / Review R1). |
+
+#### 7. WS2812B LEDs & Hierarchical Sub-Sheet (`LedGrid_StatusStrip.kicad_sch`)
+| Ref | Part / Value | Role & Pin / Net Wiring |
+|:--|:---|:--|
+| **`R1`, `R2`** | `330Ω` (on main sheet) | Series data-line protection resistors between `U_BUF1` (`LED_GRID_RAW`, `LED_STRIP_RAW`) and hierarchical ports `LED_GRID_DIN`, `LED_STRIP_DIN`. |
+| **`LED1`–`LED64`** | `WS2812B` SMD LEDs (×64) | 8×8 progress grid powered by `+5V` and `GND`; `LED1` `DIN` ← `LED_GRID_DIN`, daisy-chained `DOUT` → `DIN` through `LED64`. |
+| **`LED65`–`LED72`** | `WS2812B` SMD LEDs (×8) | 8-LED status strip powered by `+5V` and `GND`; `LED65` `DIN` ← `LED_STRIP_DIN`, daisy-chained `DOUT` → `DIN` through `LED72`. |
+| **`C_LED1`–`C_LED9`** | `100nF` Ceramic (×9) | Local high-frequency decoupling capacitors across `+5V` and `GND` for each row of 8 `WS2812B` LEDs. |
+
 ---
 
 ## 11. Open Questions — All Resolved (Session 5, 2026-11-01)

@@ -152,5 +152,12 @@
 *   Swapped the reversed diode buses on `+50` (needs 3 diodes: `D5`, `D6`, `A2` for binary `111`) and `+100` (needs 2 diodes: `D5`, `D6` for binary `110`).
 *   Unified all floating `+5V` and `GND` islands with proper power symbols and decoupling capacitors.
 *   Added the missing subsystems: `TextDisplay` (`TD1`) level-shifted wiring, `DFPlayer Mini` (`MP3-TF-16P`) with `1kΩ/2kΩ` RX divider + `74AHCT244` TX buffer + ferrite-filtered supply, DPDT mute switch (`SW_MUTE`) + speaker header, `TPS2595` eFuse power entry + power switch header, and the 72-LED `WS2812B` hierarchical sub-sheet (`LedGrid_StatusStrip.kicad_sch`).
+*   **ERC Verification:** Ran `kicad-cli sch erc` across `FarkleScorekeeper.kicad_sch` and `LedGrid_StatusStrip.kicad_sch`: **0 Errors, 0 Warnings**.
+*   **Full Component & Net Reference:** Added to `MODULAR_PCB_PROPOSAL.md` §10.1.
+
+**Next Steps (Phase A0 → A1):**
+1.  Select physical mechanical switches (`BANK`/`FARKLE`/`CLEAR`/`+50`/`+100`/`+500`, `SW2`, `SW_MUTE`, `RotaryEncoder`) and JLCPCB/LCSC part numbers for the SMD BOM.
+2.  Assign footprints to all schematic symbols in `FarkleScorekeeper_v2` and proceed to PCB layout.
+
 
 

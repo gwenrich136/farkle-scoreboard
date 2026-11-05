@@ -1,6 +1,6 @@
 > **Scope:** Provides a complete wiring guide, pin map, and power strategy for connecting all physical hardware components to the Arduino.
-> **Status:** **LIVE DOCUMENT** - This file represents the current source of truth. If hardware changes, this document MUST be updated.
-> **PCB work:** A proposed modular PCB replacement for this hand-wired build lives in `design/pcb-design/` (see `MODULAR_PCB_PROPOSAL.md`). Until it is adopted, this file remains the wiring source of truth.
+> **Status:** **LIVE DOCUMENT (BREADBOARD / PINOUT REFERENCE)** - This file represents the logical Arduino Uno R4 WiFi pinout and hand-wired prototype guide.
+> **PCB Specification (`FarkleScorekeeper_v2`):** The Single Unified Main PCB architecture and complete KiCad schematic component/net reference (including the `TPS2595` eFuse, `AP2112K-3.3` + `74LVC245A` 3.3V LCD level shifter, `74AHCT244` 5V buffer, `1N5819` steering diodes `D1`–`D7`, and 72 SMD `WS2812B` LEDs) live in `design/pcb-design/MODULAR_PCB_PROPOSAL.md` (§10.1). All Arduino Uno R4 WiFi pin assignments remain 100% identical between this guide and the PCB.
 
 # **The "Retro Arduino" Farkle Scoreboard: Complete Wiring Guide**
 
