@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "6-Pin 5V-Native microSD Card SPI Adapter Module")
+	(descr "6-Pin 5V-Native microSD Card SPI Adapter Module (42mm x 24mm, Catalex pinout)")
 	(property "Reference" "MC_A**"
 		(at 20.0 -6.5 0)
 		(layer "F.SilkS")
@@ -19,47 +19,75 @@
 	(attr through_hole)
 	(fp_rect (start -2.0 -5.65) (end 40.0 18.35) (stroke (width 0.12) (type solid)) (fill no) (layer "F.SilkS") (uuid "27d8e0a9-350f-4445-8525-ef20fed8c9c3"))
 	(fp_rect (start -2.25 -5.9) (end 40.25 18.6) (stroke (width 0.05) (type solid)) (fill no) (layer "F.CrtYd") (uuid "6a7e89dc-52c9-479b-86e3-2af90b62eedf"))
-	(pad "1" thru_hole rect
+	(pad "6" thru_hole rect
 		(at 0.00 0.00)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "df56f5e3-0fdf-4072-aa25-7c744592cd7b")
 	)
-	(pad "2" thru_hole circle
+	(pad "5" thru_hole circle
 		(at 0.00 2.54)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "96e5eec1-0cdf-4804-a99e-ba486f087ebc")
 	)
-	(pad "3" thru_hole circle
+	(pad "4" thru_hole circle
 		(at 0.00 5.08)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "acf70ddf-4305-4b6c-9e35-ca2407cc7f1d")
 	)
-	(pad "4" thru_hole circle
+	(pad "3" thru_hole circle
 		(at 0.00 7.62)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "d9e8beea-4180-4a24-9c4e-5d418e196262")
 	)
-	(pad "5" thru_hole circle
+	(pad "2" thru_hole circle
 		(at 0.00 10.16)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "886b12c7-a24c-4e23-942d-ee46d29084bf")
 	)
-	(pad "6" thru_hole circle
+	(pad "1" thru_hole circle
 		(at 0.00 12.70)
 		(size 1.7 1.7)
 		(drill 1.0)
 		(layers "*.Cu" "*.Mask")
 		(uuid "19fd8321-205d-4694-b16d-38bd16c40bd0")
+	)
+	(pad "" np_thru_hole circle
+		(at 0.00 -3.65)
+		(size 2.2 2.2)
+		(drill 2.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "29fd8321-205d-4694-b16d-38bd16c40bd1")
+	)
+	(pad "" np_thru_hole circle
+		(at 38.00 -3.65)
+		(size 2.2 2.2)
+		(drill 2.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "39fd8321-205d-4694-b16d-38bd16c40bd2")
+	)
+	(pad "" np_thru_hole circle
+		(at 0.00 16.35)
+		(size 2.2 2.2)
+		(drill 2.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "49fd8321-205d-4694-b16d-38bd16c40bd3")
+	)
+	(pad "" np_thru_hole circle
+		(at 38.00 16.35)
+		(size 2.2 2.2)
+		(drill 2.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "59fd8321-205d-4694-b16d-38bd16c40bd4")
 	)
 	(embedded_fonts no)
 )

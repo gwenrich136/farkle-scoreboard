@@ -8875,7 +8875,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MAX 2719 Adapter"
+		(property "Value" "MAX 2719 Adapter (Small)"
 			(at 266.3033 49.53 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8886,7 +8886,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomKiCadLibrary:Max2719Big"
+		(property "Footprint" "CustomKiCadLibrary:Max2719Small"
 			(at 262.89 55.88 0)
 			(hide yes)
 			(show_name no)
@@ -10006,7 +10006,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MAX 2719 Adapter"
+		(property "Value" "MAX 2719 Adapter (Small)"
 			(at 224.3933 49.53 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10017,7 +10017,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "CustomKiCadLibrary:Max2719Big"
+		(property "Footprint" "CustomKiCadLibrary:Max2719Small"
 			(at 220.98 55.88 0)
 			(hide yes)
 			(show_name no)
