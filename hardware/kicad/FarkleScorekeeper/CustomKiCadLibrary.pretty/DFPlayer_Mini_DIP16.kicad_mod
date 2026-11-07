@@ -18,6 +18,10 @@
 	)
 	(attr through_hole)
 	(fp_rect (start -2.63 -1.36) (end 17.87 19.14) (stroke (width 0.12) (type solid)) (fill no) (layer "F.SilkS") (uuid "d4e582e2-8769-429b-b445-207f5e07acb4"))
+	(fp_rect (start 1.62 4.50) (end 13.62 19.14) (stroke (width 0.1) (type dash)) (fill no) (layer "F.Fab") (uuid "75fb1f44-294e-4b3a-9672-4a2b61144b90"))
+	(fp_text user "SD SLOT (BOTTOM)" (at 7.62 17.50 0) (layer "F.Fab") (uuid "6c852bc2-885c-414b-a1a7-189d8a567123")
+		(effects (font (size 0.8 0.8) (thickness 0.12)))
+	)
 	(fp_rect (start -2.88 -1.61) (end 18.12 19.39) (stroke (width 0.05) (type solid)) (fill no) (layer "F.CrtYd") (uuid "3914c5c9-0a23-4eea-80a2-426f25992b13"))
 	(pad "1" thru_hole rect
 		(at 0.00 0.00)
